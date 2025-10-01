@@ -1,0 +1,7 @@
+{
+    "name": "nx-tsdown",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "tools/nx-tsdown/src",
+    "projectType": "library",
+    "tags": []
+  }

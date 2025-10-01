@@ -1,0 +1,24 @@
+{
+  "name": "nx-tsdown",
+  "version": "0.0.1",
+  "private": false,
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.cjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.cts",
+      "import": "./dist/index.cjs",
+      "default": "./dist/index.cjs"
+    }
+  },
+  "dependencies": {
+    "tslib": "^2.3.0",
+    "@nx/devkit": "21.6.2"
+  },
+  "scripts": {
+    "build": "tsdown"
+  }
+}
