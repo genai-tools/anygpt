@@ -1,77 +1,112 @@
-# OpenAI-Compatible MCP Proxy Server
+# GenAI Gateway MCP Server
+
+## Documentation Structure
+
+This specification is organized into focused documents:
+
+- **[Components Design](./components.md)** - System architecture and component specifications
+- **[Client Configuration](./client.md)** - Client setup, configuration, and usage
+- **[MCP Server](./mcp-server.md)** - MCP server implementation and configuration  
+- **[Docker Integration](./docker.md)** - Containerization and Docker deployment
 
 ## 1. Introduction
 
 ### Goal
-Create an MCP server proxy that connects to our corporate OpenAI-compatible API and exposes it to any client supporting the MCP protocol (e.g., Docker Desktop MCP Toolkit, Windsurf, etc.).
+Create an MCP server gateway that connects to multiple AI providers (OpenAI, Anthropic, local models, etc.) and exposes them to any client supporting the MCP protocol (e.g., Docker Desktop MCP Toolkit, Windsurf, etc.).
 
 ### Problem
 - **MCP clients** can only interact with MCP servers
-- **Our API** is OpenAI-compatible but cannot be directly integrated with MCP
-- **We need** a bridging layer
+- **AI provider APIs** have different protocols and cannot be directly integrated with MCP
+- **We need** a universal bridging layer for multiple providers
 
 ### Solution
-Develop an **MCP Proxy Server** that:
+Develop a **GenAI Gateway MCP Server** that:
 - Runs as a containerized MCP server (Docker)
 - Accepts MCP requests (via JSON-RPC over stdin/stdout)
-- Translates them into OpenAI-compatible API calls
+- Translates them into provider-specific API calls (OpenAI, Anthropic, etc.)
 - Returns responses in MCP-compliant format
 
 ## 2. Objectives
 
-- **Universal Bridge**: Provide a bridge between MCP and OpenAI-compatible APIs
+- **Universal Bridge**: Provide a bridge between MCP and multiple AI provider APIs
+- **Multi-Provider Support**: OpenAI, Anthropic, local models, Azure OpenAI
 - **Core Features**: Support core MCP features (chat, completion, tools)
 - **Authentication**: Handle authentication via API keys/environment variables
-- **Extensibility**: Ensure extensibility for new endpoints
-- **Multi-Provider**: Allow routing to multiple models/providers if needed
+- **Extensibility**: Plugin architecture for adding new providers
 
 ## 3. Architecture Diagram
 
 ```mermaid
 graph TD
     Client[MCP Client<br/>Docker Desktop / Windsurf]
-    Proxy[MCP Proxy Server<br/>Docker Container]
-    API[OpenAI-Compatible API<br/>Corporate/External]
+    Gateway[GenAI Gateway MCP<br/>Docker Container]
+    Providers[AI Providers<br/>OpenAI, Anthropic, Local]
+    
+    subgraph "AI Providers"
+        OpenAI[OpenAI API]
+        Anthropic[Anthropic API]
+        Local[Local Models<br/>Ollama, LM Studio]
+    end
 
-    Client -->|JSON-RPC<br/>stdin/stdout| Proxy
-    Proxy -->|HTTP REST<br/>OpenAI Format| API
-    API -->|JSON Response| Proxy
-    Proxy -->|MCP Response| Client
+    Client -->|JSON-RPC<br/>stdin/stdout| Gateway
+    Gateway -->|HTTP REST| OpenAI
+    Gateway -->|HTTP REST| Anthropic
+    Gateway -->|HTTP REST| Local
+    OpenAI -->|JSON Response| Gateway
+    Anthropic -->|JSON Response| Gateway
+    Local -->|JSON Response| Gateway
+    Gateway -->|MCP Response| Client
 
-    subgraph "MCP Proxy Server"
+    subgraph "GenAI Gateway MCP"
         Parser[Request Parser]
+        Router[Provider Router]
         Translator[API Translator]
         Formatter[Response Formatter]
         
-        Parser --> Translator
+        Parser --> Router
+        Router --> Translator
         Translator --> Formatter
     end
 ```
 
 ## 4. System Components
 
-### 4.1 MCP Proxy Server
+### 4.1 GenAI Gateway MCP Server
 - **Runtime**: Docker MCP server container
 - **Interface**: JSON-RPC MCP protocol over stdin/stdout
+- **Provider Support**: OpenAI, Anthropic, local models
 - **Supported Commands**:
-  - `listModels` → proxied to `/models`
-  - `createCompletion` → proxied to `/chat/completions`
-  - `callTool` → maps to custom API tools (optional)
+  - `listModels` → routes to provider `/models`
+  - `createCompletion` → routes to provider completion endpoints
+  - `callTool` → maps to provider-specific tools (optional)
 
-### 4.2 OpenAI-Compatible API
-REST API implementing OpenAI SDK-compatible endpoints:
+### 4.2 AI Provider APIs
+Supported provider endpoints:
+
+**OpenAI/Azure OpenAI**:
 - `/models` - List available models
-- `/chat/completions` - Chat completions endpoint
-- `/embeddings` - Text embeddings (optional)
-- `/completions` - Legacy completions (optional)
+- `/chat/completions` - Chat completions
+- `/embeddings` - Text embeddings
+- `/completions` - Legacy completions
+
+**Anthropic**:
+- `/models` - List Claude models
+- `/messages` - Claude messages API
+
+**Local Models (Ollama/LM Studio)**:
+- `/api/tags` - List local models
+- `/api/chat` - Chat completions
+- `/api/generate` - Text generation
 
 ### 4.3 Configuration
 **Environment Variables**:
-- `API_BASE_URL` — Base URL of the OpenAI-compatible API
-- `API_KEY` — Authentication token
+- `GATEWAY_URL` — Base URL of the GenAI gateway service
+- `GATEWAY_API_KEY` — Authentication token for gateway
+- `PROVIDER_TYPE` — AI provider type (openai, anthropic, local)
 - `DEFAULT_MODEL` — Default model name
 - `TIMEOUT` — Request timeout in seconds (default: 30)
 - `MAX_RETRIES` — Maximum retry attempts (default: 3)
+- `PROVIDER_CONFIG` — JSON config for provider-specific settings
 
 **Distribution**: Docker image with configurable environment
 
@@ -80,22 +115,24 @@ REST API implementing OpenAI SDK-compatible endpoints:
 ```mermaid
 sequenceDiagram
     participant Client as MCP Client
-    participant Proxy as MCP Proxy
-    participant API as OpenAI API
+    participant Gateway as GenAI Gateway
+    participant Provider as AI Provider
 
-    Client->>Proxy: JSON-RPC Request
-    Note over Proxy: Parse MCP Request
-    Proxy->>API: HTTP Request (OpenAI format)
-    API->>Proxy: JSON Response
-    Note over Proxy: Transform to MCP format
-    Proxy->>Client: MCP Response
+    Client->>Gateway: JSON-RPC Request
+    Note over Gateway: Parse MCP Request
+    Note over Gateway: Route to Provider
+    Gateway->>Provider: HTTP Request (Provider format)
+    Provider->>Gateway: JSON Response
+    Note over Gateway: Transform to MCP format
+    Gateway->>Client: MCP Response
 ```
 
 ### Flow Steps:
-1. **MCP client** sends a JSON-RPC request → **MCP Proxy**
-2. **Proxy** converts the request into an HTTP request for the OpenAI-compatible API
-3. **API response** is normalized into MCP format
-4. **Proxy** returns the result back to the client
+1. **MCP client** sends a JSON-RPC request → **GenAI Gateway**
+2. **Gateway** routes request to appropriate AI provider
+3. **Gateway** converts the request into provider-specific HTTP format
+4. **Provider response** is normalized into MCP format
+5. **Gateway** returns the result back to the client
 
 ## 6. Non-Functional Requirements
 

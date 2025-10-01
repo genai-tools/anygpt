@@ -1,27 +1,34 @@
-# OpenAI Gateway MCP
+# GenAI Gateway MCP
 
-A secure, enterprise-ready Model Context Protocol (MCP) server that bridges MCP clients with OpenAI-compatible APIs through a layered gateway architecture.
+A secure, enterprise-ready Model Context Protocol (MCP) server that bridges MCP clients with multiple AI providers (OpenAI, Anthropic, local models, etc.) through a layered gateway architecture.
 
 ## Why?
 
-**Problem**: MCP clients (Docker Desktop MCP Toolkit, Windsurf, etc.) cannot directly integrate with OpenAI-compatible APIs due to protocol differences and security requirements.
+**Problem**: MCP clients (Docker Desktop MCP Toolkit, Windsurf, etc.) cannot directly integrate with AI provider APIs due to protocol differences and security requirements.
 
 **Solution**: This monorepo provides a two-layer architecture:
-- **Gateway Layer**: Secure proxy service managing API credentials and routing
-- **MCP Layer**: Protocol translator converting MCP requests to OpenAI API calls
+- **Gateway Layer**: Secure proxy service managing AI provider credentials and routing
+- **MCP Layer**: Protocol translator converting MCP requests to AI provider API calls
 
-See [Architecture Specification](./docs/spec/README.md) for detailed technical design.
+See [Architecture Specification](./docs/spec/README.md) for detailed technical design and [Components Design](./docs/spec/components.md) for system architecture.
 
 ## Architecture
 
 ```
-MCP Client → openai-gateway-mcp → openai-gateway → OpenAI API
+MCP Client → genai-gateway-mcp → genai-gateway → AI Provider APIs
 ```
 
 ### Packages
 
-- **`openai-gateway`**: Secure gateway service that manages OpenAI client connections and credentials
-- **`openai-gateway-mcp`**: MCP server implementation that uses the gateway for API access
+- **`genai-gateway`**: Secure gateway service that manages AI provider connections and credentials
+- **`genai-gateway-mcp`**: MCP server implementation that uses the gateway for API access
+
+### Supported Providers
+
+- **OpenAI**: GPT models, embeddings, completions
+- **Anthropic**: Claude models (planned)
+- **Local Models**: Ollama, LM Studio (planned)
+- **Azure OpenAI**: Enterprise OpenAI deployment (planned)
 
 ## Installation
 
@@ -29,30 +36,32 @@ MCP Client → openai-gateway-mcp → openai-gateway → OpenAI API
 
 ```bash
 # Pull the latest image
-docker pull ghcr.io/theplenkov/openai-gateway-mcp:latest
+docker pull ghcr.io/theplenkov/genai-gateway:mcp
 
 # Run with your configuration
 docker run -d \
   -e GATEWAY_URL=https://your-gateway.company.com \
   -e GATEWAY_API_KEY=your-gateway-key \
   -e DEFAULT_MODEL=gpt-4 \
-  --name openai-gateway-mcp \
-  ghcr.io/theplenkov/openai-gateway-mcp:latest
+  -e PROVIDER_TYPE=openai \
+  --name genai-gateway-mcp \
+  ghcr.io/theplenkov/genai-gateway:mcp
 ```
 
 ### Using npm
 
 ```bash
-npm install -g @theplenkov/openai-gateway-mcp
-openai-gateway-mcp --gateway-url https://your-gateway.company.com
+npm install -g genai-gateway-mcp
+genai-gateway-mcp --gateway-url https://your-gateway.company.com --provider openai
 ```
 
 ## Configuration
 
 | Environment Variable | Description | Required | Default |
 |---------------------|-------------|----------|---------|
-| `GATEWAY_URL` | Base URL of your OpenAI gateway service | ✅ | - |
+| `GATEWAY_URL` | Base URL of your GenAI gateway service | ✅ | - |
 | `GATEWAY_API_KEY` | Authentication token for gateway | ✅ | - |
+| `PROVIDER_TYPE` | AI provider type (openai, anthropic, local) | ❌ | `openai` |
 | `DEFAULT_MODEL` | Default model name | ❌ | `gpt-3.5-turbo` |
 | `TIMEOUT` | Request timeout in seconds | ❌ | `30` |
 | `MAX_RETRIES` | Maximum retry attempts | ❌ | `3` |
@@ -60,40 +69,22 @@ openai-gateway-mcp --gateway-url https://your-gateway.company.com
 
 ## Docker MCP Toolkit Integration
 
-### 1. Add to Docker Desktop
+For complete Docker integration instructions, see [Docker Integration Specification](./docs/spec/docker.md).
 
-1. Open **Docker Desktop**
-2. Go to **Extensions** → **MCP Toolkit**
-3. Click **Add MCP Server**
-4. Configure:
+### Quick Setup
 
 ```json
 {
-  "name": "OpenAI Gateway",
+  "name": "GenAI Gateway",
   "command": "docker",
   "args": [
     "run", "--rm", "-i",
     "-e", "GATEWAY_URL=https://your-gateway.company.com",
     "-e", "GATEWAY_API_KEY=your-gateway-key",
-    "ghcr.io/theplenkov/openai-gateway-mcp:latest"
+    "-e", "PROVIDER_TYPE=openai",
+    "ghcr.io/theplenkov/genai-gateway:mcp"
   ]
 }
-```
-
-### 2. Using Docker Compose
-
-```yaml
-# docker-compose.yml
-version: '3.8'
-services:
-  openai-gateway-mcp:
-    image: ghcr.io/theplenkov/openai-gateway-mcp:latest
-    environment:
-      - GATEWAY_URL=https://your-gateway.company.com
-      - GATEWAY_API_KEY=${GATEWAY_API_KEY}
-      - DEFAULT_MODEL=gpt-4
-    stdin_open: true
-    tty: true
 ```
 
 ## Usage Examples
@@ -114,10 +105,11 @@ The MCP server automatically handles the protocol translation:
   }
 }
 
-// Gets translated to OpenAI format via gateway
+// Gets translated to provider format via gateway
 {
   "model": "gpt-3.5-turbo",
-  "messages": [{"role": "user", "content": "Hello!"}]
+  "messages": [{"role": "user", "content": "Hello!"}],
+  "provider": "openai"
 }
 ```
 
@@ -132,17 +124,18 @@ curl -X POST http://localhost:3000/mcp \
 
 ## Windsurf Integration
 
-Add to your Windsurf MCP configuration:
+For detailed client configuration, see [Client Configuration Guide](./docs/spec/client.md).
 
 ```json
 {
   "mcpServers": {
-    "openai-gateway": {
+    "genai-gateway": {
       "command": "npx",
-      "args": ["@theplenkov/openai-gateway-mcp"],
+      "args": ["genai-gateway-mcp"],
       "env": {
         "GATEWAY_URL": "https://your-gateway.company.com",
-        "GATEWAY_API_KEY": "your-gateway-key"
+        "GATEWAY_API_KEY": "your-gateway-key",
+        "PROVIDER_TYPE": "openai"
       }
     }
   }
@@ -164,21 +157,28 @@ nx run-many -t build
 nx run-many -t test
 
 # Start development server
-nx serve openai-gateway-mcp
+nx serve genai-gateway-mcp
 ```
 
 ## Security
 
-- **No direct API keys**: All OpenAI credentials are managed by the gateway service
+- **No direct API keys**: All AI provider credentials are managed by the gateway service
 - **Secure transport**: All communications use HTTPS/WSS
 - **Input validation**: All requests are validated before forwarding
 - **Rate limiting**: Built-in protection against abuse
 
+## Documentation
+
+- 📋 [Architecture Specification](./docs/spec/README.md) - Overall system design
+- 🏗️ [Components Design](./docs/spec/components.md) - Detailed component architecture  
+- 👤 [Client Configuration](./docs/spec/client.md) - Client setup and usage
+- 🖥️ [MCP Server](./docs/spec/mcp-server.md) - Server configuration and API
+- 🐳 [Docker Integration](./docs/spec/docker.md) - Container deployment
+
 ## Support
 
-- 📖 [Documentation](./docs/spec/README.md)
-- 🐛 [Issues](https://github.com/ThePlenkov/openai-gateway-mcp/issues)
-- 💬 [Discussions](https://github.com/ThePlenkov/openai-gateway-mcp/discussions)
+- 🐛 [Issues](https://github.com/ThePlenkov/genai-gateway/issues)
+- 💬 [Discussions](https://github.com/ThePlenkov/genai-gateway/discussions)
 
 ## License
 
