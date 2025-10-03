@@ -9,6 +9,8 @@ import {
 } from '../../utils/conversations.js';
 import { setupCLIContext } from '../../utils/cli-context.js';
 import { getCurrentConversation, setCurrentConversation } from './state.js';
+import type { GenAIRouter } from '@anygpt/router';
+import type { ConversationMetadata } from '../../utils/conversations.js';
 
 interface MessageOptions {
   conversation?: string;
@@ -72,18 +74,21 @@ export async function conversationMessageCommand(
     }
   }
   
-  console.log(`🔄 ${conversation.name}`);
+  // TypeScript assertion: conversation is guaranteed to be non-null here
+  const validConversation: ConversationMetadata = conversation!;
+  
+  console.log(`🔄 ${validConversation.name}`);
   console.log(`👤 ${message}`);
   
   // For now, always use Chat API since that's what the router supports
   // TODO: Add support for Responses API in the router
-  await handleChatApi(context.router, conversation, message);
+  await handleChatApi(context.router, validConversation, message);
 }
 
 // Note: Responses API support is planned for future implementation
 // Currently using Chat API for all conversation interactions
 
-async function handleChatApi(router: unknown, conversation: unknown, message: string): Promise<void> {
+async function handleChatApi(router: GenAIRouter, conversation: ConversationMetadata, message: string): Promise<void> {
   // Get conversation history for context
   const previousMessages = await getConversationMessages(conversation.id);
   

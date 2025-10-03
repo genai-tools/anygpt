@@ -18,7 +18,7 @@ export interface OpenAIConnectorConfig extends ConnectorConfig {
 }
 
 export class OpenAIConnector extends BaseConnector {
-  static readonly packageName = '@anygpt/openai';
+  static override readonly packageName = '@anygpt/openai';
   private client: OpenAI;
 
   constructor(config: OpenAIConnectorConfig = {}) {
@@ -274,7 +274,7 @@ export class OpenAIConnectorFactory implements ConnectorFactory {
     return 'openai';
   }
 
-  create(config: ConnectorConfig): BaseConnector {
+  create(config: ConnectorConfig): OpenAIConnector {
     return new OpenAIConnector(config as OpenAIConnectorConfig);
   }
 }
@@ -295,7 +295,13 @@ export function openai(config: OpenAIConnectorConfig | string = {}, providerId?:
   
   // Override provider ID if specified (for custom gateways like Booking)
   if (providerId) {
-    (connector as any).providerId = providerId;
+    // Note: providerId is readonly, so we need to use Object.defineProperty
+    Object.defineProperty(connector, 'providerId', {
+      value: providerId,
+      writable: false,
+      enumerable: true,
+      configurable: false
+    });
   }
     
   return connector;
