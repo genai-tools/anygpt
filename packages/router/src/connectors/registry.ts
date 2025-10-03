@@ -1,13 +1,14 @@
-import { BaseConnector, type ConnectorConfig } from './base/index.js';
+import type { ConnectorConfig } from './base/index.js';
+import type { IConnector } from '../types/connector.js';
 
 export interface ConnectorFactory {
-  create(config: ConnectorConfig): BaseConnector;
+  create(config: ConnectorConfig): IConnector;
   getProviderId(): string;
 }
 
 export class ConnectorRegistry {
   private factories = new Map<string, ConnectorFactory>();
-  private instances = new Map<string, BaseConnector>();
+  private instances = new Map<string, IConnector>();
 
   registerConnector(factory: ConnectorFactory): void {
     const providerId = factory.getProviderId();
@@ -17,7 +18,7 @@ export class ConnectorRegistry {
     this.factories.set(providerId, factory);
   }
 
-  createConnector(providerId: string, config: ConnectorConfig = {}): BaseConnector {
+  createConnector(providerId: string, config: ConnectorConfig = {}): IConnector {
     const factory = this.factories.get(providerId);
     if (!factory) {
       throw new Error(`No connector registered for provider: ${providerId}`);
@@ -33,7 +34,7 @@ export class ConnectorRegistry {
     return connector;
   }
 
-  getConnector(providerId: string, config: ConnectorConfig = {}): BaseConnector {
+  getConnector(providerId: string, config: ConnectorConfig = {}): IConnector {
     const instanceKey = `${providerId}_${JSON.stringify(config)}`;
     
     // Return existing instance if available
@@ -72,7 +73,7 @@ export class ConnectorRegistry {
   }
 
   // Utility method to get all models from all registered providers
-  async getAllModels(): Promise<Array<{ provider: string; models: any[] }>> {
+  async getAllModels(): Promise<Array<{ provider: string; models: unknown[] }>> {
     const results = [];
     
     for (const [providerId, factory] of this.factories) {

@@ -36,6 +36,7 @@
   },
   "workspaces": [
     "packages/*",
+    "packages/connectors/*",
     "tools/*"
   ],
   "nx": {

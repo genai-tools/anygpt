@@ -1,5 +1,5 @@
 {
-  "name": "@anygpt/router",
+  "name": "@anygpt/types",
   "version": "0.0.1",
   "type": "module",
   "main": "./dist/index.js",
@@ -16,6 +16,5 @@
   "files": [
     "dist",
     "!**/*.tsbuildinfo"
-  ],
-  "dependencies": {}  
+  ]
 }

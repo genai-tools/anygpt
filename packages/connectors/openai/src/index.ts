@@ -1,16 +1,16 @@
 import OpenAI from 'openai';
-import { BaseConnector, type ConnectorConfig, type ModelInfo } from '../base/index.js';
+import { 
+  BaseConnector, 
+  type ConnectorConfig, 
+  type ModelInfo,
+  type BaseChatCompletionRequest,
+  type BaseChatCompletionResponse,
+  type ChatMessage,
+  type ResponseRequest,
+  type ResponseResponse
+} from '@anygpt/router';
+import type { ConnectorFactory } from '@anygpt/router';
 import { getModelInfo, getChatModels, type OpenAIModelInfo } from './models.js';
-import type { 
-  ResponseRequest,
-  ResponseResponse
-} from '../../types/router.js';
-import type { 
-  ChatMessage,
-  ChatCompletionRequest,
-  ChatCompletionResponse
-} from '../../types/base.js';
-import type { ConnectorFactory } from '../../types/connector.js';
 
 export interface OpenAIConnectorConfig extends ConnectorConfig {
   apiKey?: string;
@@ -33,7 +33,7 @@ export class OpenAIConnector extends BaseConnector {
     });
   }
 
-  override async chatCompletion(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
+  override async chatCompletion(request: BaseChatCompletionRequest): Promise<BaseChatCompletionResponse> {
 
     // Allow any model name - let the API endpoint validate
     const validatedRequest = this.validateRequest(request);
@@ -88,7 +88,7 @@ export class OpenAIConnector extends BaseConnector {
     return true; // Client is always initialized now
   }
 
-  override validateRequest(request: ChatCompletionRequest): ChatCompletionRequest {
+  override validateRequest(request: BaseChatCompletionRequest): BaseChatCompletionRequest {
     // First apply base validation
     const baseValidated = super.validateRequest(request);
     
@@ -101,7 +101,7 @@ export class OpenAIConnector extends BaseConnector {
     return baseValidated;
   }
 
-  private validateRequestWithModel(request: ChatCompletionRequest, modelInfo: OpenAIModelInfo): ChatCompletionRequest {
+  private validateRequestWithModel(request: BaseChatCompletionRequest, _modelInfo: OpenAIModelInfo): BaseChatCompletionRequest {
     const validated = { ...request };
     // Set default model if not provided
     if (!validated.model) {
@@ -118,7 +118,6 @@ export class OpenAIConnector extends BaseConnector {
   }
 
   async response(request: ResponseRequest): Promise<ResponseResponse> {
-
     try {
       // Convert input to proper format
       let input: any;
@@ -219,14 +218,12 @@ export class OpenAIConnector extends BaseConnector {
       }));
     }
 
-    const chatRequest: ChatCompletionRequest = {
+    const chatRequest: BaseChatCompletionRequest = {
       model: request.model,
       messages,
       temperature: request.temperature,
       max_tokens: request.max_output_tokens,
-      top_p: request.top_p,
-      tools: request.tools,
-      tool_choice: request.tool_choice
+      top_p: request.top_p
     };
 
     // Use the existing chatCompletion method
@@ -248,7 +245,7 @@ export class OpenAIConnector extends BaseConnector {
       output: [{
         id: `msg_${Date.now()}`,
         type: 'message',
-        role: message.role,
+        role: message.role as 'assistant' | 'user',
         content: [{
           type: 'output_text',
           text: message.content || '',

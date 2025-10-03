@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "providers": {
+    "openai-main": {
+      "name": "OpenAI GPT Models",
+      "connector": {
+        "connector": "@anygpt/openai",
+        "config": {
+          "baseURL": "https://api.openai.com/v1",
+          "timeout": 30000,
+          "maxRetries": 3
+        }
+      },
+      "settings": {
+        "defaultModel": "gpt-4"
+      }
+    },
+    "ollama-local": {
+      "name": "Local Ollama",
+      "connector": {
+        "connector": "@anygpt/openai",
+        "config": {
+          "baseURL": "http://localhost:11434/v1",
+          "timeout": 60000
+        }
+      },
+      "settings": {
+        "defaultModel": "llama2"
+      }
+    }
+  },
+  "settings": {
+    "defaultProvider": "openai-main",
+    "timeout": 30000,
+    "maxRetries": 3,
+    "logging": {
+      "level": "info"
+    }
+  }
+}

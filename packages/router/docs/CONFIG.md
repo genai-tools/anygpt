@@ -1,44 +1,55 @@
-# Gateway Configuration System
+# Router Configuration System
 
-A **Kilocode-inspired** configuration system for the GenAI Gateway. Define presets with URL, model, reasoning/streaming/verbosity parameters, and context settings.
+A flexible configuration system for the AnyGPT Router. Define provider configurations with URL, model, and parameter settings.
 
 ## 🎯 **Core Concept**
 
-Like Kilocode's API Configuration Profiles, you can:
-- **Use built-in presets** (OpenAI, Ollama, Anthropic, etc.)
-- **Customize presets** (change URL, model, parameters)
+The AnyGPT Router allows you to:
+- **Configure multiple providers** (OpenAI, Anthropic, Google, etc.)
+- **Customize provider settings** (change URL, model, parameters)
 - **Create company-specific configs** (proxy, headers, custom models)
 - **Environment-based setup** (dev/staging/prod)
 
 ## 🚀 **Quick Start**
 
-### **1. Use a Built-in Preset**
+### **1. Basic Configuration**
 ```typescript
-import { getPreset } from 'genai-gateway/config';
+import { defineConfig, createRouter } from '@anygpt/router';
 
-// Get OpenAI GPT-4o preset
-const preset = getPreset('openai-gpt-4o');
-console.log(preset);
-// {
-//   slug: 'openai-gpt-4o',
-//   name: '🚀 OpenAI GPT-4o',
-//   provider: { type: 'openai', baseURL: 'https://api.openai.com/v1' },
-//   model: { id: 'gpt-4o' },
-//   parameters: { temperature: 0.7, streaming: true, verbosity: 'medium' }
-// }
+// Define configuration
+const config = defineConfig({
+  providers: {
+    openai: {
+      type: 'openai',
+      apiKey: process.env.OPENAI_API_KEY,
+      baseURL: 'https://api.openai.com/v1'
+    }
+  }
+});
+
+// Create router
+const router = createRouter(config);
 ```
 
-### **2. Customize a Preset**
+### **2. Multiple Providers**
 ```typescript
-import { ConfigLoader } from 'genai-gateway/config';
+import { defineConfig } from '@anygpt/router';
 
-// Take GPT-4o preset but use custom endpoint
-const customConfig = ConfigLoader.createCustomConfig('openai-gpt-4o', {
-  baseURL: 'https://api.company.com/openai/v1',
-  modelId: 'gpt-4o',
-  parameters: {
-    temperature: 0.3,
-    streaming: true
+const config = defineConfig({
+  providers: {
+    openai: {
+      type: 'openai',
+      apiKey: process.env.OPENAI_API_KEY,
+      baseURL: 'https://api.openai.com/v1'
+    },
+    company: {
+      type: 'openai',
+      apiKey: process.env.COMPANY_API_KEY,
+      baseURL: 'https://api.company.com/openai/v1',
+      headers: {
+        'X-Company-ID': 'engineering'
+      }
+    }
   }
 });
 ```
@@ -46,9 +57,9 @@ const customConfig = ConfigLoader.createCustomConfig('openai-gpt-4o', {
 ### **3. Environment-Based Setup**
 ```bash
 # Set environment variables
-export GATEWAY_PRESET=openai-gpt-4o
 export OPENAI_API_KEY=sk-your-key
-export GATEWAY_LOG_LEVEL=debug
+export ANYGPT_LOG_LEVEL=debug
+export ANYGPT_CONFIG_PATH=/path/to/config.json
 ```
 
 ```typescript

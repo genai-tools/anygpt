@@ -1,5 +1,4 @@
 import { ConnectorRegistry } from '../connectors/registry.js';
-import { OpenAIConnectorFactory } from '../connectors/openai/index.js';
 import type { 
   RouterConfig, 
   ChatCompletionRequest, 
@@ -12,7 +11,7 @@ import type {
   ModelInfo, 
   ChatCompletionRequest as BaseRequest 
 } from '../types/base.js';
-import type { IConnector } from '../types/connector.js';
+import type { IConnector, ConnectorFactory } from '../types/connector.js';
 
 export class GenAIRouter implements IRouter {
   private registry: ConnectorRegistry;
@@ -25,13 +24,10 @@ export class GenAIRouter implements IRouter {
       ...config
     };
 
-    // Initialize registry and register connectors
+    // Initialize registry - connectors will be registered externally
     this.registry = new ConnectorRegistry();
     
-    // Register OpenAI connector
-    this.registry.registerConnector(new OpenAIConnectorFactory());
-    
-    // TODO: Register other connectors as they're implemented
+    // TODO: Connectors should be registered by the application using this router
   }
 
   async chatCompletion(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
@@ -159,6 +155,10 @@ export class GenAIRouter implements IRouter {
   }
 
   // Registry management methods
+  registerConnector(factory: ConnectorFactory): void {
+    this.registry.registerConnector(factory);
+  }
+
   getAvailableProviders(): string[] {
     return this.registry.getAvailableProviders();
   }

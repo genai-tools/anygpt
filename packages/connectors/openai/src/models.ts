@@ -1,4 +1,4 @@
-import type { ModelInfo } from '../../types/base.js';
+import type { ModelInfo } from '@anygpt/router';
 
 // Type alias for OpenAI-specific model info
 export type OpenAIModelInfo = ModelInfo;

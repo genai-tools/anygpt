@@ -24,6 +24,13 @@ export type {
   GatewayConfig,
   ChatCompletionRequest,
   ChatCompletionResponse,
+  ResponseRequest,
+  ResponseResponse,
+  ResponseOutput,
+  ResponseContent,
+  ResponseAnnotation,
+  Tool,
+  ToolChoice,
   IRouter,
   IGateway
 } from './router.js';

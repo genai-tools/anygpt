@@ -1,5 +1,5 @@
 {
-  "name": "@anygpt/router",
+  "name": "@anygpt/openai",
   "version": "0.0.1",
   "type": "module",
   "main": "./dist/index.js",
@@ -17,5 +17,8 @@
     "dist",
     "!**/*.tsbuildinfo"
   ],
-  "dependencies": {}  
+  "dependencies": {
+    "@anygpt/router": "0.0.1",
+    "openai": "^6.0.0"
+  }
 }

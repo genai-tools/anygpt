@@ -16,6 +16,16 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "es2022",
-    "customConditions": ["@root/source"]
+    "customConditions": ["@root/source"],
+    "baseUrl": ".",
+    "paths": {
+      "@anygpt/types": ["packages/types/src"],
+      "@anygpt/router": ["packages/router/src"],
+      "@anygpt/openai": ["packages/connectors/openai/src"],
+      "@anygpt/mock": ["packages/connectors/mock/src"],
+      "@anygpt/config": ["packages/config/src"],
+      "@anygpt/cli": ["packages/cli/src"],
+      "@anygpt/mcp": ["packages/mcp/src"]
+    }
   }
 }

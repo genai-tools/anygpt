@@ -1,35 +1,45 @@
-import { BaseConnector, type ConnectorConfig, type ChatCompletionRequest, type ChatCompletionResponse, type ModelInfo } from '../base/index.js';
-import type { ConnectorFactory } from '../registry.js';
+import type { 
+  IConnector,
+  ConnectorFactory,
+  BaseConnectorConfig,
+  BaseChatCompletionRequest,
+  BaseChatCompletionResponse,
+  ChatMessage,
+  ModelInfo,
+  ResponseRequest,
+  ResponseResponse
+} from '@anygpt/types';
 
-export interface MockConnectorConfig extends ConnectorConfig {
+export interface MockConnectorConfig extends BaseConnectorConfig {
   delay?: number; // Simulate API delay in ms
   failureRate?: number; // 0-1, probability of failure
   customResponses?: Record<string, any>;
 }
 
-export class MockConnector extends BaseConnector {
-  private mockConfig: MockConnectorConfig;
+export class MockConnector implements IConnector {
+  public readonly providerId = 'mock';
+  private config: MockConnectorConfig;
 
   constructor(config: MockConnectorConfig = {}) {
-    super('mock', config);
-    
-    this.mockConfig = {
+    this.config = {
       delay: 100,
       failureRate: 0,
       customResponses: {},
+      timeout: 30000,
+      maxRetries: 3,
       ...config
     };
   }
 
-  override async chatCompletion(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
+  async chatCompletion(request: BaseChatCompletionRequest): Promise<BaseChatCompletionResponse> {
     // Simulate API delay
-    if (this.mockConfig.delay && this.mockConfig.delay > 0) {
-      await this.sleep(this.mockConfig.delay);
+    if (this.config.delay && this.config.delay > 0) {
+      await this.sleep(this.config.delay);
     }
 
     // Simulate random failures
-    if (this.mockConfig.failureRate && Math.random() < this.mockConfig.failureRate) {
-      this.handleError(new Error('Mock API failure simulation'), 'chat completion');
+    if (this.config.failureRate && Math.random() < this.config.failureRate) {
+      throw new Error('Mock API failure simulation');
     }
 
     // Check for custom responses
@@ -42,11 +52,12 @@ export class MockConnector extends BaseConnector {
     const lastMessage = request.messages[request.messages.length - 1];
     const mockContent = this.generateMockResponse(lastMessage.content, request.model);
 
-    const response: ChatCompletionResponse = {
+    const response: BaseChatCompletionResponse = {
       id: `mock-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       object: 'chat.completion',
       created: Math.floor(Date.now() / 1000),
       model: request.model || 'mock-model',
+      provider: 'mock',
       choices: [{
         index: 0,
         message: {
@@ -67,6 +78,58 @@ export class MockConnector extends BaseConnector {
     return response;
   }
 
+  async response(request: ResponseRequest): Promise<ResponseResponse> {
+    // Convert to chat completion format
+    let messages: ChatMessage[];
+    
+    if (typeof request.input === 'string') {
+      messages = [{ role: 'user', content: request.input }];
+    } else {
+      messages = request.input;
+    }
+
+    const chatRequest: BaseChatCompletionRequest = {
+      model: request.model,
+      messages,
+      temperature: request.temperature,
+      max_tokens: request.max_output_tokens,
+      top_p: request.top_p
+    };
+
+    const chatResponse = await this.chatCompletion(chatRequest);
+    const message = chatResponse.choices[0]?.message;
+    
+    if (!message) {
+      throw new Error('No response from mock chat completion');
+    }
+
+    return {
+      id: chatResponse.id,
+      object: 'response',
+      created_at: Math.floor(Date.now() / 1000),
+      model: chatResponse.model,
+      provider: 'mock',
+      status: 'completed',
+      output: [{
+        id: `msg_${Date.now()}`,
+        type: 'message',
+        role: message.role as 'assistant' | 'user',
+        content: [{
+          type: 'output_text',
+          text: message.content || '',
+          annotations: []
+        }],
+        status: 'completed'
+      }],
+      usage: {
+        input_tokens: chatResponse.usage.prompt_tokens,
+        output_tokens: chatResponse.usage.completion_tokens,
+        total_tokens: chatResponse.usage.total_tokens,
+      },
+      previous_response_id: request.previous_response_id
+    };
+  }
+
   async listModels(): Promise<ModelInfo[]> {
     // Simulate API delay
     if (this.config.delay && this.config.delay > 0) {
@@ -82,37 +145,67 @@ export class MockConnector extends BaseConnector {
       {
         id: 'mock-gpt-4',
         provider: 'mock',
+        display_name: 'Mock GPT-4',
         description: 'Mock GPT-4 model for testing',
-        context_length: 8192,
-        max_output_tokens: 4096,
-        input_pricing: 0.01,
-        output_pricing: 0.02,
-        capabilities: ['text', 'function_calling'],
-        family: 'mock'
+        capabilities: {
+          input: { text: true },
+          output: { text: true, function_calling: true },
+          context_length: 8192,
+          max_output_tokens: 4096
+        }
       },
       {
         id: 'mock-gpt-3.5-turbo',
         provider: 'mock',
+        display_name: 'Mock GPT-3.5 Turbo',
         description: 'Mock GPT-3.5 Turbo model for testing',
-        context_length: 4096,
-        max_output_tokens: 2048,
-        input_pricing: 0.001,
-        output_pricing: 0.002,
-        capabilities: ['text', 'function_calling'],
-        family: 'mock'
+        capabilities: {
+          input: { text: true },
+          output: { text: true, function_calling: true },
+          context_length: 4096,
+          max_output_tokens: 2048
+        }
       },
       {
         id: 'mock-claude-3',
         provider: 'mock',
+        display_name: 'Mock Claude-3',
         description: 'Mock Claude-3 model for testing',
-        context_length: 100000,
-        max_output_tokens: 4096,
-        input_pricing: 0.015,
-        output_pricing: 0.075,
-        capabilities: ['text', 'vision', 'function_calling'],
-        family: 'mock'
+        capabilities: {
+          input: { text: true, image: true },
+          output: { text: true, function_calling: true },
+          context_length: 100000,
+          max_output_tokens: 4096
+        }
       }
     ];
+  }
+
+  validateRequest(request: BaseChatCompletionRequest): BaseChatCompletionRequest {
+    const validated = { ...request };
+
+    // Basic validation
+    if (validated.temperature !== undefined) {
+      validated.temperature = Math.max(0, Math.min(2, validated.temperature));
+    }
+
+    if (validated.top_p !== undefined) {
+      validated.top_p = Math.max(0, Math.min(1, validated.top_p));
+    }
+
+    return validated;
+  }
+
+  isInitialized(): boolean {
+    return true; // Mock is always "initialized"
+  }
+
+  getProviderId(): string {
+    return this.providerId;
+  }
+
+  getConfig(): BaseConnectorConfig {
+    return { ...this.config };
   }
 
   private generateMockResponse(userMessage: string, model?: string): string {
@@ -149,10 +242,6 @@ export class MockConnector extends BaseConnector {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  isInitialized(): boolean {
-    return true; // Mock is always "initialized"
-  }
-
   // Utility methods for testing
   setCustomResponse(key: string, response: any): void {
     if (!this.config.customResponses) {
@@ -170,4 +259,15 @@ export class MockConnector extends BaseConnector {
   }
 }
 
-export default MockConnector;
+// Factory for the connector registry
+export class MockConnectorFactory implements ConnectorFactory {
+  getProviderId(): string {
+    return 'mock';
+  }
+
+  create(config: BaseConnectorConfig): IConnector {
+    return new MockConnector(config as MockConnectorConfig);
+  }
+}
+
+export default MockConnectorFactory;
