@@ -3,10 +3,11 @@
  */
 
 import { GenAIRouter } from '@anygpt/router';
-import { loadConfig, validateConfig } from './loader.js';
+import { loadConfig } from './loader.js';
 import { loadConnectors } from './connector-loader.js';
 import type { AnyGPTConfig, ConfigLoadOptions } from './types.js';
-import type { IConnector, Logger } from '@anygpt/types';
+import type { Logger } from '@anygpt/types';
+import type { FactoryConfig } from './factory.js';
 
 /**
  * Create and configure a router from configuration
@@ -35,11 +36,24 @@ export async function setupRouter(
  * Create router from factory config with direct connector instances
  */
 export async function setupRouterFromFactory(factoryConfig: FactoryConfig): Promise<{ router: GenAIRouter; config: FactoryConfig }> {
-  // Create router with basic settings
+  // Convert factory providers to router provider format for validation
+  const routerProviders: Record<string, { type: string; api: { url: string; token: string; headers: Record<string, string> } }> = {};
+  for (const [providerId, providerConfig] of Object.entries(factoryConfig.providers)) {
+    routerProviders[providerId] = {
+      type: providerId, // Use provider ID as type for factory configs
+      api: {
+        url: '',
+        token: '',
+        headers: {}
+      }
+    };
+  }
+
+  // Create router with basic settings and provider configs for validation
   const router = new GenAIRouter({
-    timeout: factoryConfig.settings?.timeout || 30000,
-    maxRetries: factoryConfig.settings?.maxRetries || 3,
-    providers: {} // We'll register connectors directly
+    timeout: factoryConfig.defaults?.timeout || 30000,
+    maxRetries: factoryConfig.defaults?.maxRetries || 3,
+    providers: routerProviders // Include providers for validation
   });
 
   // Register each connector directly with the router
@@ -49,7 +63,7 @@ export async function setupRouterFromFactory(factoryConfig: FactoryConfig): Prom
     // Create a factory wrapper for the direct connector instance
     const factory = {
       getProviderId: () => providerId,
-      create: (config: any) => {
+      create: (_config: unknown) => {
         // For factory configs, we ignore the router's config and return our pre-configured connector
         return connector;
       }

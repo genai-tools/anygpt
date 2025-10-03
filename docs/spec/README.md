@@ -1,13 +1,20 @@
-# AnyGPT Ecosystem Architecture Specification
+{{ ... }}
 
 ## Documentation Structure
 
 This specification documents the AnyGPT ecosystem architecture:
 
+- **[CLI Interface](./cli/README.md)** - Command-line interface design and concepts
 - **[Components Design](./components.md)** - System architecture and component specifications *(Legacy - needs update)*
 - **[Client Configuration](./client.md)** - MCP client setup and configuration
 - **[MCP Server](./mcp-server.md)** - MCP server implementation details
 - **[Docker Integration](./docker.md)** - Containerization and deployment *(Legacy - needs update)*
+
+### CLI Command Specifications
+
+- **[Chat Command](./cli/chat.md)** - Stateless AI interaction model
+- **[Conversation Command](./cli/conversation.md)** - Stateful interaction with advanced features  
+- **[Config Command](./cli/config.md)** - Configuration management system
 
 ## 1. Introduction
 

@@ -86,7 +86,32 @@ This will convert your TOML configuration to the new TypeScript format.
 
 ## 📝 Configuration Examples
 
-### Company Gateway Setup
+### Factory Configuration (Recommended)
+
+**Factory configs** provide direct connector instantiation with cleaner syntax:
+
+```typescript
+import { config, openai } from '@anygpt/config';
+
+export default config({
+  defaults: {
+    provider: 'company-gateway',
+    model: 'gpt-4o'
+  },
+  providers: {
+    'company-gateway': {
+      name: 'Company AI Gateway',
+      connector: openai({
+        baseURL: 'https://internal-ai.company.com/v1',
+        apiKey: process.env.COMPANY_AI_KEY
+      })
+    }
+  }
+});
+```
+
+### Standard Configuration
+
 ```typescript
 const config: AnyGPTConfig = {
   providers: {
@@ -107,7 +132,37 @@ const config: AnyGPTConfig = {
 };
 ```
 
-### Multiple Providers
+### Multiple Providers (Factory Style)
+```typescript
+import { config, openai, mock } from '@anygpt/config';
+
+export default config({
+  defaults: {
+    provider: 'openai',
+    model: 'gpt-4o'
+  },
+  providers: {
+    'openai': {
+      name: 'OpenAI',
+      connector: openai({
+        apiKey: process.env.OPENAI_API_KEY
+      })
+    },
+    'local-ollama': {
+      name: 'Local Ollama',
+      connector: openai({
+        baseURL: 'http://localhost:11434/v1'
+      })
+    },
+    'mock': {
+      name: 'Mock Provider',
+      connector: mock()
+    }
+  }
+});
+```
+
+### Multiple Providers (Standard Style)
 ```typescript
 const config: AnyGPTConfig = {
   providers: {
@@ -139,6 +194,7 @@ const config: AnyGPTConfig = {
 
 ## 🎯 Usage
 
+### Quick Chat (Stateless)
 ```bash
 # Uses default provider and model from config
 npx anygpt chat "Hello!"
@@ -149,6 +205,20 @@ npx anygpt chat "Hello!" --provider openai
 # Override model  
 npx anygpt chat "Hello!" --model gpt-3.5-turbo
 ```
+
+### Conversations (Stateful)
+```bash
+# Auto-start conversation (NEW: no manual start needed)
+npx anygpt conversation message "Hello!"
+
+# Manual conversation management
+npx anygpt conversation start --name "my-session"
+npx anygpt conversation message "Hello!"
+npx anygpt conversation list
+npx anygpt conversation end
+```
+
+**Auto-Start Feature**: Conversations now automatically start when you send a message without an active conversation, using your default provider and model settings.
 
 ## 🔧 Environment Variables
 
@@ -167,6 +237,12 @@ export ANTHROPIC_API_KEY="sk-ant-..."
 
 ## 📚 Advanced Configuration
 
+### CLI Configuration Management
+For detailed information about configuration management through the CLI:
+- **[Config Command Guide](../packages/cli/docs/config.md)** - Complete configuration management documentation
+- **[CLI Overview](../packages/cli/docs/README.md)** - Full CLI documentation with configuration examples
+
+### Package Documentation
 See the [Config Package Documentation](../packages/config/README.md) for advanced features like:
 - Dynamic connector loading
 - Custom connectors

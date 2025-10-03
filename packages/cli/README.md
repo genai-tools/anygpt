@@ -315,6 +315,14 @@ anygpt conversation message "What's the difference between supervised and unsupe
 anygpt conversation summarize --name "ml-summary"
 ```
 
+## 📚 **Documentation**
+
+For comprehensive documentation, see:
+- **[Complete CLI Guide](./docs/README.md)** - Detailed usage documentation
+- **[Chat Command](./docs/chat.md)** - Stateless AI interactions
+- **[Conversation Command](./docs/conversation.md)** - Stateful conversations with advanced features
+- **[Config Command](./docs/config.md)** - Configuration management
+
 ## 📄 **License**
 
 MIT - See [LICENSE](LICENSE) for details.

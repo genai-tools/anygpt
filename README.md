@@ -132,7 +132,35 @@ const response = await router.chatCompletion({
 });
 ```
 
-**Example config file (`anygpt.config.ts`):**
+**Example factory config file (`.anygpt/anygpt.config.ts`):**
+
+```typescript
+import { config, openai } from '@anygpt/config';
+
+export default config({
+  defaults: {
+    provider: 'openai-main',
+    model: 'gpt-4o'
+  },
+  providers: {
+    'openai-main': {
+      name: 'OpenAI GPT Models',
+      connector: openai({
+        apiKey: process.env.OPENAI_API_KEY,
+        baseURL: 'https://api.openai.com/v1'
+      })
+    },
+    'ollama-local': {
+      name: 'Local Ollama',
+      connector: openai({
+        baseURL: 'http://localhost:11434/v1'
+      })
+    }
+  }
+});
+```
+
+**Alternative standard config format:**
 
 ```typescript
 import type { AnyGPTConfig } from '@anygpt/config';
@@ -147,15 +175,6 @@ const config: AnyGPTConfig = {
         config: {
           apiKey: process.env.OPENAI_API_KEY,
           baseURL: 'https://api.openai.com/v1'
-        }
-      }
-    },
-    'ollama-local': {
-      name: 'Local Ollama',
-      connector: {
-        connector: '@anygpt/openai', // Same connector, different config
-        config: {
-          baseURL: 'http://localhost:11434/v1'
         }
       }
     }
@@ -250,6 +269,16 @@ npx nx run-many -t lint
 - **MCP compliance**: Full protocol implementation
 
 ## Documentation
+
+### Getting Started
+- **[CLI Documentation](./packages/cli/docs/README.md)** - Complete command-line interface guide
+- **[Configuration Guide](./docs/configuration.md)** - Complete configuration setup and examples
+- **[Troubleshooting Guide](./docs/troubleshooting.md)** - Common issues, recent fixes, and debugging
+
+### CLI Commands
+- **[Chat Command](./packages/cli/docs/chat.md)** - Stateless AI interactions
+- **[Conversation Command](./packages/cli/docs/conversation.md)** - Stateful conversations with advanced features
+- **[Config Command](./packages/cli/docs/config.md)** - Configuration management and TypeScript benefits
 
 ### Package Documentation
 - **[@anygpt/types](./packages/types/README.md)** - Pure type definitions
