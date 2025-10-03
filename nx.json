@@ -28,7 +28,7 @@
         }
       }
     },
-    { "plugin": "nx-tsdown" },
+    { "plugin": "./tools/nx-tsdown/src/index.ts" },
     {
       "plugin": "@nx/eslint/plugin",
       "options": {
