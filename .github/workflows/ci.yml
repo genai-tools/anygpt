@@ -25,11 +25,10 @@ jobs:
       # Uncomment this line to enable task distribution
       # - run: npx nx start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="build"
 
-      # Cache node_modules
+      # Setup Node.js (no npm cache since we don't use package-lock.json)
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - run: npm install --legacy-peer-deps --no-package-lock
 
