@@ -68,7 +68,7 @@ docker-compose -f docker-compose.ci.yml up
 The CI pipeline validates:
 
 1. **Dependencies** - `npm install --legacy-peer-deps --no-package-lock`
-2. **NX Workspace** - `npx nx show projects`
+2. **NX Workspace** - `npx nx show projects --json` (non-interactive)
 3. **TypeScript** - `npx tsc --noEmit --project tsconfig.base.json`
 4. **Full NX Tasks** - `npx nx run-many -t test build typecheck` (with continue-on-error)
 
