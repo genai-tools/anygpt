@@ -1,141 +1,193 @@
-# GenAI Gateway MCP
+# AnyGPT Ecosystem
 
-A secure, enterprise-ready Model Context Protocol (MCP) server that bridges MCP clients with multiple AI providers (OpenAI, Anthropic, local models, etc.) through a layered gateway architecture.
+A comprehensive TypeScript ecosystem for building AI-powered applications with support for multiple providers, MCP protocol, and flexible configuration management.
 
 ## Why?
 
-**Problem**: MCP clients (Docker Desktop MCP Toolkit, Windsurf, etc.) cannot directly integrate with AI provider APIs due to protocol differences and security requirements.
+**Problem**: Building AI applications requires dealing with different provider APIs, complex configuration management, and protocol translations for MCP clients.
 
-**Solution**: This monorepo provides a two-layer architecture:
-- **Gateway Layer**: Secure proxy service managing AI provider credentials and routing
-- **MCP Layer**: Protocol translator converting MCP requests to AI provider API calls
-
-See [Architecture Specification](./docs/spec/README.md) for detailed technical design and [Components Design](./docs/spec/components.md) for system architecture.
+**Solution**: This monorepo provides a modular ecosystem with clean separation of concerns:
+- **Type System**: Pure type definitions with zero runtime overhead
+- **Router Layer**: Provider abstraction and routing with connector pattern
+- **Configuration**: Dynamic connector loading and flexible configuration management
+- **CLI Interface**: Command-line tool for AI interactions and conversation management
+- **MCP Server**: Protocol translator for MCP clients (Docker Desktop, Windsurf, etc.)
 
 ## Architecture
 
 ```
-MCP Client → genai-gateway-mcp → genai-gateway → AI Provider APIs
+MCP Client → @anygpt/mcp → @anygpt/router → AI Provider APIs
+     ↓              ↓                    ↓
+CLI Tool → @anygpt/config → @anygpt/connectors → Provider SDKs
 ```
 
-### Packages
+### Core Packages
 
-- **`genai-gateway`**: Secure gateway service that manages AI provider connections and credentials
-- **`genai-gateway-mcp`**: MCP server implementation that uses the gateway for API access
+| Package | Purpose | Dependencies |
+|---------|---------|--------------|
+| **[@anygpt/types](./packages/types/)** | Pure type definitions | None (0 runtime deps) |
+| **[@anygpt/config](./packages/config/)** | Configuration management | @anygpt/types |
+| **[@anygpt/router](./packages/router/)** | Core routing and connector registry | None |
+| **[@anygpt/cli](./packages/cli/)** | Command-line interface | @anygpt/config, @anygpt/mock |
+| **[@anygpt/mcp](./packages/mcp/)** | MCP server implementation | @anygpt/router, @anygpt/openai |
+
+### Connector Packages
+
+| Package | Provider | Dependencies |
+|---------|----------|--------------|
+| **[@anygpt/openai](./packages/connectors/openai/)** | OpenAI & compatible APIs | @anygpt/router, openai |
+| **[@anygpt/mock](./packages/connectors/mock/)** | Testing & development | @anygpt/types |
 
 ### Supported Providers
 
-- **OpenAI**: GPT models, embeddings, completions
-- **Anthropic**: Claude models (planned)
-- **Local Models**: Ollama, LM Studio (planned)
-- **Azure OpenAI**: Enterprise OpenAI deployment (planned)
+- **OpenAI**: GPT-4o, GPT-4, GPT-3.5, o1 models
+- **OpenAI-Compatible**: Ollama, LocalAI, Together AI, Anyscale
+- **Mock Provider**: For testing and development
 
-## Installation
+## Quick Start
 
-### Using Docker (Recommended)
-
-```bash
-# Pull the latest image
-docker pull ghcr.io/theplenkov/genai-gateway:mcp
-
-# Run with your configuration
-docker run -d \
-  -e GATEWAY_URL=https://your-gateway.company.com \
-  -e GATEWAY_API_KEY=your-gateway-key \
-  -e DEFAULT_MODEL=gpt-4 \
-  -e PROVIDER_TYPE=openai \
-  --name genai-gateway-mcp \
-  ghcr.io/theplenkov/genai-gateway:mcp
-```
-
-### Using npm
+### Install CLI Tool
 
 ```bash
-npm install -g genai-gateway-mcp
-genai-gateway-mcp --gateway-url https://your-gateway.company.com --provider openai
+npm install -g @anygpt/cli
 ```
 
-## Configuration
+### Install Individual Packages
 
-| Environment Variable | Description | Required | Default |
-|---------------------|-------------|----------|---------|
-| `GATEWAY_URL` | Base URL of your GenAI gateway service | ✅ | - |
-| `GATEWAY_API_KEY` | Authentication token for gateway | ✅ | - |
-| `PROVIDER_TYPE` | AI provider type (openai, anthropic, local) | ❌ | `openai` |
-| `DEFAULT_MODEL` | Default model name | ❌ | `gpt-3.5-turbo` |
-| `TIMEOUT` | Request timeout in seconds | ❌ | `30` |
-| `MAX_RETRIES` | Maximum retry attempts | ❌ | `3` |
-| `LOG_LEVEL` | Logging level (debug, info, warn, error) | ❌ | `info` |
+```bash
+# For building applications
+npm install @anygpt/router @anygpt/openai
 
-## Docker MCP Toolkit Integration
+# For configuration management
+npm install @anygpt/config
 
-For complete Docker integration instructions, see [Docker Integration Specification](./docs/spec/docker.md).
+# For type definitions only
+npm install @anygpt/types
+```
 
-### Quick Setup
+### MCP Server
 
-```json
-{
-  "name": "GenAI Gateway",
-  "command": "docker",
-  "args": [
-    "run", "--rm", "-i",
-    "-e", "GATEWAY_URL=https://your-gateway.company.com",
-    "-e", "GATEWAY_API_KEY=your-gateway-key",
-    "-e", "PROVIDER_TYPE=openai",
-    "ghcr.io/theplenkov/genai-gateway:mcp"
-  ]
-}
+```bash
+# Install and run MCP server
+npm install -g @anygpt/mcp
+anygpt-mcp
 ```
 
 ## Usage Examples
 
-### Basic Chat Completion
-
-The MCP server automatically handles the protocol translation:
-
-```typescript
-// MCP Client sends this
-{
-  "jsonrpc": "2.0",
-  "method": "completion/complete",
-  "params": {
-    "prompt": {
-      "messages": [{"role": "user", "content": "Hello!"}]
-    }
-  }
-}
-
-// Gets translated to provider format via gateway
-{
-  "model": "gpt-3.5-turbo",
-  "messages": [{"role": "user", "content": "Hello!"}],
-  "provider": "openai"
-}
-```
-
-### Model Listing
+### 1. CLI Usage
 
 ```bash
-# MCP clients can discover available models
-curl -X POST http://localhost:3000/mcp \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc": "2.0", "method": "models/list", "id": 1}'
+# Quick chat (stateless)
+anygpt chat --model gpt-4o --token $OPENAI_API_KEY "Explain TypeScript generics"
+
+# Start a conversation (stateful)
+anygpt conversation start --model gpt-4o --name "coding-session"
+anygpt conversation message "How do I implement a binary tree in TypeScript?"
+anygpt conversation message "Show me the insertion method"
+
+# List conversations
+anygpt conversation list
+
+# Fork a conversation for different approach
+anygpt conversation fork --name "binary-tree-v2"
 ```
 
-## Windsurf Integration
+### 2. Router as Library
 
-For detailed client configuration, see [Client Configuration Guide](./docs/spec/client.md).
+```typescript
+import { GenAIRouter } from '@anygpt/router';
+import { OpenAIConnectorFactory } from '@anygpt/openai';
+
+// Create router and register connector
+const router = new GenAIRouter();
+router.registerConnector(new OpenAIConnectorFactory());
+
+// Create connector instance
+const connector = router.createConnector('openai', {
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: 'https://api.openai.com/v1'
+});
+
+// Make requests
+const response = await connector.chatCompletion({
+  model: 'gpt-4o',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+```
+
+### 3. Configuration-Driven Setup
+
+```typescript
+import { setupRouter } from '@anygpt/config';
+
+// Automatically loads config and sets up router
+const { router, config } = await setupRouter();
+
+// Use with any registered connector
+const response = await router.chatCompletion({
+  provider: 'openai-main',
+  model: 'gpt-4o',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+```
+
+**Example config file (`anygpt.config.ts`):**
+
+```typescript
+import type { AnyGPTConfig } from '@anygpt/config';
+
+const config: AnyGPTConfig = {
+  version: '1.0',
+  providers: {
+    'openai-main': {
+      name: 'OpenAI GPT Models',
+      connector: {
+        connector: '@anygpt/openai',
+        config: {
+          apiKey: process.env.OPENAI_API_KEY,
+          baseURL: 'https://api.openai.com/v1'
+        }
+      }
+    },
+    'ollama-local': {
+      name: 'Local Ollama',
+      connector: {
+        connector: '@anygpt/openai', // Same connector, different config
+        config: {
+          baseURL: 'http://localhost:11434/v1'
+        }
+      }
+    }
+  },
+  settings: {
+    defaultProvider: 'openai-main',
+    timeout: 30000
+  }
+};
+
+export default config;
+```
+
+### 4. MCP Server Usage
+
+```bash
+# Run MCP server
+anygpt-mcp
+
+# Test with MCP Inspector
+npx @modelcontextprotocol/inspector anygpt-mcp
+```
+
+**Claude Desktop Integration:**
 
 ```json
 {
   "mcpServers": {
-    "genai-gateway": {
-      "command": "npx",
-      "args": ["genai-gateway-mcp"],
+    "anygpt": {
+      "command": "anygpt-mcp",
       "env": {
-        "GATEWAY_URL": "https://your-gateway.company.com",
-        "GATEWAY_API_KEY": "your-gateway-key",
-        "PROVIDER_TYPE": "openai"
+        "OPENAI_API_KEY": "your-openai-api-key"
       }
     }
   }
@@ -150,35 +202,69 @@ This project uses NX monorepo for managing multiple packages:
 # Install dependencies
 npm install
 
-# Build all packages
-nx run-many -t build
+# Build all packages (NX handles dependencies automatically)
+npx nx run-many -t build
+
+# Build specific package (dependencies built automatically)
+npx nx build cli
 
 # Run tests
-nx run-many -t test
+npx nx run-many -t test
 
-# Start development server
-nx serve genai-gateway-mcp
+# Lint all packages
+npx nx run-many -t lint
 ```
 
-## Security
+### Package Dependency Graph
 
-- **No direct API keys**: All AI provider credentials are managed by the gateway service
-- **Secure transport**: All communications use HTTPS/WSS
-- **Input validation**: All requests are validated before forwarding
-- **Rate limiting**: Built-in protection against abuse
+```
+@anygpt/types (no deps)
+    ↓
+@anygpt/config, @anygpt/mock
+    ↓
+@anygpt/router → @anygpt/openai
+    ↓
+@anygpt/cli, @anygpt/mcp
+```
+
+## Key Features
+
+### 🎯 **Modular Architecture**
+- **Clean separation**: Each package has a single responsibility
+- **Zero runtime overhead**: Type-only packages with `import type`
+- **Dependency inversion**: Connectors depend on router, not vice versa
+
+### 🔧 **Dynamic Configuration**
+- **Runtime connector loading**: No hardcoded dependencies
+- **Multiple config sources**: TypeScript, JavaScript, JSON files
+- **Environment support**: User home, system-wide, project-local configs
+
+### 🚀 **Developer Experience**
+- **Full TypeScript support**: Complete type safety across all packages
+- **Comprehensive CLI**: Stateful conversations, forking, summarization
+- **Testing utilities**: Mock connector for development and testing
+
+### 🔌 **Extensible Design**
+- **Connector pattern**: Easy to add new AI providers
+- **Plugin architecture**: Extensible command system
+- **MCP compliance**: Full protocol implementation
 
 ## Documentation
 
-- 📋 [Architecture Specification](./docs/spec/README.md) - Overall system design
-- 🏗️ [Components Design](./docs/spec/components.md) - Detailed component architecture  
-- 👤 [Client Configuration](./docs/spec/client.md) - Client setup and usage
-- 🖥️ [MCP Server](./docs/spec/mcp-server.md) - Server configuration and API
-- 🐳 [Docker Integration](./docs/spec/docker.md) - Container deployment
+### Package Documentation
+- **[@anygpt/types](./packages/types/README.md)** - Pure type definitions
+- **[@anygpt/config](./packages/config/README.md)** - Configuration management
+- **[@anygpt/router](./packages/router/README.md)** - Core router and connector system
+- **[@anygpt/openai](./packages/connectors/openai/README.md)** - OpenAI connector
+- **[@anygpt/mock](./packages/connectors/mock/README.md)** - Mock connector for testing
+- **[@anygpt/cli](./packages/cli/README.md)** - Command-line interface
+- **[@anygpt/mcp](./packages/mcp/README.md)** - MCP server implementation
 
-## Support
-
-- 🐛 [Issues](https://github.com/ThePlenkov/genai-gateway/issues)
-- 💬 [Discussions](https://github.com/ThePlenkov/genai-gateway/discussions)
+### Architecture Documentation
+- **[Router API Reference](./packages/router/docs/API.md)** - Complete API documentation
+- **[Router Architecture](./packages/router/docs/ARCHITECTURE.md)** - System design patterns
+- **[Configuration Guide](./packages/router/docs/CONFIG.md)** - Provider configuration
+- **[Connector Usage](./packages/router/docs/CONNECTOR_USAGE.md)** - Provider-specific usage
 
 ## License
 

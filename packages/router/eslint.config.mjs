@@ -9,7 +9,7 @@ export default [
         'error',
         {
           ignoredFiles: [
-            '{projectRoot}/*.config.{js,cjs,mjs,ts,cts,mts}',
+            '{projectRoot}/**/*.config.{js,cjs,mjs,ts,cts,mts}',
             '{projectRoot}/**/*.{spec,test}.{js,cjs,mjs,ts,cts,mts}',            
           ],
         },

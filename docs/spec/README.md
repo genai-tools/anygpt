@@ -1,114 +1,149 @@
-# GenAI Gateway MCP Server
+# AnyGPT Ecosystem Architecture Specification
 
 ## Documentation Structure
 
-This specification is organized into focused documents:
+This specification documents the AnyGPT ecosystem architecture:
 
-- **[Components Design](./components.md)** - System architecture and component specifications
-- **[Client Configuration](./client.md)** - Client setup, configuration, and usage
-- **[MCP Server](./mcp-server.md)** - MCP server implementation and configuration  
-- **[Docker Integration](./docker.md)** - Containerization and Docker deployment
+- **[Components Design](./components.md)** - System architecture and component specifications *(Legacy - needs update)*
+- **[Client Configuration](./client.md)** - MCP client setup and configuration
+- **[MCP Server](./mcp-server.md)** - MCP server implementation details
+- **[Docker Integration](./docker.md)** - Containerization and deployment *(Legacy - needs update)*
 
 ## 1. Introduction
 
 ### Goal
-Create an MCP server gateway that connects to multiple AI providers (OpenAI, Anthropic, local models, etc.) and exposes them to any client supporting the MCP protocol (e.g., Docker Desktop MCP Toolkit, Windsurf, etc.).
+Create a comprehensive TypeScript ecosystem for building AI-powered applications with support for multiple providers, flexible configuration, CLI tools, and MCP protocol integration.
 
 ### Problem
-- **MCP clients** can only interact with MCP servers
-- **AI provider APIs** have different protocols and cannot be directly integrated with MCP
-- **We need** a universal bridging layer for multiple providers
+- **Complex AI Integration**: Different provider APIs, authentication methods, and response formats
+- **Configuration Management**: Need for flexible, dynamic connector loading without hardcoded dependencies
+- **Protocol Translation**: MCP clients need bridge to AI provider APIs
+- **Developer Experience**: Need unified interface for AI interactions across different use cases
 
 ### Solution
-Develop a **GenAI Gateway MCP Server** that:
-- Runs as a containerized MCP server (Docker)
-- Accepts MCP requests (via JSON-RPC over stdin/stdout)
-- Translates them into provider-specific API calls (OpenAI, Anthropic, etc.)
-- Returns responses in MCP-compliant format
+Develop a **modular AnyGPT ecosystem** that provides:
+- **Type-safe foundation**: Pure type definitions with zero runtime overhead
+- **Flexible router system**: Provider abstraction with connector pattern
+- **Dynamic configuration**: Runtime connector loading based on configuration
+- **CLI interface**: Command-line tool for AI interactions and conversation management
+- **MCP server**: Protocol translator for MCP clients
 
 ## 2. Objectives
 
-- **Universal Bridge**: Provide a bridge between MCP and multiple AI provider APIs
-- **Multi-Provider Support**: OpenAI, Anthropic, local models, Azure OpenAI
-- **Core Features**: Support core MCP features (chat, completion, tools)
-- **Authentication**: Handle authentication via API keys/environment variables
-- **Extensibility**: Plugin architecture for adding new providers
+- **Modular Architecture**: Clean separation of concerns with single-responsibility packages
+- **Zero Runtime Overhead**: Type-only packages with compile-time imports
+- **Dynamic Configuration**: Runtime connector loading without hardcoded dependencies
+- **Multi-Provider Support**: OpenAI, OpenAI-compatible APIs, local models
+- **Developer Experience**: CLI tools, comprehensive documentation, testing utilities
+- **MCP Compliance**: Full MCP protocol implementation for client integration
 
 ## 3. Architecture Diagram
 
 ```mermaid
 graph TD
-    Client[MCP Client<br/>Docker Desktop / Windsurf]
-    Gateway[GenAI Gateway MCP<br/>Docker Container]
-    Providers[AI Providers<br/>OpenAI, Anthropic, Local]
+    CLI[CLI Tool] --> Config[@anygpt/config]
+    MCP[MCP Client] --> MCPServer[genai-gateway-mcp]
+    
+    Config --> Router[@anygpt/router]
+    MCPServer --> Router
+    
+    Router --> OpenAI[@anygpt/openai]
+    Router --> Mock[@anygpt/mock]
+    
+    Config --> Types[@anygpt/types]
+    Mock --> Types
+    
+    subgraph "Core Packages"
+        Types
+        Config
+        Router
+    end
+    
+    subgraph "Connector Packages"
+        OpenAI
+        Mock
+    end
+    
+    subgraph "Application Packages"
+        CLI
+        MCPServer
+    end
     
     subgraph "AI Providers"
-        OpenAI[OpenAI API]
-        Anthropic[Anthropic API]
-        Local[Local Models<br/>Ollama, LM Studio]
+        OpenAIAPI[OpenAI API]
+        Ollama[Ollama]
+        LocalAI[LocalAI]
     end
-
-    Client -->|JSON-RPC<br/>stdin/stdout| Gateway
-    Gateway -->|HTTP REST| OpenAI
-    Gateway -->|HTTP REST| Anthropic
-    Gateway -->|HTTP REST| Local
-    OpenAI -->|JSON Response| Gateway
-    Anthropic -->|JSON Response| Gateway
-    Local -->|JSON Response| Gateway
-    Gateway -->|MCP Response| Client
-
-    subgraph "GenAI Gateway MCP"
-        Parser[Request Parser]
-        Router[Provider Router]
-        Translator[API Translator]
-        Formatter[Response Formatter]
-        
-        Parser --> Router
-        Router --> Translator
-        Translator --> Formatter
-    end
+    
+    OpenAI --> OpenAIAPI
+    OpenAI --> Ollama
+    OpenAI --> LocalAI
 ```
 
 ## 4. System Components
 
-### 4.1 GenAI Gateway MCP Server
-- **Runtime**: Docker MCP server container
+### 4.1 Core Packages
+
+#### @anygpt/types
+- **Purpose**: Pure TypeScript type definitions
+- **Dependencies**: None (zero runtime overhead)
+- **Key Types**: ConnectorFactory, ChatCompletionRequest, ModelInfo, AnyGPTConfig
+- **Usage**: Always use `import type` syntax
+
+#### @anygpt/router
+- **Purpose**: Core routing and connector registry
+- **Dependencies**: None (uses types internally)
+- **Key Classes**: GenAIRouter, ConnectorRegistry, BaseConnector
+- **Features**: Provider abstraction, connector pattern, type safety
+
+#### @anygpt/config
+- **Purpose**: Configuration management and dynamic connector loading
+- **Dependencies**: @anygpt/types
+- **Key Features**: Multiple config sources, runtime connector loading, setupRouter utility
+- **Config Locations**: Project, user home, system-wide
+
+### 4.2 Connector Packages
+
+#### @anygpt/openai
+- **Purpose**: OpenAI and OpenAI-compatible API connector
+- **Dependencies**: @anygpt/router, openai SDK
+- **Supported APIs**: OpenAI, Ollama, LocalAI, Together AI, Anyscale
+- **Features**: Chat completions, model listing, response API fallback
+
+#### @anygpt/mock
+- **Purpose**: Mock connector for testing and development
+- **Dependencies**: @anygpt/types
+- **Features**: Configurable delays, failure simulation, custom responses
+- **Use Cases**: Unit testing, development, offline work
+
+### 4.3 Application Packages
+
+#### @anygpt/cli
+- **Purpose**: Command-line interface for AI interactions
+- **Dependencies**: @anygpt/config, @anygpt/mock
+- **Features**: Stateless chat, stateful conversations, forking, summarization
+- **Commands**: chat, conversation (start/message/list/fork/summarize)
+
+#### genai-gateway-mcp
+- **Purpose**: MCP server implementation
+- **Dependencies**: @anygpt/router (and connectors via dynamic loading)
 - **Interface**: JSON-RPC MCP protocol over stdin/stdout
-- **Provider Support**: OpenAI, Anthropic, local models
-- **Supported Commands**:
-  - `listModels` → routes to provider `/models`
-  - `createCompletion` → routes to provider completion endpoints
-  - `callTool` → maps to provider-specific tools (optional)
+- **Tools**: chat_completion, list_models
 
-### 4.2 AI Provider APIs
-Supported provider endpoints:
+### 4.4 Configuration System
 
-**OpenAI/Azure OpenAI**:
-- `/models` - List available models
-- `/chat/completions` - Chat completions
-- `/embeddings` - Text embeddings
-- `/completions` - Legacy completions
+**Configuration Files** (searched in order):
+1. `./anygpt.config.ts` (project)
+2. `./anygpt.config.js`
+3. `./anygpt.config.json`
+4. `~/.anygpt/anygpt.config.ts` (user)
+5. `~/.anygpt/anygpt.config.js`
+6. `~/.anygpt/anygpt.config.json`
 
-**Anthropic**:
-- `/models` - List Claude models
-- `/messages` - Claude messages API
-
-**Local Models (Ollama/LM Studio)**:
-- `/api/tags` - List local models
-- `/api/chat` - Chat completions
-- `/api/generate` - Text generation
-
-### 4.3 Configuration
-**Environment Variables**:
-- `GATEWAY_URL` — Base URL of the GenAI gateway service
-- `GATEWAY_API_KEY` — Authentication token for gateway
-- `PROVIDER_TYPE` — AI provider type (openai, anthropic, local)
-- `DEFAULT_MODEL` — Default model name
-- `TIMEOUT` — Request timeout in seconds (default: 30)
-- `MAX_RETRIES` — Maximum retry attempts (default: 3)
-- `PROVIDER_CONFIG` — JSON config for provider-specific settings
-
-**Distribution**: Docker image with configurable environment
+**Dynamic Connector Loading**:
+- Connectors specified in config are loaded at runtime
+- No hardcoded dependencies in CLI or MCP server
+- Users install only needed connector packages
 
 ## 5. Data Flow
 

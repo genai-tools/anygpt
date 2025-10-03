@@ -6,12 +6,17 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { GenAIGateway, type ChatCompletionRequest } from "genai-gateway";
+import { GenAIRouter } from "@anygpt/router";
+import { OpenAIConnectorFactory } from "@anygpt/openai";
+import type { ChatCompletionRequest } from "@anygpt/types";
 
-// Initialize the gateway with configuration from environment variables
-const gateway = new GenAIGateway({
-  openaiApiKey: process.env.OPENAI_API_KEY,
-  defaultModel: process.env.DEFAULT_MODEL || 'gpt-3.5-turbo',
+// Initialize the router with OpenAI connector
+const router = new GenAIRouter();
+router.registerConnector(new OpenAIConnectorFactory());
+
+// Create OpenAI connector instance
+const connector = router.createConnector('openai', {
+  apiKey: process.env.OPENAI_API_KEY,
   timeout: parseInt(process.env.TIMEOUT || '30000'),
   maxRetries: parseInt(process.env.MAX_RETRIES || '3'),
 });
@@ -19,7 +24,7 @@ const gateway = new GenAIGateway({
 // Create MCP server instance
 const server = new Server(
   {
-    name: "genai-gateway-mcp",
+    name: "@anygpt/mcp",
     version: "0.0.1",
   },
   {
@@ -153,31 +158,29 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 });
 
-// Implementation using the gateway service
-async function handleChatCompletion(args: any) {
+// Implementation using the router and connectors
+async function handleChatCompletion(args: { messages: Array<{ role: string; content: string }>; model?: string; provider?: string; temperature?: number; max_tokens?: number }) {
   try {
     const request: ChatCompletionRequest = {
       messages: args.messages,
-      model: args.model,
-      provider: args.provider,
+      model: args.model || process.env.DEFAULT_MODEL || 'gpt-3.5-turbo',
       temperature: args.temperature,
       max_tokens: args.max_tokens,
     };
 
-    const response = await gateway.chatCompletion(request);
+    const response = await connector.chatCompletion(request);
     return response;
   } catch (error) {
     throw new Error(`Chat completion failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
-async function handleListModels(args: any) {
+async function handleListModels() {
   try {
-    const provider = args.provider || 'openai';
-    const models = await gateway.listModels(provider);
+    const models = await connector.listModels();
     return {
       models,
-      provider,
+      provider: 'openai',
     };
   } catch (error) {
     throw new Error(`Failed to list models: ${error instanceof Error ? error.message : String(error)}`);

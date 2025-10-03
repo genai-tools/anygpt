@@ -1,6 +1,6 @@
-# GenAI Gateway MCP Server
+# @anygpt/mcp
 
-A Model Context Protocol (MCP) server that bridges MCP clients with multiple AI providers through a secure gateway architecture.
+A Model Context Protocol (MCP) server that bridges MCP clients with multiple AI providers through the AnyGPT router system.
 
 ## Features
 
@@ -59,7 +59,7 @@ The server is configured via environment variables:
 node ./dist/index.js
 
 # Or if installed globally
-genai-gateway-mcp
+anygpt-mcp
 ```
 
 ### Testing with MCP Inspector
@@ -79,7 +79,7 @@ Add to your Claude Desktop configuration:
 ```json
 {
   "mcpServers": {
-    "genai-gateway": {
+    "anygpt": {
       "command": "node",
       "args": ["/absolute/path/to/dist/index.js"],
       "env": {
@@ -94,7 +94,7 @@ Add to your Claude Desktop configuration:
 
 ```json
 {
-  "name": "GenAI Gateway",
+  "name": "AnyGPT MCP",
   "command": "node",
   "args": ["/path/to/dist/index.js"],
   "env": {
@@ -107,13 +107,13 @@ Add to your Claude Desktop configuration:
 ## Architecture
 
 ```
-MCP Client → genai-gateway-mcp → genai-gateway → AI Provider APIs
+MCP Client → @anygpt/mcp → @anygpt/router → AI Provider APIs
 ```
 
 The server acts as a protocol translator:
 1. Receives MCP tool calls from clients
-2. Translates them to gateway service calls
-3. Routes requests to appropriate AI providers
+2. Translates them to router API calls
+3. Routes requests to appropriate AI providers via connectors
 4. Returns responses in MCP format
 
 ## Development
