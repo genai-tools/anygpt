@@ -11,11 +11,11 @@ export class ConnectorRegistry {
   private instances = new Map<string, IConnector>();
 
   registerConnector(factory: ConnectorFactory): void {
-    const providerId = factory.getProviderId();
-    if (this.factories.has(providerId)) {
-      throw new Error(`Connector for provider '${providerId}' is already registered`);
+    const connectorType = factory.getProviderId(); // This is actually the connector type, not provider ID
+    // Allow multiple providers to use the same connector type - only register if not already present
+    if (!this.factories.has(connectorType)) {
+      this.factories.set(connectorType, factory);
     }
-    this.factories.set(providerId, factory);
   }
 
   createConnector(providerId: string, config: ConnectorConfig = {}): IConnector {

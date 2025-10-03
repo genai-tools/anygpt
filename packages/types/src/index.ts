@@ -20,9 +20,11 @@ export type {
 
 // Common utility types
 export type {
-  ConnectorConfig as BaseConnectorConfig,
-  Logger
+  ConnectorConfig as BaseConnectorConfig
 } from './common.js';
+
+// Logger interface
+export type { Logger } from './logger.js';
 
 // API configuration types
 export type {
@@ -58,10 +60,12 @@ export type {
   IConnectorRegistry
 } from './connector.js';
 
+// Re-export all types
+export * from './config.js';
+export * from './connector.js';
+
 // Configuration types
 export type {
   ConnectorConfig,
   ProviderConfig,
-  AnyGPTConfig,
-  ConfigLoadOptions
 } from './config.js';

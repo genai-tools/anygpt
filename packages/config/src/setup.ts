@@ -6,28 +6,59 @@ import { GenAIRouter } from '@anygpt/router';
 import { loadConfig, validateConfig } from './loader.js';
 import { loadConnectors } from './connector-loader.js';
 import type { AnyGPTConfig, ConfigLoadOptions } from './types.js';
+import type { IConnector, Logger } from '@anygpt/types';
 
 /**
  * Create and configure a router from configuration
  */
-export async function setupRouter(options: ConfigLoadOptions = {}): Promise<{ router: GenAIRouter; config: AnyGPTConfig }> {
+export async function setupRouter(
+  options: ConfigLoadOptions = {},
+  logger?: Logger
+): Promise<{ router: GenAIRouter; config: AnyGPTConfig }> {
   // Load configuration
   const config = await loadConfig(options);
   
-  // Validate configuration
-  validateConfig(config);
-  
-  // Create router with global settings
+  // Create router with converted config
   const router = new GenAIRouter({
     timeout: config.settings?.timeout,
     maxRetries: config.settings?.maxRetries,
     providers: convertToRouterProviders(config)
   });
   
-  // Load and register connectors
-  await loadConnectors(router, config);
+  // Load and register connectors with logger
+  await loadConnectors(router, config, logger);
   
   return { router, config };
+}
+
+/**
+ * Create router from factory config with direct connector instances
+ */
+export async function setupRouterFromFactory(factoryConfig: FactoryConfig): Promise<{ router: GenAIRouter; config: FactoryConfig }> {
+  // Create router with basic settings
+  const router = new GenAIRouter({
+    timeout: factoryConfig.settings?.timeout || 30000,
+    maxRetries: factoryConfig.settings?.maxRetries || 3,
+    providers: {} // We'll register connectors directly
+  });
+
+  // Register each connector directly with the router
+  for (const [providerId, providerConfig] of Object.entries(factoryConfig.providers)) {
+    const connector = providerConfig.connector;
+    
+    // Create a factory wrapper for the direct connector instance
+    const factory = {
+      getProviderId: () => providerId,
+      create: (config: any) => {
+        // For factory configs, we ignore the router's config and return our pre-configured connector
+        return connector;
+      }
+    };
+    
+    router.registerConnector(factory);
+  }
+
+  return { router, config: factoryConfig };
 }
 
 /**
@@ -39,20 +70,24 @@ function convertToRouterProviders(config: AnyGPTConfig): Record<string, any> {
   for (const [providerId, providerConfig] of Object.entries(config.providers)) {
     // Extract connector type from package name
     // e.g., "@anygpt/openai" -> "openai"
-    const connectorType = providerConfig.connector.connector
+    const connectorPackage = providerConfig.connector.type || providerConfig.connector.connector;
+    const connectorType = connectorPackage
       .split('/')
       .pop()
       ?.replace('@anygpt/', '') || 'unknown';
     
+    // Support both old format (config) and new format (options)
+    const connectorOptions = providerConfig.connector.options || providerConfig.connector.config || {};
+    
     routerProviders[providerId] = {
       type: connectorType,
       api: {
-        url: providerConfig.connector.config?.baseURL || '',
-        token: providerConfig.connector.config?.apiKey || '',
+        url: connectorOptions.baseURL || '',
+        token: connectorOptions.apiKey || '',
         headers: {}
       },
-      timeout: providerConfig.connector.config?.timeout,
-      maxRetries: providerConfig.connector.config?.maxRetries
+      timeout: connectorOptions.timeout,
+      maxRetries: connectorOptions.maxRetries
     };
   }
   

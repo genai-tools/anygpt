@@ -24,13 +24,19 @@ class NoOpLogger implements Logger {
   }
 }
 
-export abstract class BaseConnector implements IConnector {
+export abstract class BaseConnector {
   protected config: ConnectorConfig;
+  protected userConfig: ConnectorConfig; // Original user-provided config
   protected logger: Logger;
-  public readonly providerId: string;
+  
+  // Static property that each connector must define
+  static readonly packageName: string;
 
-  constructor(providerId: string, config: ConnectorConfig = {}) {
-    this.providerId = providerId;
+  constructor(config: ConnectorConfig = {}) {
+    // Keep the original user config separate
+    this.userConfig = { ...config };
+    
+    // Merge with defaults for internal use
     this.config = {
       timeout: 30000,
       maxRetries: 3,
@@ -38,6 +44,16 @@ export abstract class BaseConnector implements IConnector {
     };
     // Use provided logger or no-op logger
     this.logger = config.logger || new NoOpLogger();
+  }
+
+  // Expose user config for inspection (without defaults)
+  getUserConfig(): ConnectorConfig {
+    return { ...this.userConfig };
+  }
+
+  // Expose effective config (with defaults)
+  getEffectiveConfig(): ConnectorConfig {
+    return { ...this.config };
   }
 
   // Abstract methods that must be implemented by concrete connectors

@@ -1,8 +1,7 @@
 /**
- * Dynamic connector loader
+ * Dynamically import types
  */
-
-import type { ConnectorFactory } from '@anygpt/types';
+import type { ConnectorFactory, Logger } from '@anygpt/types';
 import type { AnyGPTConfig, ProviderConfig } from '@anygpt/types';
 
 /**
@@ -71,13 +70,15 @@ async function loadConnectorFactory(packageName: string): Promise<ConnectorFacto
 /**
  * Load and register all connectors from configuration
  */
-export async function loadConnectors(router: RouterLike, config: AnyGPTConfig): Promise<void> {
-  const loadPromises: Promise<void>[] = [];
-  
-  for (const [providerId, providerConfig] of Object.entries(config.providers)) {
-    const loadPromise = loadConnectorForProvider(router, providerId, providerConfig);
-    loadPromises.push(loadPromise);
-  }
+export async function loadConnectors(
+  router: RouterLike, 
+  config: AnyGPTConfig,
+  logger?: Logger
+): Promise<void> {
+  // Create loading promises for all providers
+  const loadPromises = Object.entries(config.providers).map(([providerId, providerConfig]) =>
+    loadConnectorForProvider(router, providerId, providerConfig, logger)
+  );
   
   // Load all connectors in parallel
   await Promise.all(loadPromises);
@@ -89,18 +90,21 @@ export async function loadConnectors(router: RouterLike, config: AnyGPTConfig): 
 async function loadConnectorForProvider(
   router: RouterLike, 
   providerId: string, 
-  providerConfig: ProviderConfig
+  providerConfig: ProviderConfig,
+  logger?: Logger
 ): Promise<void> {
   try {
     const { connector: connectorConfig } = providerConfig;
-    const factory = await loadConnectorFactory(connectorConfig.connector);
+    const connectorPackage = connectorConfig.type || connectorConfig.connector;
+    const factory = await loadConnectorFactory(connectorPackage);
     
     // Register the connector factory with the router
     router.registerConnector(factory);
     
-    console.log(`✓ Loaded connector '${connectorConfig.connector}' for provider '${providerId}'`);
+    // Use logger facade - CLI provides console logger, MCP provides no-op
+    logger?.info(`✓ Loaded connector '${connectorPackage}' for provider '${providerId}'`);
   } catch (error) {
-    console.error(`✗ Failed to load connector for provider '${providerId}':`, error);
+    logger?.error(`✗ Failed to load connector for provider '${providerId}':`, error);
     throw error;
   }
 }
@@ -114,8 +118,11 @@ export function getConnectorConfig(config: AnyGPTConfig, providerId: string): an
     throw new Error(`Provider '${providerId}' not found in configuration`);
   }
   
+  // Support both old format (config) and new format (options)
+  const connectorOptions = provider.connector.options || provider.connector.config || {};
+  
   return {
-    ...provider.connector.config,
+    ...connectorOptions,
     // Add any global settings that might be relevant
     timeout: config.settings?.timeout,
     maxRetries: config.settings?.maxRetries

@@ -11,9 +11,9 @@
     "!**/*.tsbuildinfo"
   ],
   "dependencies": {
-    "@anygpt/router": "*",
+    "@anygpt/config": "0.0.1",
+    "@anygpt/mock": "0.0.1",
     "@iarna/toml": "^2.2.5",
-    "commander": "^11.0.0",
-    "openai": "^6.0.0"
+    "commander": "^11.0.0"
   }
 }

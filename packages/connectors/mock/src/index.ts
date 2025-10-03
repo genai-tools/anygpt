@@ -17,7 +17,7 @@ export interface MockConnectorConfig extends BaseConnectorConfig {
 }
 
 export class MockConnector implements IConnector {
-  public readonly providerId = 'mock';
+  static readonly packageName = '@anygpt/mock';
   private config: MockConnectorConfig;
 
   constructor(config: MockConnectorConfig = {}) {
@@ -271,3 +271,10 @@ export class MockConnectorFactory implements ConnectorFactory {
 }
 
 export default MockConnectorFactory;
+
+/**
+ * Factory function for cleaner syntax
+ */
+export function mock(config: MockConnectorConfig = {}): MockConnector {
+  return new MockConnector(config);
+}

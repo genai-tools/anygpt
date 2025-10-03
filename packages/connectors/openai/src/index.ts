@@ -18,10 +18,11 @@ export interface OpenAIConnectorConfig extends ConnectorConfig {
 }
 
 export class OpenAIConnector extends BaseConnector {
+  static readonly packageName = '@anygpt/openai';
   private client: OpenAI;
 
   constructor(config: OpenAIConnectorConfig = {}) {
-    super('openai', config);
+    super(config);
 
     // Always create a client, use empty string if no API key provided
     // Some APIs might not require authentication or handle it differently
@@ -279,3 +280,23 @@ export class OpenAIConnectorFactory implements ConnectorFactory {
 }
 
 export default OpenAIConnectorFactory;
+
+/**
+ * Factory function for cleaner syntax
+ * Supports both object config and string baseURL shorthand
+ */
+export function openai(config: OpenAIConnectorConfig | string = {}, providerId?: string): OpenAIConnector {
+  // If string is passed, treat it as baseURL
+  const finalConfig = typeof config === 'string' 
+    ? { baseURL: config }
+    : config;
+    
+  const connector = new OpenAIConnector(finalConfig);
+  
+  // Override provider ID if specified (for custom gateways like Booking)
+  if (providerId) {
+    (connector as any).providerId = providerId;
+  }
+    
+  return connector;
+}

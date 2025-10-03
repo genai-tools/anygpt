@@ -1,61 +1,35 @@
-import { GenAIRouter } from '@anygpt/router';
-import type { RouterConfig } from '@anygpt/router';
-import { loadConfig } from '../utils/config.js';
+import type { CLIContext } from '../utils/cli-context.js';
 
 interface ChatOptions {
   provider?: string;
   type?: 'openai' | 'anthropic' | 'google';
   url?: string;
   token?: string;
-  model: string;
+  model?: string;
 }
 
 export async function chatCommand(
+  context: CLIContext,
   message: string,
-  options: ChatOptions,
-  globalOpts: { config?: string }
+  options: ChatOptions
 ) {
-  let config: RouterConfig;
+  // Determine which provider to use
+  const providerId = options.provider || context.defaults.provider;
   
-  if (options.provider) {
-    // Use specific provider from config
-    config = await loadConfig(globalOpts.config) as RouterConfig;
-    
-    if (!config.providers?.[options.provider]) {
-      throw new Error(`Provider '${options.provider}' not found in config`);
-    }
-  } else if (options.type && options.url && options.token) {
-    // Create ad-hoc config from command line options
-    config = {
-      providers: {
-        adhoc: {
-          type: options.type,
-          baseURL: options.url,
-          apiKey: options.token
-        } as any
-      }
-    };
-    options.provider = 'adhoc';
-  } else {
-    // Use default provider from config
-    config = await loadConfig(globalOpts.config) as RouterConfig;
-    
-    // Find first available provider
-    const providers = Object.keys(config.providers || {});
-    if (providers.length === 0) {
-      throw new Error('No providers configured. Use --provider or configure providers in config file.');
-    }
-    
-    options.provider = providers[0];
-    console.log(`Using default provider: ${options.provider}`);
+  if (!providerId) {
+    throw new Error('No provider specified. Use --provider or configure a default provider.');
   }
   
-  const router = new GenAIRouter(config);
+  // Get model (use provided model, or default, or error)
+  const modelId = options.model || context.defaults.model;
+  if (!modelId) {
+    throw new Error(`No model specified. Use --model or configure a default model for provider '${providerId}'.`);
+  }
   
   try {
-    const response = await router.chatCompletion({
-      provider: options.provider!,
-      model: options.model,
+    const response = await context.router.chatCompletion({
+      provider: providerId,
+      model: modelId,
       messages: [{ role: 'user', content: message }]
     });
     

@@ -2,12 +2,7 @@
  * Common utility types and interfaces
  */
 
-export interface Logger {
-  debug(message: string, ...args: unknown[]): void;
-  info(message: string, ...args: unknown[]): void;
-  warn(message: string, ...args: unknown[]): void;
-  error(message: string, ...args: unknown[]): void;
-}
+import type { Logger } from './logger.js';
 
 export interface ConnectorConfig {
   timeout?: number;

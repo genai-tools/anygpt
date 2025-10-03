@@ -11,6 +11,8 @@ import { conversationShowCommand } from './commands/conversation/show.js';
 import { conversationContinueCommand } from './commands/conversation/continue.js';
 import { conversationDeleteCommand } from './commands/conversation/delete.js';
 import { chatCommand } from './commands/chat.js';
+import { configCommand } from './commands/config.js';
+import { withCLIContext } from './utils/cli-context.js';
 
 interface ChatOptions {
   provider?: string;
@@ -21,6 +23,7 @@ interface ChatOptions {
 }
 
 const program = new Command();
+
 
 program
   .name('anygpt')
@@ -37,18 +40,16 @@ program
   .option('--type <type>', 'provider type (openai, anthropic, google)')
   .option('--url <url>', 'API endpoint URL')
   .option('--token <token>', 'API token')
-  .requiredOption('--model <model>', 'model name')
+  .option('--model <model>', 'model name (uses default from config if not specified)')
   .argument('<message>', 'message to send')
-  .action(async (message: string, options: ChatOptions, command: any) => {
-    const globalOpts = command.parent.opts();
-    
-    try {
-      await chatCommand(message, options, globalOpts);
-    } catch (error) {
-      console.error('Error:', error instanceof Error ? error.message : error);
-      process.exit(1);
-    }
-  });
+  .action(withCLIContext(chatCommand));
+
+// Config inspection command
+program
+  .command('config')
+  .description('Show resolved configuration')
+  .option('--json', 'output as JSON')
+  .action(withCLIContext(configCommand));
 
 // Conversation commands
 const conversation = program

@@ -6,12 +6,18 @@ import { readFile, access } from 'fs/promises';
 import { join, resolve } from 'path';
 import { homedir } from 'os';
 import type { AnyGPTConfig, ConfigLoadOptions } from './types.js';
+import { getDefaultConfig, convertCodexToAnyGPTConfig } from './defaults.js';
 
 /**
  * Default configuration paths to search
  */
 const DEFAULT_CONFIG_PATHS = [
-  // Current directory
+  // Project-local config (highest priority, git-ignored)
+  './.anygpt/anygpt.config.ts',
+  './.anygpt/anygpt.config.js',
+  './.anygpt/anygpt.config.json',
+  
+  // Current directory (for examples/testing)
   './anygpt.config.ts',
   './anygpt.config.js',
   './anygpt.config.json',
@@ -21,26 +27,16 @@ const DEFAULT_CONFIG_PATHS = [
   '~/.anygpt/anygpt.config.js', 
   '~/.anygpt/anygpt.config.json',
   
+  // Codex compatibility
+  '~/.codex/config.toml',
+  
   // System config
   '/etc/anygpt/anygpt.config.ts',
   '/etc/anygpt/anygpt.config.js',
   '/etc/anygpt/anygpt.config.json'
 ];
 
-/**
- * Default configuration
- */
-const DEFAULT_CONFIG: AnyGPTConfig = {
-  version: '1.0',
-  providers: {},
-  settings: {
-    timeout: 30000,
-    maxRetries: 3,
-    logging: {
-      level: 'info'
-    }
-  }
-};
+// Default config is now loaded from defaults.ts
 
 /**
  * Resolve path with tilde expansion
@@ -78,6 +74,56 @@ async function loadTSConfig(path: string): Promise<AnyGPTConfig> {
 }
 
 /**
+ * Load TOML config file (Codex compatibility)
+ */
+async function loadTOMLConfig(path: string): Promise<AnyGPTConfig> {
+  try {
+    const content = await readFile(path, 'utf-8');
+    // Simple TOML parsing - for now we'll use a basic approach
+    // In a full implementation, you'd use a proper TOML parser
+    const lines = content.split('\n');
+    const codexConfig: any = {};
+    
+    // Basic TOML parsing for codex config
+    let currentSection = '';
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        currentSection = trimmed.slice(1, -1);
+        if (currentSection.includes('.')) {
+          const [parent, child] = currentSection.split('.');
+          if (!codexConfig[parent]) codexConfig[parent] = {};
+          codexConfig[parent][child] = {};
+        } else {
+          codexConfig[currentSection] = {};
+        }
+      } else if (trimmed.includes('=')) {
+        const [key, value] = trimmed.split('=', 2);
+        const cleanKey = key.trim();
+        let cleanValue = value.trim().replace(/^["']|["']$/g, '');
+        
+        if (currentSection) {
+          if (currentSection.includes('.')) {
+            const [parent, child] = currentSection.split('.');
+            codexConfig[parent][child][cleanKey] = cleanValue;
+          } else {
+            codexConfig[currentSection][cleanKey] = cleanValue;
+          }
+        } else {
+          codexConfig[cleanKey] = cleanValue;
+        }
+      }
+    }
+    
+    return convertCodexToAnyGPTConfig(codexConfig);
+  } catch (error) {
+    throw new Error(`Failed to load TOML config from ${path}: ${error}`);
+  }
+}
+
+/**
  * Load JSON config file
  */
 async function loadJSONConfig(path: string): Promise<AnyGPTConfig> {
@@ -101,6 +147,8 @@ async function loadConfigFile(path: string): Promise<AnyGPTConfig> {
 
   if (path.endsWith('.json')) {
     return loadJSONConfig(resolvedPath);
+  } else if (path.endsWith('.toml')) {
+    return loadTOMLConfig(resolvedPath);
   } else {
     return loadTSConfig(resolvedPath);
   }
@@ -145,7 +193,7 @@ function mergeConfigs(base: AnyGPTConfig, override: Partial<AnyGPTConfig>): AnyG
  * Load AnyGPT configuration
  */
 export async function loadConfig(options: ConfigLoadOptions = {}): Promise<AnyGPTConfig> {
-  const { configPath, mergeDefaults = true } = options;
+  const { configPath, mergeDefaults = !configPath } = options; // Don't merge defaults when explicit config provided
   
   let config: AnyGPTConfig;
   
@@ -159,13 +207,14 @@ export async function loadConfig(options: ConfigLoadOptions = {}): Promise<AnyGP
       config = await loadConfigFile(foundPath);
     } else {
       // No config file found, use defaults
-      config = DEFAULT_CONFIG;
+      config = getDefaultConfig();
     }
   }
   
   // Merge with defaults if requested
-  if (mergeDefaults && config !== DEFAULT_CONFIG) {
-    config = mergeConfigs(DEFAULT_CONFIG, config);
+  const defaultConfig = getDefaultConfig();
+  if (mergeDefaults && config !== defaultConfig) {
+    config = mergeConfigs(defaultConfig, config);
   }
   
   return config;
@@ -180,8 +229,8 @@ export function validateConfig(config: AnyGPTConfig): void {
   }
   
   for (const [providerId, provider] of Object.entries(config.providers)) {
-    if (!provider.connector?.connector) {
-      throw new Error(`Provider '${providerId}' must specify a connector package`);
+    if (!provider.connector?.type && !provider.connector?.connector) {
+      throw new Error(`Provider '${providerId}' must specify a connector type`);
     }
   }
 }
