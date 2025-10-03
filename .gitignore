@@ -2,6 +2,9 @@
 node_modules/
 jspm_packages/
 
+# Package lock files (contains internal registry references)
+package-lock.json
+
 # Build outputs
 dist/
 tmp/
