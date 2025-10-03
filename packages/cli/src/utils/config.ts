@@ -53,14 +53,14 @@ async function loadConfigFromPath(path: string): Promise<RouterConfig> {
   try {
     const module = await import(path);
     return module.default || module;
-  } catch (error) {
-    throw new Error(`Config not found: ${path}`);
+  } catch {
+    console.error('Error loading config');
+    throw new Error('Failed to load config');
   }
 }
 
 async function loadConfigFromFilePath(path: string): Promise<RouterConfig> {
   const ext = extname(path);
-  
   if (ext === '.toml') {
     return await loadCodexConfig(path);
   } else if (ext === '.json') {
@@ -130,8 +130,8 @@ function convertCodexToRouterConfig(codexConfig: CodexConfig): RouterConfig & { 
   };
 }
 
-function getDefaultConfig(): RouterConfig {
 
+function getDefaultConfig(): RouterConfig {
   // Return default config if no file found
   return {
     providers: {
