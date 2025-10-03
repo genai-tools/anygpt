@@ -40,7 +40,7 @@ run_step "npm install" "npm install --legacy-peer-deps --no-package-lock"
 
 echo ""
 echo "🔍 Validating NX workspace..."
-run_step "NX workspace validation" "npx nx show projects"
+run_step "NX workspace validation" "npx nx show projects --json"
 
 echo ""
 echo "📝 TypeScript compilation check..."

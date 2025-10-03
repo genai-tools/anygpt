@@ -34,8 +34,8 @@ jobs:
 
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: npx nx-cloud record -- echo Hello World
-      # Basic validation - check if packages can be listed
-      - run: npx nx show projects
+      # Basic validation - check if packages can be listed (non-interactive)
+      - run: npx nx show projects --json
       
       # Validate TypeScript compilation directly
       - run: npx tsc --noEmit --project tsconfig.base.json
