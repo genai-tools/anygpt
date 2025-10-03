@@ -5,6 +5,9 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "genai-gateway-mcp": "./dist/index.js"
+  },
   "exports": {
     "./package.json": "./package.json",
     ".": {

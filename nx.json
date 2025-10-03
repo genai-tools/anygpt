@@ -64,5 +64,8 @@
     "version": {
       "preVersionCommand": "npx nx run-many -t build"
     }
+  },
+  "tui": {
+    "enabled": false
   }
 }

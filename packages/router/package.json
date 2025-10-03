@@ -1,5 +1,5 @@
 {
-  "name": "genai-gateway",
+  "name": "@anygpt/router",
   "version": "0.0.1",
   "type": "module",
   "main": "./dist/index.js",
@@ -16,5 +16,20 @@
   "files": [
     "dist",
     "!**/*.tsbuildinfo"
-  ]
+  ],
+  "scripts": {
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest --coverage --run",
+    "test:ui": "vitest --ui"
+  },
+  "dependencies": {
+    "openai": "^6.0.0"
+  },
+  "devDependencies": {
+    "vitest": "^1.0.0",
+    "@vitest/ui": "^1.0.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "tsx": "^4.0.0"
+  }
 }

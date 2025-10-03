@@ -4,10 +4,16 @@
   "files": [],
   "references": [
     {
-      "path": "./packages/gateway"
+      "path": "./tools/nx-tsdown"
     },
     {
-      "path": "./tools/nx-tsdown"
+      "path": "./packages/router"
+    },
+    {
+      "path": "./packages/cli"
+    },
+    {
+      "path": "./packages/mcp"
     }
   ]
 }

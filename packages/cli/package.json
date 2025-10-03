@@ -1,0 +1,19 @@
+{
+  "name": "@anygpt/cli",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "anygpt": "./dist/bin.js"
+  },
+  "files": [
+    "dist",
+    "!**/*.tsbuildinfo"
+  ],
+  "dependencies": {
+    "@anygpt/router": "*",
+    "@iarna/toml": "^2.2.5",
+    "commander": "^11.0.0",
+    "openai": "^6.0.0"
+  }
+}
