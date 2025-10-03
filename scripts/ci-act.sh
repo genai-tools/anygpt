@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Local CI using nektos/act - runs actual GitHub Actions workflow locally
-# https://nektosact.com/
+# Local CI using nektos/act via GitHub CLI extension
+# https://nektosact.com/installation/gh.html
 
 set -e
 
@@ -12,12 +12,18 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}🚀 Running GitHub Actions CI locally with nektos/act${NC}"
+echo -e "${BLUE}🚀 Running GitHub Actions CI locally with nektos/act (via gh CLI)${NC}"
 echo ""
 
-# Check if act is available
-if [[ ! -f "./bin/act" ]]; then
-    echo -e "${RED}❌ act not found. Run: ./scripts/setup-act.sh${NC}"
+# Check if gh CLI is available
+if ! command -v gh &> /dev/null; then
+    echo -e "${RED}❌ GitHub CLI (gh) not found. Install it first: https://cli.github.com/${NC}"
+    exit 1
+fi
+
+# Check if act extension is installed
+if ! gh extension list | grep -q "nektos/gh-act"; then
+    echo -e "${RED}❌ act extension not found. Run: ./scripts/setup-act.sh${NC}"
     exit 1
 fi
 
@@ -33,27 +39,31 @@ echo "  ./scripts/ci-act.sh --dryrun        # Show what would run"
 echo "  ./scripts/ci-act.sh --list          # List available workflows"
 echo "  ./scripts/ci-act.sh --help          # Show all act options"
 echo ""
+echo -e "${YELLOW}💡 You can also run directly:${NC}"
+echo "  gh act                              # Run full CI workflow"
+echo "  gh act --dryrun                     # Show what would run"
+echo ""
 
 # Handle command line arguments
 case "${1:-}" in
     --dryrun)
         echo -e "${BLUE}🔍 Dry run - showing what would execute:${NC}"
-        ./bin/act push --dryrun
+        gh act push --dryrun
         ;;
     --list)
         echo -e "${BLUE}📋 Available workflows:${NC}"
-        ./bin/act -l
+        gh act -l
         ;;
     --help)
         echo -e "${BLUE}📖 act help:${NC}"
-        ./bin/act --help
+        gh act --help
         ;;
     "")
         echo -e "${BLUE}▶️  Running full CI workflow (this may take a few minutes)...${NC}"
         echo ""
         
         # Run the actual CI workflow
-        if ./bin/act push; then
+        if gh act push; then
             echo ""
             echo -e "${GREEN}✅ CI workflow completed successfully!${NC}"
         else
