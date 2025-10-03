@@ -8,7 +8,16 @@
   "exclude": ["node_modules", "dist"],
   "references": [
     {
+      "path": "../types"
+    },
+    {
       "path": "../router"
+    },
+    {
+      "path": "../connectors/mock"
+    },
+    {
+      "path": "../config"
     }
   ]
 }

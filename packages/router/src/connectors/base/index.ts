@@ -5,7 +5,6 @@ import type {
   ConnectorConfig,
   Logger
 } from '../../types/base.js';
-import type { IConnector } from '../../types/connector.js';
 import type { ResponseRequest, ResponseResponse } from '../../types/router.js';
 
 // Default no-op logger for when none is provided
@@ -28,11 +27,13 @@ export abstract class BaseConnector {
   protected config: ConnectorConfig;
   protected userConfig: ConnectorConfig; // Original user-provided config
   protected logger: Logger;
+  protected providerId: string;
   
   // Static property that each connector must define
   static readonly packageName: string;
 
-  constructor(config: ConnectorConfig = {}) {
+  constructor(providerId: string, config: ConnectorConfig = {}) {
+    this.providerId = providerId;
     // Keep the original user config separate
     this.userConfig = { ...config };
     

@@ -14,13 +14,6 @@ import { chatCommand } from './commands/chat.js';
 import { configCommand } from './commands/config.js';
 import { withCLIContext } from './utils/cli-context.js';
 
-interface ChatOptions {
-  provider?: string;
-  type?: 'openai' | 'anthropic' | 'google';
-  url?: string;
-  token?: string;
-  model: string;
-}
 
 const program = new Command();
 

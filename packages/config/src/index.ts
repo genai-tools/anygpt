@@ -45,6 +45,5 @@ export {
   type FactoryProviderConfig
 } from './factory.js';
 
-// Re-export connector factory functions for convenience
-export { openai } from '@anygpt/openai';
-export { mock } from '@anygpt/mock';
+// Note: Connector factory functions should be imported directly from their packages
+// to avoid circular dependencies during build

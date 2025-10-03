@@ -7,7 +7,7 @@ import type { Logger } from '@anygpt/types';
 
 // Console logger implementation for CLI
 class ConsoleLogger implements Logger {
-  constructor(private verbose: boolean = false) {}
+  constructor(private verbose = false) {}
 
   debug(message: string, ...args: any[]): void {
     if (this.verbose) {

@@ -19,13 +19,13 @@
     "customConditions": ["@root/source"],
     "baseUrl": ".",
     "paths": {
-      "@anygpt/types": ["packages/types/src"],
-      "@anygpt/router": ["packages/router/src"],
-      "@anygpt/openai": ["packages/connectors/openai/src"],
-      "@anygpt/mock": ["packages/connectors/mock/src"],
-      "@anygpt/config": ["packages/config/src"],
       "@anygpt/cli": ["packages/cli/src"],
-      "@anygpt/mcp": ["packages/mcp/src"]
+      "@anygpt/config": ["packages/config/src"],
+      "@anygpt/mcp": ["packages/mcp/src"],
+      "@anygpt/mock": ["packages/connectors/mock/src"],
+      "@anygpt/openai": ["packages/connectors/openai/src"],
+      "@anygpt/router": ["packages/router/src"],
+      "@anygpt/types": ["packages/types/src"]
     }
   }
 }

@@ -22,7 +22,7 @@ export class OpenAIConnector extends BaseConnector {
   private client: OpenAI;
 
   constructor(config: OpenAIConnectorConfig = {}) {
-    super(config);
+    super('openai', config);
 
     // Always create a client, use empty string if no API key provided
     // Some APIs might not require authentication or handle it differently

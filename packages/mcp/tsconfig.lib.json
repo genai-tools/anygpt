@@ -10,7 +10,17 @@
     "types": ["node"]
   },
   "include": ["src/**/*.ts"],
-  "references": [],
+  "references": [
+    {
+      "path": "../types/tsconfig.lib.json"
+    },
+    {
+      "path": "../connectors/openai/tsconfig.lib.json"
+    },
+    {
+      "path": "../router/tsconfig.lib.json"
+    }
+  ],
   "exclude": [
     "vite.config.ts",
     "vite.config.mts",

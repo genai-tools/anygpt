@@ -4,6 +4,9 @@
   "include": [],
   "references": [
     {
+      "path": "../../router"
+    },
+    {
       "path": "./tsconfig.lib.json"
     },
     {

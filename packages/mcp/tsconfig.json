@@ -4,6 +4,15 @@
   "include": [],
   "references": [
     {
+      "path": "../types"
+    },
+    {
+      "path": "../connectors/openai"
+    },
+    {
+      "path": "../router"
+    },
+    {
       "path": "./tsconfig.lib.json"
     },
     {

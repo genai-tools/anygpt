@@ -14,6 +14,18 @@
     },
     {
       "path": "./packages/mcp"
+    },
+    {
+      "path": "./packages/connectors/openai"
+    },
+    {
+      "path": "./packages/connectors/mock"
+    },
+    {
+      "path": "./packages/config"
+    },
+    {
+      "path": "./packages/types"
     }
   ]
 }
