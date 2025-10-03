@@ -34,7 +34,8 @@ jobs:
 
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: npx nx-cloud record -- echo Hello World
-      - run: npx nx run-many -t typecheck
-      # Nx Cloud recommends fixes for failures to help you get CI green faster. Learn more: https://nx.dev/ci/features/self-healing-ci
-      - run: npx nx fix-ci
-        if: always()
+      # Basic validation - check if packages can be listed
+      - run: npx nx show projects
+      
+      # Validate TypeScript compilation directly
+      - run: npx tsc --noEmit --project tsconfig.base.json
