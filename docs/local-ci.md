@@ -2,18 +2,18 @@
 
 This document explains how to run CI tests locally before pushing to GitHub.
 
-## 🎯 Recommended: nektos/act
+## 🎯 Recommended: nektos/act via GitHub CLI Extension
 
-[nektos/act](https://nektosact.com/) runs your **actual GitHub Actions workflow** locally in Docker containers, providing the exact same environment as GitHub Actions.
+[nektos/act](https://nektosact.com/) runs your **actual GitHub Actions workflow** locally in Docker containers. The [GitHub CLI extension](https://nektosact.com/installation/gh.html) provides the best integration since we're already using `gh` CLI.
 
 ### Setup
 
 ```bash
-# One-time setup
+# One-time setup (installs as GitHub CLI extension)
 ./scripts/setup-act.sh
 
 # Verify installation
-./bin/act --version
+gh act --version
 ```
 
 ### Usage
@@ -21,15 +21,19 @@ This document explains how to run CI tests locally before pushing to GitHub.
 ```bash
 # Run full CI workflow (recommended)
 ./scripts/ci-act.sh
+# OR directly:
+gh act
 
 # See what would run without executing
 ./scripts/ci-act.sh --dryrun
+# OR directly:
+gh act --dryrun
 
 # List available workflows
-./scripts/ci-act.sh --list
+gh act -l
 
 # Get help
-./scripts/ci-act.sh --help
+gh act --help
 ```
 
 ### Benefits of `act`
@@ -71,14 +75,23 @@ The CI pipeline validates:
 ## 🚀 Quick Start
 
 ```bash
-# 1. Setup act (one-time)
+# 1. Setup act as GitHub CLI extension (one-time)
 ./scripts/setup-act.sh
 
 # 2. Run CI locally
+gh act
+# OR with wrapper script:
 ./scripts/ci-act.sh
 
 # 3. Fix any issues and re-run
-./scripts/ci-act.sh
+gh act
 ```
+
+### Benefits of GitHub CLI Extension
+
+- ✅ **Integrated with existing `gh` CLI** - No separate binary to manage
+- ✅ **Automatic updates** - Updates with `gh extension upgrade`
+- ✅ **Consistent interface** - Same `gh` command you already use
+- ✅ **Better authentication** - Uses existing GitHub authentication
 
 This ensures your changes will pass CI before pushing to GitHub!
