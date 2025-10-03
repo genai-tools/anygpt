@@ -19,7 +19,7 @@ export interface MockConnectorConfig extends BaseConnectorConfig {
 export class MockConnector implements IConnector {
   static readonly packageName = '@anygpt/mock';
   private config: MockConnectorConfig;
-  private providerId: string = 'mock';
+  public readonly providerId: string = 'mock';
 
   constructor(config: MockConnectorConfig = {}) {
     this.config = {

@@ -10,16 +10,22 @@ import { GenAIRouter } from "@anygpt/router";
 import { OpenAIConnectorFactory } from "@anygpt/openai";
 import type { ChatCompletionRequest } from "@anygpt/types";
 
-// Initialize the router with OpenAI connector
-const router = new GenAIRouter();
-router.registerConnector(new OpenAIConnectorFactory());
-
-// Create OpenAI connector instance
-const connector = router.createConnector('openai', {
-  apiKey: process.env.OPENAI_API_KEY,
+// Initialize the router with OpenAI connector and configuration
+const router = new GenAIRouter({
   timeout: parseInt(process.env.TIMEOUT || '30000'),
   maxRetries: parseInt(process.env.MAX_RETRIES || '3'),
+  providers: {
+    openai: {
+      type: 'openai',
+      api: {
+        url: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
+        token: process.env.OPENAI_API_KEY || '',
+        headers: {}
+      }
+    }
+  }
 });
+router.registerConnector(new OpenAIConnectorFactory());
 
 // Create MCP server instance
 const server = new Server(
@@ -168,7 +174,10 @@ async function handleChatCompletion(args: { messages: Array<{ role: string; cont
       max_tokens: args.max_tokens,
     };
 
-    const response = await connector.chatCompletion(request);
+    const response = await router.chatCompletion({
+      ...request,
+      provider: 'openai'
+    });
     return response;
   } catch (error) {
     throw new Error(`Chat completion failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -177,7 +186,7 @@ async function handleChatCompletion(args: { messages: Array<{ role: string; cont
 
 async function handleListModels() {
   try {
-    const models = await connector.listModels();
+    const models = await router.listModels('openai');
     return {
       models,
       provider: 'openai',

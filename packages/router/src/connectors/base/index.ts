@@ -27,7 +27,7 @@ export abstract class BaseConnector {
   protected config: ConnectorConfig;
   protected userConfig: ConnectorConfig; // Original user-provided config
   protected logger: Logger;
-  protected providerId: string;
+  public readonly providerId: string;
   
   // Static property that each connector must define
   static readonly packageName: string;

@@ -82,8 +82,8 @@ export async function setupCLIContext(configPath?: string): Promise<CLIContext> 
         config,
         configSource: configPath || 'default config search',
         defaults: {
-          provider: config.settings?.defaultProvider || config.defaults?.provider,
-          model: config.defaults?.model
+          provider: config.settings?.defaultProvider,
+          model: undefined // AnyGPTConfig doesn't have a global default model
         }
       };
     }
@@ -96,8 +96,8 @@ export async function setupCLIContext(configPath?: string): Promise<CLIContext> 
       config,
       configSource: configPath || 'fallback config search',
       defaults: {
-        provider: config.settings?.defaultProvider || config.defaults?.provider,
-        model: config.defaults?.model
+        provider: config.settings?.defaultProvider,
+        model: undefined // AnyGPTConfig doesn't have a global default model
       }
     };
   }

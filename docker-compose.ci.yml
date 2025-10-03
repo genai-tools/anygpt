@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  ci-test:
+    image: node:20-bullseye
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - /workspace/node_modules
+    environment:
+      - CI=true
+      - NODE_ENV=test
+    command: |
+      bash -c "
+        echo '🚀 Starting CI simulation...'
+        echo '📦 Installing dependencies...'
+        npm install --legacy-peer-deps --no-package-lock
+        
+        echo '🔍 Validating NX workspace...'
+        npx nx show projects
+        
+        echo '📝 Running TypeScript checks...'
+        npx tsc --noEmit --project tsconfig.base.json
+        
+        echo '🧪 Running tests...'
+        npx nx run-many -t test || echo 'Tests failed - need to fix'
+        
+        echo '🔨 Running builds...'
+        npx nx run-many -t build || echo 'Builds failed - need to fix'
+        
+        echo '✨ Running lints...'
+        npx nx run-many -t lint || echo 'Lints failed - need to fix'
+        
+        echo '✅ CI simulation complete'
+      "
