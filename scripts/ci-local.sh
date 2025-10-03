@@ -1,7 +1,11 @@
 #!/bin/bash
 
-# Local CI simulation script
-# This mimics the GitHub Actions workflow locally
+# Local CI simulation script (DEPRECATED)
+# 
+# ⚠️  RECOMMENDATION: Use nektos/act instead for exact GitHub Actions environment
+# Run: ./scripts/ci-act.sh
+#
+# This script mimics the GitHub Actions workflow locally but may have environment differences
 
 set -e
 
