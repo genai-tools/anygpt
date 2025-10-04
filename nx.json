@@ -14,7 +14,9 @@
   },
   "nxCloudId": "68dd390f48111226cc89dab2",
   "plugins": [
-    { "plugin": "nx-tsdown" },
+    { "plugin": "./tools/nx-tsdown" },
+    { "plugin": "./tools/nx-tsgo" },
+    { "plugin": "./tools/nx-vitest" },
     {
       "plugin": "@nx/eslint/plugin",
       "options": {
