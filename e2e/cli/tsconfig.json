@@ -6,5 +6,13 @@
     "allowSyntheticDefaultImports": true
   },
   "include": ["**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist"],
+  "references": [
+    {
+      "path": "../../packages/connectors/mock"
+    },
+    {
+      "path": "../../packages/config"
+    }
+  ]
 }
