@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/router",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Core router for AnyGPT - routes requests to multiple AI providers",
   "type": "module",
   "main": "./dist/index.js",
@@ -42,5 +42,5 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {}  
+  "dependencies": {}
 }

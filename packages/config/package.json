@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/config",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Configuration management for AnyGPT - TypeScript-based config with factory functions",
   "type": "module",
   "main": "./dist/index.js",
@@ -41,6 +41,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@anygpt/types": "0.0.1"
+    "@anygpt/types": "0.1.0"
   }
 }
