@@ -102,7 +102,7 @@ async function loadTOMLConfig(path: string): Promise<AnyGPTConfig> {
       } else if (trimmed.includes('=')) {
         const [key, value] = trimmed.split('=', 2);
         const cleanKey = key.trim();
-        let cleanValue = value.trim().replace(/^["']|["']$/g, '');
+        const cleanValue = value.trim().replace(/^['"]|['"]$/g, '');
         
         if (currentSection) {
           if (currentSection.includes('.')) {

@@ -6,7 +6,7 @@ import { GenAIRouter } from '@anygpt/router';
 import { loadConfig } from './loader.js';
 import { loadConnectors } from './connector-loader.js';
 import type { AnyGPTConfig, ConfigLoadOptions } from './types.js';
-import type { Logger } from '@anygpt/types';
+import type { ConnectorConfig, Logger } from '@anygpt/types';
 import type { FactoryConfig } from './factory.js';
 
 /**
@@ -38,7 +38,7 @@ export async function setupRouter(
 export async function setupRouterFromFactory(factoryConfig: FactoryConfig): Promise<{ router: GenAIRouter; config: FactoryConfig }> {
   // Convert factory providers to router provider format for validation
   const routerProviders: Record<string, { type: string; api: { url: string; token: string; headers: Record<string, string> } }> = {};
-  for (const [providerId, providerConfig] of Object.entries(factoryConfig.providers)) {
+  for (const providerId of Object.keys(factoryConfig.providers)) {
     routerProviders[providerId] = {
       type: providerId, // Use provider ID as type for factory configs
       api: {
@@ -53,28 +53,24 @@ export async function setupRouterFromFactory(factoryConfig: FactoryConfig): Prom
   const router = new GenAIRouter({
     timeout: factoryConfig.defaults?.timeout || 30000,
     maxRetries: factoryConfig.defaults?.maxRetries || 3,
-    providers: routerProviders // Include providers for validation
+    providers: routerProviders as unknown as Record<string, any> // Include providers for validation
   });
 
   // Register each connector directly with the router
   for (const [providerId, providerConfig] of Object.entries(factoryConfig.providers)) {
-    const connector = providerConfig.connector;
-    
-    // Create a factory wrapper for the direct connector instance
     const factory = {
       getProviderId: () => providerId,
-      create: (_config: unknown) => {
-        // For factory configs, we ignore the router's config and return our pre-configured connector
-        return connector;
-      }
+      create: (_config: ConnectorConfig) => {
+        // For factory configs, ignore normalized config and reuse supplied connector instance
+        return providerConfig.connector;
+      },
     };
-    
+
     router.registerConnector(factory);
   }
 
   return { router, config: factoryConfig };
 }
-
 /**
  * Convert AnyGPT config providers to router format
  */
