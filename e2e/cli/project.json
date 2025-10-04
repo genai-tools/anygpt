@@ -2,14 +2,5 @@
   "name": "e2e-cli",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "e2e/cli",
-  "projectType": "application",
-  "targets": {
-    "e2e": {
-      "executor": "@nx/vite:test",
-      "outputs": ["{workspaceRoot}/coverage/e2e/cli"],
-      "options": {
-        "config": "e2e/cli/vitest.config.ts"
-      }
-    }
-  }
+  "projectType": "application"
 }
