@@ -5,7 +5,7 @@
 import { GenAIRouter } from '@anygpt/router';
 import { loadConfig } from './loader.js';
 import { loadConnectors } from './connector-loader.js';
-import type { AnyGPTConfig, ConfigLoadOptions } from './types.js';
+import type { AnyGPTConfig, ConfigLoadOptions } from '@anygpt/types';
 import type { ConnectorConfig as AnyConnectorConfig, Logger } from '@anygpt/types';
 import type {
   ProviderConfig as RouterProviderConfig,

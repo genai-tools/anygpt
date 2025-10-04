@@ -40,6 +40,9 @@
   "publishConfig": {
     "access": "public"
   },
+  "scripts": {
+    "build:dts": "tsc --project tsconfig.lib.json"
+  },
   "dependencies": {
     "@anygpt/types": "0.1.0"
   }
