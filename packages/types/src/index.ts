@@ -60,12 +60,10 @@ export type {
   IConnectorRegistry
 } from './connector.js';
 
-// Re-export all types
-export * from './config.js';
-export * from './connector.js';
-
 // Configuration types
 export type {
   ConnectorConfig,
   ProviderConfig,
+  AnyGPTConfig,
+  ConfigLoadOptions
 } from './config.js';
