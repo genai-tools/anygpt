@@ -5,5 +5,9 @@ export default defineConfig({
   sourcemap: true,
   tsconfig: 'tsconfig.lib.json',
   skipNodeModulesBundle: true,
-  dts: true  
+  // Disable DTS - tsdown has bugs with TS path mappings (see issue #523)
+  // dts: {
+  //   build:true,
+  //   tsgo:true
+  // }
 });

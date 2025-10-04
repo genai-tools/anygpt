@@ -2,8 +2,13 @@
  * @anygpt/config - Shared configuration management for AnyGPT
  */
 
-// Types
-export type * from './types.js';
+// Re-export types from @anygpt/types
+export type {
+  ConnectorConfig,
+  ProviderConfig,
+  AnyGPTConfig,
+  ConfigLoadOptions
+} from '@anygpt/types';
 
 // Default configurations
 export {

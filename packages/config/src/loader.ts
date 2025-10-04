@@ -5,7 +5,7 @@
 import { readFile, access } from 'fs/promises';
 import { join, resolve } from 'path';
 import { homedir } from 'os';
-import type { AnyGPTConfig, ConfigLoadOptions } from './types.js';
+import type { AnyGPTConfig, ConfigLoadOptions } from '@anygpt/types';
 import { getDefaultConfig, convertCodexToAnyGPTConfig } from './defaults.js';
 import { parseCodexToml } from './codex-parser.js';
 

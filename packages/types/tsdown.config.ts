@@ -5,5 +5,7 @@ export default defineConfig({
   sourcemap: true,
   tsconfig: 'tsconfig.lib.json',
   skipNodeModulesBundle: true,
-  dts: true  
+  dts: {
+    emitDtsOnly: true
+  }  
 });
