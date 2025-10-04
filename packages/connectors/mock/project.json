@@ -1,3 +1,13 @@
 {
-  "name": "mock"
+  "name": "mock",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/connectors/mock/src",
+  "projectType": "library",
+  "targets": {
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{workspaceRoot}/coverage/packages/connectors/mock"],
+      "options": {}
+    }
+  }
 }

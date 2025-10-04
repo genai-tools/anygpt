@@ -15,3 +15,6 @@ export { ConnectorRegistry } from './connectors/registry.js';
 // Configuration helper
 export { defineConfig } from './config.js';
 export type { RouterConfig, GatewayConfig, ProviderConfig, ApiConfig } from './config.js';
+
+// Error exports
+export * from './errors.js';

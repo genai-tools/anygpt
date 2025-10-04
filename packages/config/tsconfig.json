@@ -7,6 +7,9 @@
       "path": "../router"
     },
     {
+      "path": "../connectors/openai"
+    },
+    {
       "path": "../types"
     },
     {
