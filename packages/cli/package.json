@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/cli",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Command-line interface for AnyGPT - chat, conversations, and configuration management",
   "type": "module",
   "main": "./dist/index.js",
