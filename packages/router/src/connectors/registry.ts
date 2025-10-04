@@ -39,7 +39,10 @@ export class ConnectorRegistry {
     
     // Return existing instance if available
     if (this.instances.has(instanceKey)) {
-      return this.instances.get(instanceKey)!;
+      const existing = this.instances.get(instanceKey);
+      if (existing) {
+        return existing;
+      }
     }
 
     // Create new instance

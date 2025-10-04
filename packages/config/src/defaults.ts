@@ -4,6 +4,22 @@
 
 import type { AnyGPTConfig } from '@anygpt/types';
 
+export interface CodexProviderConfig {
+  name?: string;
+  base_url?: string;
+  env_key?: string;
+  wire_api?: string;
+  query_params?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface CodexConfig {
+  model?: string;
+  model_provider?: string;
+  model_providers?: Record<string, CodexProviderConfig>;
+  [key: string]: unknown;
+}
+
 /**
  * Get default configuration with common providers
  */
@@ -59,56 +75,57 @@ export function getDefaultConfig(): AnyGPTConfig {
 /**
  * Convert codex-style config to AnyGPT config
  */
-export function convertCodexToAnyGPTConfig(codexConfig: any): AnyGPTConfig {
+export function convertCodexToAnyGPTConfig(codexConfig: CodexConfig): AnyGPTConfig {
   const providers: AnyGPTConfig['providers'] = {};
-  
+  const defaultModel = codexConfig.model ?? 'gpt-3.5-turbo';
+
   if (codexConfig.model_providers) {
-    for (const [providerId, providerConfig] of Object.entries(codexConfig.model_providers as any)) {
-      const config = providerConfig as any;
-      
-      // Get API token from environment variable if specified
+    for (const [providerId, providerConfig] of Object.entries(codexConfig.model_providers)) {
+      const normalizedConfig: CodexProviderConfig = providerConfig ?? {};
+
       let apiKey: string | undefined;
-      if (config.env_key) {
-        apiKey = process.env[config.env_key];
+      if (normalizedConfig.env_key) {
+        apiKey = process.env[normalizedConfig.env_key];
         if (!apiKey) {
-          console.warn(`Warning: Environment variable ${config.env_key} not set for provider ${providerId}`);
+          console.warn(`Warning: Environment variable ${normalizedConfig.env_key} not set for provider ${providerId}`);
         }
       }
-      
-      // Convert base_url to our format (remove /chat/completions if present)
-      let baseURL = config.base_url;
+
+      let baseURL = normalizedConfig.base_url ?? 'https://api.openai.com/v1';
       if (baseURL.endsWith('/chat/completions')) {
         baseURL = baseURL.slice(0, -'/chat/completions'.length);
       }
-      
+
       providers[providerId] = {
-        name: config.name || providerId,
+        name: normalizedConfig.name || providerId,
         connector: {
-          connector: '@anygpt/openai', // Assume OpenAI-compatible
+          connector: '@anygpt/openai',
           config: {
             baseURL,
-            ...(apiKey && { apiKey }),
+            ...(apiKey ? { apiKey } : {}),
             timeout: 30000,
-            maxRetries: 3
-          }
+            maxRetries: 3,
+          },
         },
         settings: {
-          defaultModel: codexConfig.model || 'gpt-3.5-turbo'
-        }
+          defaultModel,
+        },
       };
     }
   }
-  
+
+  const defaultProvider = codexConfig.model_provider || Object.keys(providers)[0] || 'mock';
+
   return {
     version: '1.0',
     providers,
     settings: {
-      defaultProvider: codexConfig.model_provider || Object.keys(providers)[0] || 'mock',
+      defaultProvider,
       timeout: 30000,
       maxRetries: 3,
       logging: {
-        level: 'info'
-      }
-    }
+        level: 'info',
+      },
+    },
   };
 }

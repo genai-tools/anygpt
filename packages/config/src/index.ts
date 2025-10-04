@@ -3,25 +3,13 @@
  */
 
 // Types
-export type {
-  AnyGPTConfig,
-  ProviderConfig,
-  ConnectorConfig,
-  ConfigLoadOptions
-} from './types.js';
-
-// Configuration loading
-export {
-  loadConfig,
-  validateConfig
-} from './loader.js';
+export type * from './types.js';
 
 // Default configurations
 export {
   getDefaultConfig,
   convertCodexToAnyGPTConfig
 } from './defaults.js';
-
 // Connector loading
 export {
   loadConnectors,

@@ -17,7 +17,7 @@ export interface OpenAIConnectorConfig extends ConnectorConfig {
 export interface MockConnectorConfig extends ConnectorConfig {
   delay?: number; // Simulate API delay in ms
   failureRate?: number; // 0-1, probability of failure
-  customResponses?: Record<string, any>;
+  customResponses?: Record<string, unknown>;
 }
 
 /**

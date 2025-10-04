@@ -22,7 +22,7 @@ export interface ApiConfig {
  * Provider configuration - simplified
  */
 export interface ProviderConfig {
-  type: 'openai' | 'anthropic' | 'google' | 'custom';
+  type: string;
   api: ApiConfig;
   timeout?: number;
   maxRetries?: number;

@@ -3,7 +3,8 @@
   "compilerOptions": {
     "outDir": "../../dist/out-tsc",
     "declaration": true,
-    "types": ["node"]
+    "types": ["node"],
+    "tsBuildInfoFile": "../../dist/out-tsc/config.tsbuildinfo"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts"],

@@ -7,6 +7,7 @@ export type OpenAIModelInfo = ModelInfo;
 // No need for static model definitions since we use fallback system
 
 export function getModelInfo(modelId: string): ModelInfo | undefined {
+  void modelId;
   // Simplified: Let OpenAI API handle model validation
   // Return undefined to skip model-specific validation
   return undefined;

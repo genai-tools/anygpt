@@ -7,7 +7,10 @@ import {
   type BaseChatCompletionResponse,
   type ChatMessage,
   type ResponseRequest,
-  type ResponseResponse
+  type ResponseResponse,
+  type ResponseOutput,
+  type ResponseContent,
+  type ResponseAnnotation
 } from '@anygpt/router';
 import type { ConnectorFactory } from '@anygpt/router';
 import { getModelInfo, getChatModels, type OpenAIModelInfo } from './models.js';
@@ -16,6 +19,24 @@ export interface OpenAIConnectorConfig extends ConnectorConfig {
   apiKey?: string;
   baseURL?: string;  // Essential for OpenAI-compatible APIs
 }
+
+type ResponseInputMessage = {
+  type: 'message';
+  role: string;
+  content: string;
+};
+
+type OpenAIResponseOutput = {
+  id: string;
+  type: string;
+  role?: string;
+  content?: Array<{
+    type: string;
+    text?: string;
+    annotations?: unknown[];
+  }>;
+  status?: string;
+};
 
 export class OpenAIConnector extends BaseConnector {
   static override readonly packageName = '@anygpt/openai';
@@ -40,9 +61,11 @@ export class OpenAIConnector extends BaseConnector {
     const validatedRequest = this.validateRequest(request);
 
     try {
+      const model = validatedRequest.model ?? 'gpt-3.5-turbo';
+
       // Use the new Responses API pattern
       const response = await this.client.chat.completions.create({
-        model: validatedRequest.model!,
+        model,
         messages: validatedRequest.messages,
         temperature: validatedRequest.temperature,
         max_tokens: validatedRequest.max_tokens,
@@ -102,8 +125,9 @@ export class OpenAIConnector extends BaseConnector {
     return baseValidated;
   }
 
-  private validateRequestWithModel(request: BaseChatCompletionRequest, _modelInfo: OpenAIModelInfo): BaseChatCompletionRequest {
+  private validateRequestWithModel(request: BaseChatCompletionRequest, modelInfo: OpenAIModelInfo): BaseChatCompletionRequest {
     const validated = { ...request };
+    void modelInfo;
     // Set default model if not provided
     if (!validated.model) {
       validated.model = 'gpt-3.5-turbo';
@@ -121,20 +145,20 @@ export class OpenAIConnector extends BaseConnector {
   async response(request: ResponseRequest): Promise<ResponseResponse> {
     try {
       // Convert input to proper format
-      let input: any;
+      let input: ResponseRequest['input'] | ResponseInputMessage[];
       if (typeof request.input === 'string') {
         input = request.input;
       } else {
-        input = request.input.map(msg => ({
+        input = request.input.map(message => ({
           type: 'message',
-          role: msg.role,
-          content: msg.content
+          role: message.role,
+          content: message.content,
         }));
       }
 
-      const responseParams: any = {
+      const responseParams: Record<string, unknown> = {
         model: request.model,
-        input: input,
+        input,
         temperature: request.temperature,
         max_output_tokens: request.max_output_tokens,
         top_p: request.top_p,
@@ -142,18 +166,31 @@ export class OpenAIConnector extends BaseConnector {
 
       // Add previous_response_id if provided for conversation continuity
       if (request.previous_response_id) {
-        responseParams.previous_response_id = request.previous_response_id;
+        responseParams['previous_response_id'] = request.previous_response_id;
       }
 
       // Add tools if provided
       if (request.tools) {
-        responseParams.tools = request.tools;
+        responseParams['tools'] = request.tools;
       }
       if (request.tool_choice) {
-        responseParams.tool_choice = request.tool_choice;
+        responseParams['tool_choice'] = request.tool_choice;
       }
 
       const response = await this.client.responses.create(responseParams);
+
+      const responseOutputs = (response.output ?? []) as OpenAIResponseOutput[];
+      const normalizedOutput: ResponseOutput[] = responseOutputs.map(item => ({
+        id: item.id,
+        type: item.type as ResponseOutput['type'],
+        role: item.role as ResponseOutput['role'],
+        content: (item.content ?? []).map<ResponseContent>(contentItem => ({
+          type: contentItem.type as ResponseContent['type'],
+          text: contentItem.text ?? '',
+          annotations: [] as ResponseAnnotation[],
+        })),
+        status: item.status,
+      }));
 
       return {
         id: response.id,
@@ -162,17 +199,7 @@ export class OpenAIConnector extends BaseConnector {
         model: response.model,
         provider: this.getProviderId(),
         status: response.status as 'in_progress' | 'completed' | 'failed',
-        output: response.output.map((item: any) => ({
-          id: item.id,
-          type: item.type,
-          role: item.role,
-          content: item.content?.map((content: any) => ({
-            type: content.type,
-            text: content.text,
-            annotations: content.annotations || []
-          })) || [],
-          status: item.status
-        })),
+        output: normalizedOutput,
         usage: {
           input_tokens: response.usage?.input_tokens || 0,
           output_tokens: response.usage?.output_tokens || 0,

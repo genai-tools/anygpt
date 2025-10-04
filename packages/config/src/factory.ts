@@ -9,7 +9,7 @@ export interface FactoryProviderConfig {
   connector: IConnector;
   settings?: {
     defaultModel?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
