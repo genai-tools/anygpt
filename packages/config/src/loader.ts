@@ -7,6 +7,7 @@ import { join, resolve } from 'path';
 import { homedir } from 'os';
 import type { AnyGPTConfig, ConfigLoadOptions } from './types.js';
 import { getDefaultConfig, convertCodexToAnyGPTConfig } from './defaults.js';
+import { parseCodexToml } from './codex-parser.js';
 
 /**
  * Default configuration paths to search
@@ -79,44 +80,7 @@ async function loadTSConfig(path: string): Promise<AnyGPTConfig> {
 async function loadTOMLConfig(path: string): Promise<AnyGPTConfig> {
   try {
     const content = await readFile(path, 'utf-8');
-    // Simple TOML parsing - for now we'll use a basic approach
-    // In a full implementation, you'd use a proper TOML parser
-    const lines = content.split('\n');
-    const codexConfig: any = {};
-    
-    // Basic TOML parsing for codex config
-    let currentSection = '';
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith('#')) continue;
-      
-      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-        currentSection = trimmed.slice(1, -1);
-        if (currentSection.includes('.')) {
-          const [parent, child] = currentSection.split('.');
-          if (!codexConfig[parent]) codexConfig[parent] = {};
-          codexConfig[parent][child] = {};
-        } else {
-          codexConfig[currentSection] = {};
-        }
-      } else if (trimmed.includes('=')) {
-        const [key, value] = trimmed.split('=', 2);
-        const cleanKey = key.trim();
-        const cleanValue = value.trim().replace(/^['"]|['"]$/g, '');
-        
-        if (currentSection) {
-          if (currentSection.includes('.')) {
-            const [parent, child] = currentSection.split('.');
-            codexConfig[parent][child][cleanKey] = cleanValue;
-          } else {
-            codexConfig[currentSection][cleanKey] = cleanValue;
-          }
-        } else {
-          codexConfig[cleanKey] = cleanValue;
-        }
-      }
-    }
-    
+    const codexConfig = parseCodexToml(content);
     return convertCodexToAnyGPTConfig(codexConfig);
   } catch (error) {
     throw new Error(`Failed to load TOML config from ${path}: ${error}`);
@@ -229,8 +193,8 @@ export function validateConfig(config: AnyGPTConfig): void {
   }
   
   for (const [providerId, provider] of Object.entries(config.providers)) {
-    if (!provider.connector?.type && !provider.connector?.connector) {
-      throw new Error(`Provider '${providerId}' must specify a connector type`);
+    if (!provider.connector?.connector) {
+      throw new Error(`Provider '${providerId}' must specify a connector package`);
     }
   }
 }

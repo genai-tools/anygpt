@@ -8,7 +8,19 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { GenAIRouter } from "@anygpt/router";
 import { OpenAIConnectorFactory } from "@anygpt/openai";
-import type { ChatCompletionRequest } from "@anygpt/types";
+import type { ChatCompletionRequest, ChatMessage, ModelInfo } from "@anygpt/types";
+
+type ChatCompletionToolArgs = {
+  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
+  model?: string;
+  provider?: string;
+  temperature?: number;
+  max_tokens?: number;
+};
+
+type ListModelsToolArgs = {
+  provider?: string;
+};
 
 // Initialize the router with OpenAI connector and configuration
 const router = new GenAIRouter({
@@ -123,8 +135,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     switch (name) {
       case "chat_completion": {
-        // TODO: Implement gateway client call
-        const result = await handleChatCompletion(args);
+        const toolArgs = (args ?? {}) as ChatCompletionToolArgs;
+        const result = await handleChatCompletion(toolArgs);
         return {
           content: [
             {
@@ -136,8 +148,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "list_models": {
-        // TODO: Implement gateway client call
-        const models = await handleListModels(args);
+        const toolArgs = (args ?? {}) as ListModelsToolArgs;
+        const models = await handleListModels(toolArgs);
         return {
           content: [
             {
@@ -165,31 +177,41 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 // Implementation using the router and connectors
-async function handleChatCompletion(args: { messages: Array<{ role: string; content: string }>; model?: string; provider?: string; temperature?: number; max_tokens?: number }) {
+async function handleChatCompletion(args: ChatCompletionToolArgs) {
   try {
+    if (!Array.isArray(args.messages) || args.messages.length === 0) {
+      throw new Error("messages array is required");
+    }
+
+    const messages: ChatMessage[] = args.messages.map((message) => ({
+      role: message.role,
+      content: message.content,
+    }));
+
+    const providerId = args.provider || 'openai';
+
     const request: ChatCompletionRequest = {
-      messages: args.messages,
+      messages,
       model: args.model || process.env.DEFAULT_MODEL || 'gpt-3.5-turbo',
       temperature: args.temperature,
       max_tokens: args.max_tokens,
+      provider: providerId,
     };
 
-    const response = await router.chatCompletion({
-      ...request,
-      provider: 'openai'
-    });
+    const response = await router.chatCompletion(request);
     return response;
   } catch (error) {
     throw new Error(`Chat completion failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
-async function handleListModels() {
+async function handleListModels(args: ListModelsToolArgs): Promise<{ provider: string; models: ModelInfo[] }> {
   try {
-    const models = await router.listModels('openai');
+    const providerId = args.provider || 'openai';
+    const models = await router.listModels(providerId);
     return {
       models,
-      provider: 'openai',
+      provider: providerId,
     };
   } catch (error) {
     throw new Error(`Failed to list models: ${error instanceof Error ? error.message : String(error)}`);

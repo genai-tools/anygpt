@@ -3,13 +3,14 @@ import type {
   RouterConfig, 
   ChatCompletionRequest, 
   ChatCompletionResponse, 
-  ResponseRequest,
-  ResponseResponse,
+  ResponseRequest, 
+  ResponseResponse, 
   IRouter 
 } from '../types/router.js';
 import type { 
   ModelInfo, 
-  ChatCompletionRequest as BaseRequest 
+  ChatCompletionRequest as BaseRequest,
+  ConnectorConfig
 } from '../types/base.js';
 import type { IConnector, ConnectorFactory } from '../types/connector.js';
 
@@ -71,7 +72,7 @@ export class GenAIRouter implements IRouter {
         created: response.created,
         model: response.model,
         provider: connector.getProviderId(),
-        choices: response.choices.map((choice: any) => ({
+        choices: response.choices.map((choice) => ({
           index: choice.index,
           message: {
             role: choice.message.role,
@@ -146,7 +147,7 @@ export class GenAIRouter implements IRouter {
     }
   }
 
-  private getConnector(providerId: string, config: any): IConnector {
+  private getConnector(providerId: string, config: ConnectorConfig): IConnector {
     if (!this.registry.hasConnector(providerId)) {
       throw new Error(`No connector registered for provider: ${providerId}`);
     }

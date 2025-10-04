@@ -4,12 +4,12 @@
 
 import { describe, it, expect } from 'vitest';
 import { BaseConnector } from './index.js';
-import type { ChatCompletionRequest, ChatCompletionResponse, ModelInfo } from '../../types/base.js';
+import type { ChatCompletionRequest, ChatCompletionResponse, ModelInfo, ConnectorConfig } from '../../types/base.js';
 import type { ResponseRequest, ResponseResponse } from '../../types/router.js';
 
 // Create a concrete implementation for testing
 class TestConnector extends BaseConnector {
-  constructor(config: any = {}) {
+  constructor(config: ConnectorConfig = {}) {
     super('test', config);
   }
   async chatCompletion(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {

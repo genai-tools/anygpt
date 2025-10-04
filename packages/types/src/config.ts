@@ -8,6 +8,8 @@
 export interface ConnectorConfig {
   /** Package name to dynamically import (e.g., "@anygpt/openai") */
   connector: string;
+  /** Optional connector type identifier (legacy support) */
+  type?: string;
   /** Configuration passed to the connector */
   config?: {
     apiKey?: string;
@@ -16,6 +18,8 @@ export interface ConnectorConfig {
     maxRetries?: number;
     [key: string]: unknown;
   };
+  /** Optional options bag for alternative connector definitions */
+  options?: Record<string, unknown>;
 }
 
 /**

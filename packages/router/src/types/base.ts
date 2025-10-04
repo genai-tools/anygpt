@@ -73,15 +73,15 @@ export interface ModelInfo {
 }
 
 export interface Logger {
-  debug(message: string, ...args: any[]): void;
-  info(message: string, ...args: any[]): void;
-  warn(message: string, ...args: any[]): void;
-  error(message: string, ...args: any[]): void;
+  debug(message: string, ...args: unknown[]): void;
+  info(message: string, ...args: unknown[]): void;
+  warn(message: string, ...args: unknown[]): void;
+  error(message: string, ...args: unknown[]): void;
 }
 
 export interface ConnectorConfig {
   timeout?: number;
   maxRetries?: number;
   logger?: Logger;
-  [key: string]: any; // Allow provider-specific config
+  [key: string]: unknown; // Allow provider-specific config
 }

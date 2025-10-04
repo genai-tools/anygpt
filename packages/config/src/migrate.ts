@@ -6,6 +6,7 @@ import { readFile, writeFile, access, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { homedir } from 'os';
 import { convertCodexToAnyGPTConfig } from './defaults.js';
+import { parseCodexToml } from './codex-parser.js';
 import type { AnyGPTConfig } from '@anygpt/types';
 
 /**
@@ -23,7 +24,7 @@ async function fileExists(path: string): Promise<boolean> {
 /**
  * Migrate from ~/.codex/config.toml to .anygpt/anygpt.config.ts
  */
-export async function migrateFromCodex(targetDir: string = '.'): Promise<boolean> {
+export async function migrateFromCodex(targetDir = '.'): Promise<boolean> {
   const codexConfigPath = join(homedir(), '.codex', 'config.toml');
   const anyGPTConfigDir = join(targetDir, '.anygpt');
   const anyGPTConfigPath = join(anyGPTConfigDir, 'anygpt.config.ts');
@@ -43,7 +44,7 @@ export async function migrateFromCodex(targetDir: string = '.'): Promise<boolean
   try {
     // Read and parse TOML config
     const tomlContent = await readFile(codexConfigPath, 'utf-8');
-    const codexConfig = parseSimpleTOML(tomlContent);
+    const codexConfig = parseCodexToml(tomlContent);
     
     // Convert to AnyGPT format
     const anyGPTConfig = convertCodexToAnyGPTConfig(codexConfig);
@@ -70,48 +71,6 @@ export async function migrateFromCodex(targetDir: string = '.'): Promise<boolean
     console.error('❌ Migration failed:', error);
     return false;
   }
-}
-
-/**
- * Simple TOML parser for basic codex configs
- */
-function parseSimpleTOML(content: string): any {
-  const result: any = {};
-  const lines = content.split('\n');
-  let currentSection = '';
-  
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    
-    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-      currentSection = trimmed.slice(1, -1);
-      if (currentSection.includes('.')) {
-        const [parent, child] = currentSection.split('.');
-        if (!result[parent]) result[parent] = {};
-        result[parent][child] = {};
-      } else {
-        result[currentSection] = {};
-      }
-    } else if (trimmed.includes('=')) {
-      const [key, value] = trimmed.split('=', 2);
-      const cleanKey = key.trim();
-      const cleanValue = value.trim().replace(/^["']|["']$/g, '');
-      
-      if (currentSection) {
-        if (currentSection.includes('.')) {
-          const [parent, child] = currentSection.split('.');
-          result[parent][child][cleanKey] = cleanValue;
-        } else {
-          result[currentSection][cleanKey] = cleanValue;
-        }
-      } else {
-        result[cleanKey] = cleanValue;
-      }
-    }
-  }
-  
-  return result;
 }
 
 /**
