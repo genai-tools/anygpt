@@ -17,7 +17,6 @@
     "strict": true,
     "target": "es2022",
     "customConditions": ["@root/source"],
-    // "baseUrl": ".",
     "paths": {
       "@anygpt/cli": ["./packages/cli/src"],
       "@anygpt/config": ["./packages/config/src"],
