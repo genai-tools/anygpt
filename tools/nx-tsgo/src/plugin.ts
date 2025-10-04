@@ -3,17 +3,14 @@ import { dirname, join } from 'path';
 import { existsSync } from 'fs';
 
 function isVerbose(): boolean {
-  // Check for --verbose flag in process arguments
   if (process.argv.includes('--verbose')) {
     return true;
   }
 
-  // Check NX_VERBOSE_LOGGING environment variable
   if (process.env.NX_VERBOSE_LOGGING === 'true') {
     return true;
   }
 
-  // Check for .env file with NX_VERBOSE_LOGGING
   try {
     const envPath = join(workspaceRoot, '.env');
     if (existsSync(envPath)) {
@@ -22,7 +19,6 @@ function isVerbose(): boolean {
     }
   } catch (_e) {
     void _e;
-    // Ignore errors
   }
 
   return false;
@@ -30,12 +26,12 @@ function isVerbose(): boolean {
 
 function logDebug(message: string) {
   if (isVerbose()) {
-    logger.info(`[nx-tsdown] ${message}`);
+    logger.info(`[nx-tsgo] ${message}`);
   }
 }
 
 export const createNodesV2: CreateNodesV2 = [
-  '**/tsdown.config.ts',
+  '**/tsconfig.lib.json',
   (configFiles, _options, _context) => {
     void _options;
     void _context;
@@ -43,46 +39,33 @@ export const createNodesV2: CreateNodesV2 = [
 
     if (verbose) {
       logger.info(
-        `[nx-tsdown] Processing ${configFiles.length} tsdown config files`
+        `[nx-tsgo] Processing ${configFiles.length} tsconfig.lib.json files`
       );
     }
 
     return configFiles.map((configFile) => {
       const projectRoot = dirname(configFile);
-      logDebug(`Found tsdown.config.ts in ${projectRoot}`);
+      logDebug(`Found tsconfig.lib.json in ${projectRoot}`);
 
-      const buildTarget = {
+      // Determine which tsconfig to use (prefer tsconfig.lib.json, fallback to tsconfig.json)
+      const tsconfigPath = existsSync(join(workspaceRoot, projectRoot, 'tsconfig.lib.json'))
+        ? 'tsconfig.lib.json'
+        : 'tsconfig.json';
+
+      const typecheckTarget = {
         executor: 'nx:run-commands',
         options: {
-          command: 'npx tsdown',
+          command: `npx tsgo --noEmit --project ${tsconfigPath}`,
           cwd: projectRoot,
         },
-        outputs: [`{projectRoot}/dist`],
         cache: true,
         inputs: [
           `{projectRoot}/src/**/*.ts`,
           `{projectRoot}/tsconfig.lib.json`,
-          `{projectRoot}/tsdown.config.ts`,
+          `{projectRoot}/tsconfig.json`,
           `{projectRoot}/package.json`,
-          { externalDependencies: ['tsdown'] },
+          { externalDependencies: ['@typescript/native-preview'] },
         ],
-        dependsOn: ['^build'],
-      };
-
-      const watchTarget = {
-        executor: 'nx:run-commands',
-        options: {
-          command: 'npx tsdown --watch',
-          cwd: projectRoot,
-        },
-      };
-
-      const cleanTarget = {
-        executor: 'nx:run-commands',
-        options: {
-          command: 'rm -rf dist',
-          cwd: projectRoot,
-        },
       };
 
       return [
@@ -91,9 +74,7 @@ export const createNodesV2: CreateNodesV2 = [
           projects: {
             [projectRoot]: {
               targets: {
-                build: buildTarget,
-                watch: watchTarget,
-                clean: cleanTarget,
+                typecheck: typecheckTarget,
               },
             },
           },
@@ -102,4 +83,3 @@ export const createNodesV2: CreateNodesV2 = [
     });
   },
 ];
-

@@ -4,7 +4,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "postinstall": "cd tools/nx-tsdown && npx tsdown"
+    "build": "npx tsdown --cwd tools/nx-tsdown && npx tsdown --cwd tools/nx-tsgo && npx tsdown --cwd tools/nx-vitest"
   },
   "private": true,
   "devDependencies": {
