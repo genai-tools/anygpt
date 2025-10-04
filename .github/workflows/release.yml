@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: lts/*
+          registry-url: 'https://registry.npmjs.org'
+
+      # Install dependencies (no package-lock due to registry issues)
+      - name: Install dependencies
+        run: npm install --no-package-lock
+
+      # Publish to npm
+      # Note: build and lint run automatically as dependencies of nx-release-publish
+      - name: Publish to npm
+        run: |
+          # Publish from the current git tag
+          # nx-release-publish target will automatically run build + lint
+          npx nx release publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true

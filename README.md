@@ -287,6 +287,8 @@ npx nx run-many -t lint
 ### Development Guidelines
 - **[Testing Guide](./docs/guidelines/testing.md)** - Comprehensive testing strategy, patterns, and coverage goals
 - **[E2E Testing Guide](./e2e/README.md)** - End-to-end test suite documentation and patterns
+- **[Release Guide](./docs/release-guide.md)** - How to release packages to npm
+- **[Release Setup](./docs/release-setup.md)** - Release infrastructure documentation
 
 ### CLI Commands
 - **[Chat Command](./packages/cli/docs/chat.md)** - Stateless AI interactions
