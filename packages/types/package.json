@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/types",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TypeScript type definitions for AnyGPT - zero runtime dependencies",
   "type": "module",
   "main": "./dist/index.js",
