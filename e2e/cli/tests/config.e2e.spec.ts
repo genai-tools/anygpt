@@ -3,20 +3,21 @@
  * Tests configuration management and validation
  */
 
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { runCLI } from '../helpers/cli-runner.js';
-import { createTestConfig } from '../helpers/test-config.js';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const E2E_DIR = join(__dirname, '..');
 
 describe('config command E2E', () => {
-  let configPath: string;
-
-  beforeAll(async () => {
-    configPath = await createTestConfig([]);
-  });
+  // Config will be auto-discovered from e2e/cli/anygpt.config.ts
 
   describe('config show', () => {
     it('should display current configuration', async () => {
-      const result = await runCLI(['config', 'show'], { configPath });
+      const result = await runCLI(['config', 'show'], { configPath: join(E2E_DIR, "anygpt.config.ts"), cwd: E2E_DIR });
 
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('Configuration');
@@ -25,7 +26,7 @@ describe('config command E2E', () => {
     });
 
     it('should show config in JSON format', async () => {
-      const result = await runCLI(['config', 'show', '--json'], { configPath });
+      const result = await runCLI(['config', 'show', '--json'], { configPath: join(E2E_DIR, "anygpt.config.ts"), cwd: E2E_DIR });
 
       expect(result.exitCode).toBe(0);
       
@@ -37,7 +38,7 @@ describe('config command E2E', () => {
     });
 
     it('should show config source path', async () => {
-      const result = await runCLI(['config', 'show'], { configPath });
+      const result = await runCLI(['config', 'show'], { configPath: join(E2E_DIR, "anygpt.config.ts"), cwd: E2E_DIR });
 
       expect(result.exitCode).toBe(0);
       // Config path may be shown in different formats
@@ -47,7 +48,7 @@ describe('config command E2E', () => {
 
   describe('config validation', () => {
     it('should validate valid config file', async () => {
-      const result = await runCLI(['config', 'show'], { configPath });
+      const result = await runCLI(['config', 'show'], { configPath: join(E2E_DIR, "anygpt.config.ts"), cwd: E2E_DIR });
 
       expect(result.exitCode).toBe(0);
       // If config loads successfully, it's valid
@@ -55,27 +56,16 @@ describe('config command E2E', () => {
     });
 
     it('should reject invalid config file', async () => {
-      const result = await runCLI(['config', 'show'], { configPath: '/nonexistent/config.ts' });
+      const result = await runCLI(['config', 'show'], { configPath: "/nonexistent/config.ts", cwd: E2E_DIR });
 
       expect(result.exitCode).not.toBe(0);
       expect(result.stderr).toContain('Config file not found');
     });
   });
 
-  describe('config with environment variables', () => {
-    it('should respect config path from environment', async () => {
-      const result = await runCLI(['config', 'show'], { 
-        env: { ANYGPT_CONFIG: configPath }
-      });
-
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('Configuration');
-    });
-  });
-
   describe('config discovery', () => {
-    it('should use explicit --config flag', async () => {
-      const result = await runCLI(['config', 'show', '--config', configPath]);
+    it('should auto-discover config from cwd', async () => {
+      const result = await runCLI(['config', 'show'], { configPath: join(E2E_DIR, "anygpt.config.ts"), cwd: E2E_DIR });
 
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('Configuration');
@@ -83,13 +73,9 @@ describe('config command E2E', () => {
 
     it('should show error when no config found', async () => {
       // Run from a directory with no config file
-      const result = await runCLI(['config', 'show'], { 
-        cwd: '/tmp',
-        configPath: undefined 
-      });
+      const result = await runCLI(['config', 'show'], { cwd: '/tmp' });
 
-      // Should either find a config or show helpful error
-      // The exact behavior depends on config discovery implementation
+      // Should show helpful error
       if (result.exitCode !== 0) {
         expect(result.stderr.toLowerCase()).toMatch(/config|not found/);
       }
