@@ -1,3 +1,4 @@
+/* eslint-disable @nx/enforce-module-boundaries */
 /**
  * Example AnyGPT configuration file
  * Save as ~/.anygpt/anygpt.config.ts

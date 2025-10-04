@@ -2,7 +2,7 @@
  * Integration tests for core gateway functionality
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import type { ModelInfo, Logger } from './types/base.js';
 
 describe('Gateway Core Functionality', () => {
@@ -27,10 +27,10 @@ describe('Gateway Core Functionality', () => {
 
   it('should support logger interface for MCP compliance', () => {
     const mockLogger: Logger = {
-      debug: () => {},
-      info: () => {},
-      warn: () => {},
-      error: () => {}
+      debug: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn()
     };
 
     // Should not throw

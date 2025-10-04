@@ -21,7 +21,7 @@ describe('OpenAIConnector', () => {
     expect(connector.getProviderId()).toBe('openai');
     
     const retrievedConfig = connector.getConfig();
-    expect(retrievedConfig.baseURL).toBe('http://localhost:11434/v1');
+    expect(retrievedConfig['baseURL']).toBe('http://localhost:11434/v1');
   });
 
   it('should throw error when client not initialized', async () => {
