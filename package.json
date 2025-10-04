@@ -43,6 +43,13 @@
   "nx": {
     "includedScripts": [],
     "targets": {
+      "e2e": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "nx test e2e-cli",
+          "cwd": "{workspaceRoot}"
+        }
+      },
       "local-registry": {
         "executor": "@nx/js:verdaccio",
         "options": {
