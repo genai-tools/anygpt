@@ -32,6 +32,7 @@ jobs:
 
       # workaround because of package-lock.json with a private registry which we cannot exclude because of a bug
       # see https://github.com/nrwl/nx/issues/28385
+      # Note: postinstall script automatically builds nx-tsdown plugin
       - run: npm install --no-package-lock
 
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud

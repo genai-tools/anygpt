@@ -9,6 +9,9 @@ out/
 out-tsc/
 build/
 
+# TypeScript build artifacts
+*.tsbuildinfo
+
 # Logs
 *.log
 npm-debug.log*

@@ -2,7 +2,7 @@
  * Helper to run CLI commands for E2E testing
  */
 
-import execa from 'execa';
+import { execa } from 'execa';
 
 export interface CLIResult {
   exitCode: number;
@@ -33,7 +33,7 @@ export async function runCLI(args: string[], options: CLIOptions = {}): Promise<
     });
 
     return {
-      exitCode: result.exitCode,
+      exitCode: result.exitCode ?? 0,
       stdout: result.stdout,
       stderr: result.stderr
     };
