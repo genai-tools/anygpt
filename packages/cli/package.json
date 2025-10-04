@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/cli",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Command-line interface for AnyGPT - chat, conversations, and configuration management",
   "type": "module",
   "main": "./dist/index.js",
@@ -37,7 +37,6 @@
   },
   "dependencies": {
     "@anygpt/config": "0.2.2",
-    "@anygpt/mock": "0.2.2",
     "@iarna/toml": "^2.2.5",
     "commander": "^11.0.0"
   }
