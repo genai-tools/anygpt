@@ -230,6 +230,9 @@ npx nx build cli
 # Run tests
 npx nx run-many -t test
 
+# Run E2E tests
+npx nx e2e e2e-cli
+
 # Lint all packages
 npx nx run-many -t lint
 ```
@@ -268,6 +271,12 @@ npx nx run-many -t lint
 - **Plugin architecture**: Extensible command system
 - **MCP compliance**: Full protocol implementation
 
+### ✅ **Comprehensive Testing**
+- **30 E2E tests**: Complete CLI workflow validation with 0 skipped tests
+- **Mock connector**: Deterministic responses for reliable testing
+- **Full coverage**: Chat, conversations, config management, and error handling
+- **CI/CD ready**: Fast, reliable tests that run in < 15 seconds
+
 ## Documentation
 
 ### Getting Started
@@ -277,6 +286,7 @@ npx nx run-many -t lint
 
 ### Development Guidelines
 - **[Testing Guide](./docs/guidelines/testing.md)** - Comprehensive testing strategy, patterns, and coverage goals
+- **[E2E Testing Guide](./e2e/README.md)** - End-to-end test suite documentation and patterns
 
 ### CLI Commands
 - **[Chat Command](./packages/cli/docs/chat.md)** - Stateless AI interactions
