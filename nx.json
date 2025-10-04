@@ -58,11 +58,31 @@
     },
     "test": {
       "dependsOn": ["^build"]
+    },
+    "nx-release-publish": {
+      "dependsOn": ["build", "lint"]
     }
   },
   "release": {
+    "projectsRelationship": "independent",
+    "projects": [
+      "packages/*",
+      "packages/connectors/*",
+      "!packages/cli/node_modules/**"
+    ],
+    "releaseTagPattern": "{projectName}@{version}",
+    "changelog": {
+      "workspaceChangelog": {
+        "createRelease": "github",
+        "file": false
+      },
+      "projectChangelogs": {
+        "createRelease": "github",
+        "file": "{projectRoot}/CHANGELOG.md"
+      }
+    },
     "version": {
-      "preVersionCommand": "npx nx run-many -t build"
+      "conventionalCommits": true
     }
   },
   "tui": {

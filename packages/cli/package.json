@@ -1,6 +1,7 @@
 {
   "name": "@anygpt/cli",
   "version": "0.0.1",
+  "description": "Command-line interface for AnyGPT - chat, conversations, and configuration management",
   "type": "module",
   "main": "./dist/index.js",
   "bin": {
@@ -8,8 +9,32 @@
   },
   "files": [
     "dist",
+    "docs",
+    "README.md",
     "!**/*.tsbuildinfo"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/genai-tools/anygpt.git",
+    "directory": "packages/cli"
+  },
+  "keywords": [
+    "cli",
+    "command-line",
+    "ai",
+    "gpt",
+    "chat",
+    "conversation"
+  ],
+  "author": "AnyGPT Contributors",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/genai-tools/anygpt/issues"
+  },
+  "homepage": "https://github.com/genai-tools/anygpt#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@anygpt/config": "0.0.1",
     "@anygpt/mock": "0.0.1",

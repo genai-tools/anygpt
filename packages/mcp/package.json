@@ -1,6 +1,7 @@
 {
   "name": "@anygpt/mcp",
   "version": "0.0.1",
+  "description": "Model Context Protocol (MCP) server for AnyGPT - bridge MCP clients with AI providers",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -18,8 +19,31 @@
   },
   "files": [
     "dist",
+    "README.md",
     "!**/*.tsbuildinfo"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/genai-tools/anygpt.git",
+    "directory": "packages/mcp"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "gpt",
+    "server",
+    "llm"
+  ],
+  "author": "AnyGPT Contributors",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/genai-tools/anygpt/issues"
+  },
+  "homepage": "https://github.com/genai-tools/anygpt#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "@anygpt/router": "0.0.1",

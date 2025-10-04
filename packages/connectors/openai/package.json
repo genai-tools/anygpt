@@ -1,6 +1,7 @@
 {
   "name": "@anygpt/openai",
   "version": "0.0.1",
+  "description": "OpenAI connector for AnyGPT - integrates OpenAI API with the router",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -15,8 +16,30 @@
   },
   "files": [
     "dist",
+    "README.md",
     "!**/*.tsbuildinfo"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/genai-tools/anygpt.git",
+    "directory": "packages/connectors/openai"
+  },
+  "keywords": [
+    "openai",
+    "connector",
+    "ai",
+    "gpt",
+    "llm"
+  ],
+  "author": "AnyGPT Contributors",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/genai-tools/anygpt/issues"
+  },
+  "homepage": "https://github.com/genai-tools/anygpt#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@anygpt/router": "0.0.1",
     "openai": "^6.0.0"

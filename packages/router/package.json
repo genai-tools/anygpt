@@ -1,6 +1,7 @@
 {
   "name": "@anygpt/router",
   "version": "0.0.1",
+  "description": "Core router for AnyGPT - routes requests to multiple AI providers",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -15,7 +16,31 @@
   },
   "files": [
     "dist",
+    "docs",
+    "README.md",
     "!**/*.tsbuildinfo"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/genai-tools/anygpt.git",
+    "directory": "packages/router"
+  },
+  "keywords": [
+    "ai",
+    "gpt",
+    "openai",
+    "router",
+    "gateway",
+    "llm"
+  ],
+  "author": "AnyGPT Contributors",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/genai-tools/anygpt/issues"
+  },
+  "homepage": "https://github.com/genai-tools/anygpt#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {}  
 }

@@ -1,6 +1,7 @@
 {
   "name": "@anygpt/types",
   "version": "0.0.1",
+  "description": "TypeScript type definitions for AnyGPT - zero runtime dependencies",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -15,6 +16,28 @@
   },
   "files": [
     "dist",
+    "README.md",
     "!**/*.tsbuildinfo"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/genai-tools/anygpt.git",
+    "directory": "packages/types"
+  },
+  "keywords": [
+    "typescript",
+    "types",
+    "ai",
+    "gpt",
+    "definitions"
+  ],
+  "author": "AnyGPT Contributors",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/genai-tools/anygpt/issues"
+  },
+  "homepage": "https://github.com/genai-tools/anygpt#readme",
+  "publishConfig": {
+    "access": "public"
+  }
 }
