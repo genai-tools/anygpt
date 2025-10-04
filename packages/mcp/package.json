@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Model Context Protocol (MCP) server for AnyGPT - bridge MCP clients with AI providers",
   "type": "module",
   "main": "./dist/index.js",
@@ -46,8 +46,8 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "@anygpt/router": "0.2.0",
-    "@anygpt/openai": "0.1.1",
-    "@anygpt/types": "0.1.1"
+    "@anygpt/router": "0.2.1",
+    "@anygpt/openai": "0.1.2",
+    "@anygpt/types": "0.1.2"
   }
 }
