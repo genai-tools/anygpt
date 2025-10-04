@@ -9,11 +9,13 @@ import type {
   ResponseRequest,
   ResponseResponse
 } from '@anygpt/types';
+import { matchesFixture, buildFixtureResponse, type Fixture } from './fixtures.js';
 
 export interface MockConnectorConfig extends BaseConnectorConfig {
   delay?: number; // Simulate API delay in ms
   failureRate?: number; // 0-1, probability of failure
-  customResponses?: Record<string, any>;
+  customResponses?: Record<string, BaseChatCompletionResponse>;
+  fixtures?: Fixture[]; // E2E test fixtures
 }
 
 export class MockConnector implements IConnector {
@@ -33,6 +35,29 @@ export class MockConnector implements IConnector {
   }
 
   async chatCompletion(request: BaseChatCompletionRequest): Promise<BaseChatCompletionResponse> {
+    // Try to match against fixtures first (for E2E testing)
+    if (this.config.fixtures && this.config.fixtures.length > 0) {
+      const matchedFixture = this.config.fixtures.find(fixture => matchesFixture(request, fixture));
+      
+      if (matchedFixture) {
+        // Apply fixture delay if specified
+        if (matchedFixture.delay && matchedFixture.delay > 0) {
+          await this.sleep(matchedFixture.delay);
+        }
+        
+        // Build response from fixture
+        const fixtureResponse = buildFixtureResponse(matchedFixture, request);
+        
+        return {
+          id: `mock-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          object: 'chat.completion',
+          created: Math.floor(Date.now() / 1000),
+          provider: 'mock',
+          ...fixtureResponse
+        };
+      }
+    }
+
     // Simulate API delay
     if (this.config.delay && this.config.delay > 0) {
       await this.sleep(this.config.delay);
@@ -49,7 +74,7 @@ export class MockConnector implements IConnector {
       return this.config.customResponses[customKey];
     }
 
-    // Generate mock response
+    // Generate default mock response
     const lastMessage = request.messages[request.messages.length - 1];
     const mockContent = this.generateMockResponse(lastMessage.content, request.model);
 
@@ -244,7 +269,7 @@ export class MockConnector implements IConnector {
   }
 
   // Utility methods for testing
-  setCustomResponse(key: string, response: any): void {
+  setCustomResponse(key: string, response: BaseChatCompletionResponse): void {
     if (!this.config.customResponses) {
       this.config.customResponses = {};
     }
@@ -279,3 +304,7 @@ export default MockConnectorFactory;
 export function mock(config: MockConnectorConfig = {}): MockConnector {
   return new MockConnector(config);
 }
+
+// Re-export fixture utilities for E2E testing
+export type { Fixture, FixtureMatcher, FixtureResponse, SequenceFixture } from './fixtures.js';
+export { exactMatch, patternMatch, containsMatch, matchesFixture, buildFixtureResponse } from './fixtures.js';

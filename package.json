@@ -37,7 +37,8 @@
   "workspaces": [
     "packages/*",
     "packages/connectors/*",
-    "tools/*"
+    "tools/*",
+    "e2e/*"
   ],
   "nx": {
     "includedScripts": [],

@@ -275,6 +275,9 @@ npx nx run-many -t lint
 - **[Configuration Guide](./docs/configuration.md)** - Complete configuration setup and examples
 - **[Troubleshooting Guide](./docs/troubleshooting.md)** - Common issues, recent fixes, and debugging
 
+### Development Guidelines
+- **[Testing Guide](./docs/guidelines/testing.md)** - Comprehensive testing strategy, patterns, and coverage goals
+
 ### CLI Commands
 - **[Chat Command](./packages/cli/docs/chat.md)** - Stateless AI interactions
 - **[Conversation Command](./packages/cli/docs/conversation.md)** - Stateful conversations with advanced features

@@ -18,7 +18,6 @@
     "!**/*.tsbuildinfo"
   ],
   "dependencies": {
-    "@anygpt/types": "0.0.1",
-    "@anygpt/openai": "0.0.1"
+    "@anygpt/types": "0.0.1"
   }
 }

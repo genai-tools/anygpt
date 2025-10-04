@@ -33,8 +33,8 @@ export {
   type FactoryProviderConfig
 } from './factory.js';
 
-// Connector helper re-exports for convenience
-export { openai } from '@anygpt/openai';
-
-// Note: Connector factory functions should be imported directly from their packages
-// to avoid circular dependencies during build
+// Note: Connector factory functions (like openai()) should be imported directly 
+// from their packages to keep config package connector-agnostic:
+// import { openai } from '@anygpt/openai';
+// import { anthropic } from '@anygpt/anthropic'; // future
+// etc.
