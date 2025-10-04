@@ -69,14 +69,82 @@ export const createNodesV2: CreateNodesV2 = [
         dependsOn: ['^build'],
       };
 
+      // Determine which tsconfig to use (prefer tsconfig.lib.json, fallback to tsconfig.json)
+      const tsconfigPath = existsSync(join(workspaceRoot, projectRoot, 'tsconfig.lib.json'))
+        ? 'tsconfig.lib.json'
+        : 'tsconfig.json';
+      
+      const typecheckTarget = {
+        executor: 'nx:run-commands',
+        options: {
+          command: `npx tsgo --noEmit --project ${tsconfigPath}`,
+          cwd: projectRoot,
+        },
+        cache: true,
+        inputs: [
+          `{projectRoot}/src/**/*.ts`,
+          `{projectRoot}/tsconfig.lib.json`,
+          `{projectRoot}/tsconfig.json`,
+          `{projectRoot}/package.json`,
+          { externalDependencies: ['@typescript/native-preview'] },
+        ],
+      };
+
+      const watchTarget = {
+        executor: 'nx:run-commands',
+        options: {
+          command: 'npx tsdown --watch',
+          cwd: projectRoot,
+        },
+      };
+
+      const cleanTarget = {
+        executor: 'nx:run-commands',
+        options: {
+          command: 'rm -rf dist',
+          cwd: projectRoot,
+        },
+      };
+
+      // Check if project has vitest config
+      const hasVitestConfig = existsSync(join(workspaceRoot, projectRoot, 'vitest.config.ts')) ||
+                              existsSync(join(workspaceRoot, projectRoot, 'vite.config.ts'));
+
+      const targets: Record<string, any> = {
+        build: buildTarget,
+        typecheck: typecheckTarget,
+        watch: watchTarget,
+        clean: cleanTarget,
+      };
+
+      // Add test target if vitest config exists
+      if (hasVitestConfig) {
+        targets.test = {
+          executor: 'nx:run-commands',
+          options: {
+            command: 'npx vitest run',
+            cwd: projectRoot,
+          },
+          cache: true,
+          inputs: [
+            `{projectRoot}/src/**/*.ts`,
+            `{projectRoot}/src/**/*.spec.ts`,
+            `{projectRoot}/src/**/*.test.ts`,
+            `{projectRoot}/vitest.config.ts`,
+            `{projectRoot}/vite.config.ts`,
+            `{projectRoot}/tsconfig.json`,
+            { externalDependencies: ['vitest'] },
+          ],
+          dependsOn: ['^build'],
+        };
+      }
+
       return [
         configFile,
         {
           projects: {
             [projectRoot]: {
-              targets: {
-                build: buildTarget,
-              },
+              targets,
             },
           },
         },

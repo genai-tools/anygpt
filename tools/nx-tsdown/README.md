@@ -36,20 +36,83 @@ This plugin automatically detects `tsdown.config.ts` files in your workspace and
 ## Features
 
 - **Automatic Discovery**: Finds all `tsdown.config.ts` files in your workspace
+- **Multiple Targets**: Automatically creates `build`, `typecheck`, `watch`, `clean`, and optionally `test` targets
+- **Test Integration**: Automatically detects `vitest.config.ts` or `vite.config.ts` and creates test targets
 - **Smart Caching**: Uses Nx's caching system with proper inputs and outputs
 - **Dependency Management**: Automatically sets up build dependencies
 - **Verbose Logging**: Supports `--verbose` flag and `NX_VERBOSE_LOGGING` environment variable
 
-## Configuration
+## Targets Created
 
-The plugin looks for `tsdown.config.ts` files and creates build targets with:
+For each project with a `tsdown.config.ts` file, the plugin creates:
 
-- **Executor**: `nx:run-commands` running `npx tsdown`
+### `build`
+- **Command**: `npx tsdown`
 - **Outputs**: `{projectRoot}/dist`
-- **Inputs**: Source files, config files, and tsdown dependency
-- **Cache**: Enabled for faster rebuilds
+- **Cache**: Enabled
 - **Dependencies**: Runs after upstream projects build
+
+### `typecheck`
+- **Command**: `npx tsgo --noEmit`
+- **Cache**: Enabled
+- **Purpose**: Type checking without emitting files (uses tsgo - TypeScript in Go for faster performance)
+
+### `watch`
+- **Command**: `npx tsdown --watch`
+- **Purpose**: Development mode with automatic rebuilds
+
+### `clean`
+- **Command**: `rm -rf dist`
+- **Purpose**: Remove build artifacts
+
+### `test` (optional)
+- **Command**: `npx vitest run`
+- **Created**: Only if `vitest.config.ts` or `vite.config.ts` exists
+- **Cache**: Enabled
+- **Purpose**: Run tests with vitest
+
+## Usage Examples
+
+```bash
+# Build a project
+nx build my-package
+
+# Type check a project
+nx typecheck my-package
+
+# Watch mode for development
+nx watch my-package
+
+# Clean build artifacts
+nx clean my-package
+
+# Run tests
+nx test my-package
+
+# Run typecheck on all projects
+nx run-many -t typecheck
+
+# Build, test, and typecheck together
+nx run-many -t build test typecheck
+```
 
 ## Building
 
-Run `nx build nx-tsdown` to build the plugin.
+The plugin must be built before NX can use it. **This happens automatically** via the `postinstall` script when you run `npm install`.
+
+To manually rebuild the plugin:
+
+```bash
+# Build the plugin directly
+cd tools/nx-tsdown && npx tsdown
+
+# Or using nx
+nx build nx-tsdown
+```
+
+**CI/CD:** The plugin is automatically built during `npm install` via the postinstall hook:
+
+```yaml
+- run: npm install  # Automatically builds nx-tsdown plugin
+- run: npx nx run-many -t build test typecheck
+```
