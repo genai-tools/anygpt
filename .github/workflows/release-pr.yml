@@ -64,16 +64,50 @@ jobs:
           # Reset to main to get latest changes
           git reset --hard origin/main
           
-          # Run nx release (version only)
+          # Run nx release (version + changelog)
           npx nx release version --git-commit=false --stage-changes
+          npx nx release changelog --git-commit=false
           
-          # Commit the changes
-          git commit -m "chore(release): version bump [skip ci]"
+          # Stage changelog changes
+          git add .
+          
+          # Commit the changes (NO [skip ci] - we want CI to run!)
+          git commit -m "chore(release): version bump and changelog"
           
           # Force push to update the branch
           git push origin release-next --force
 
-      # Create PR if it doesn't exist
+      # Generate changelog summary for PR
+      - name: Generate changelog summary
+        if: steps.check.outputs.has_changes == 'true'
+        id: changelog
+        run: |
+          # Get the changelog from the release-next branch
+          git fetch origin release-next
+          git checkout release-next
+          
+          # Extract changelogs from all packages
+          CHANGELOG=""
+          for file in packages/*/CHANGELOG.md packages/connectors/*/CHANGELOG.md; do
+            if [ -f "$file" ]; then
+              pkg_name=$(dirname "$file")
+              echo "## Changes in $pkg_name" >> /tmp/changelog.md
+              echo "" >> /tmp/changelog.md
+              # Get the latest version section (first section after the header)
+              awk '/^## /{if(++count==1)next; if(count==2)exit} count==1' "$file" >> /tmp/changelog.md
+              echo "" >> /tmp/changelog.md
+            fi
+          done
+          
+          # Save for PR body
+          cat /tmp/changelog.md
+          echo "CHANGELOG_CONTENT<<EOF" >> $GITHUB_OUTPUT
+          cat /tmp/changelog.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          git checkout main
+
+      # Create or update PR
       - name: Create or update Release PR
         if: steps.check.outputs.has_changes == 'true'
         run: |
@@ -89,20 +123,18 @@ jobs:
           
           This PR contains version bumps and changelog updates for the next release.
           
-          ### 📦 What's included
+          ### 📋 Changelog
           
-          - ✅ Version bumps in `package.json`
-          - ✅ Updated `CHANGELOG.md` files
-          - ✅ Ready to publish
+          ${{ steps.changelog.outputs.CHANGELOG_CONTENT }}
           
           ### ✅ CI Status
           
-          **CI will run on this PR** - you can see all test results here!
+          CI checks will run automatically. All checks must pass before merging.
           
           ### 🎯 How to release
           
-          1. **Review** the changes in the "Files changed" tab
-          2. **Check** CI results below (all checks must pass ✅)
+          1. **Review** the changelog above and changes in the "Files changed" tab
+          2. **Wait** for CI checks to pass ✅
           3. **Edit** CHANGELOGs if needed (commit directly to this branch)
           4. **Merge** this PR to publish to npm
           
@@ -110,7 +142,7 @@ jobs:
           
           - Git tags will be created
           - Packages will be published to npm
-          - Release branch will be deleted
+          - `production` branch will be updated
           EOF
           )" \
               --head release-next \
@@ -218,12 +250,7 @@ jobs:
       # Update production branch (source of truth for what's published)
       - name: Update production branch
         run: |
-          # Find the commit that was just published (HEAD~1, before the merge commit)
-          # This is the actual state that was published to npm
-          PUBLISHED_COMMIT=$(git rev-parse HEAD~1)
-          echo "Published commit: $PUBLISHED_COMMIT"
-          
-          # Update production branch to point to the published commit
-          git push origin $PUBLISHED_COMMIT:refs/heads/production --force
+          # Update production branch to current main (what was just published)
+          git push origin HEAD:refs/heads/production --force
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
