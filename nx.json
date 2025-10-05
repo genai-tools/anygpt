@@ -47,11 +47,11 @@
     "releaseTagPattern": "{projectName}@{version}",
     "changelog": {
       "workspaceChangelog": {
-        "createRelease": "github",
+        "createRelease": false,
         "file": false
       },
       "projectChangelogs": {
-        "createRelease": "github",
+        "createRelease": false,
         "file": "{projectRoot}/CHANGELOG.md"
       }
     },
