@@ -4,27 +4,6 @@ TypeScript scripts for automating the Release PR workflow in GitHub Actions.
 
 ## Scripts
 
-### `create-release-pr`
-
-Creates or updates a Release PR when releasable changes are detected.
-
-**Usage in GitHub Actions:**
-```yaml
-- name: Create Release PR
-  run: npx create-release-pr
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-```
-
-**Local testing (Node 22.6+):**
-```bash
-cd tools/release-automation
-npm install
-GITHUB_TOKEN=your_token npm run create-release-pr
-```
-
-**Note:** Scripts run directly with `--experimental-strip-types` in Node 24+. No build step needed!
-
 ### `check-releasable-changes`
 
 Checks if there are any releasable changes using `nx release version --dry-run`.
@@ -53,7 +32,6 @@ Scripts run directly with Node 24's native TypeScript support:
 
 ```bash
 # No build needed!
-npm run create-release-pr
 npm run check-releasable-changes
 ```
 
@@ -92,13 +70,12 @@ We use Node 24's `--experimental-strip-types` flag to run TypeScript directly:
 ```
 tools/release-automation/
 ├── src/
-│   ├── create-release-pr.ts      # Creates/updates Release PR
-│   └── check-releasable-changes.ts # Checks for changes
-├── dist/                          # Compiled JavaScript
-├── package.json                   # Dependencies and scripts
-├── tsconfig.json                  # TypeScript config
-├── project.json                   # Nx project config
-└── README.md                      # This file
+│   ├── check-releasable-changes.ts # Checks for releasable changes
+│   └── create-release-pr.ts        # (Unused - workflow uses gh CLI)
+├── package.json                    # Dependencies and scripts
+├── tsconfig.json                   # TypeScript config
+├── project.json                    # Nx project config
+└── README.md                       # This file
 ```
 
 ## Dependencies
