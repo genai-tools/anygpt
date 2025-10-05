@@ -63,12 +63,38 @@ async function fileExists(path: string): Promise<boolean> {
 
 /**
  * Load TypeScript/JavaScript config file
+ * 
+ * Strategy: Uses jiti with tryNative option for smart TypeScript loading
+ * 
+ * How it works:
+ * 1. Node.js 22.18+ and 24+: Native TS support enabled by default (zero overhead!)
+ * 2. Node.js 22.6-22.17: Requires --experimental-strip-types flag
+ * 3. Node.js <22.6: Falls back to jiti's Babel transformation
+ * 
+ * The tryNative option makes jiti:
+ * - Try native import first (fast path for modern Node.js)
+ * - Fall back to transformation only if native fails
+ * - Cache transformed files for performance
+ * 
+ * This gives us the best of both worlds:
+ * - Zero overhead on Node 22.18+/24+ (native TS)
+ * - Automatic fallback for older versions (jiti transformation)
+ * - No breaking changes for users on any Node version
  */
 async function loadTSConfig(path: string): Promise<AnyGPTConfig> {
   try {
-    // Dynamic import for TypeScript/JavaScript files
-    const module = await import(path);
-    return module.default || module;
+    // Use jiti with tryNative to prefer native Node.js import
+    // This works seamlessly in Node 22+ and falls back to transformation in older versions
+    const { createJiti } = await import('jiti');
+    const jiti = createJiti(import.meta.url, {
+      tryNative: true,        // Try native import first (Node 22+ with --experimental-strip-types)
+      fsCache: true,          // Cache transformed files for performance
+      interopDefault: true,   // Handle both ESM default and named exports
+      moduleCache: true       // Use Node.js native module cache
+    });
+    
+    const module = await jiti.import<AnyGPTConfig>(path, { default: true });
+    return module;
   } catch (error) {
     throw new Error(`Failed to load config from ${path}: ${error}`);
   }
