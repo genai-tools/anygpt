@@ -68,6 +68,11 @@ jobs:
       - name: Create Release PR
         if: steps.check.outputs.has_changes == 'true'
         run: |
+          # Close any existing release PRs first
+          gh pr list --head release-next --state open --json number --jq '.[].number' | \
+            xargs -I {} gh pr close {} --comment "Superseded by new release PR" || true
+          
+          # Create new PR
           gh pr create \
             --title "🚀 Release: Next Version" \
             --body "$(cat <<'EOF'
@@ -77,8 +82,8 @@ jobs:
           
           ### 📦 What's included
           
-          - ✅ Version bumps in \`package.json\`
-          - ✅ Updated \`CHANGELOG.md\` files
+          - ✅ Version bumps in `package.json`
+          - ✅ Updated `CHANGELOG.md` files
           - ✅ Ready to publish
           
           ### ✅ CI Status
@@ -100,8 +105,7 @@ jobs:
           EOF
           )" \
             --head release-next \
-            --base main \
-            --label release || echo "PR already exists"
+            --base main
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
