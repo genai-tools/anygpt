@@ -218,6 +218,12 @@ jobs:
       # Update production branch (source of truth for what's published)
       - name: Update production branch
         run: |
-          git push origin main:production --force
+          # Find the commit that was just published (HEAD~1, before the merge commit)
+          # This is the actual state that was published to npm
+          PUBLISHED_COMMIT=$(git rev-parse HEAD~1)
+          echo "Published commit: $PUBLISHED_COMMIT"
+          
+          # Update production branch to point to the published commit
+          git push origin $PUBLISHED_COMMIT:refs/heads/production --force
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
