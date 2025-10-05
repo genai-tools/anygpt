@@ -10,6 +10,7 @@ on:
   pull_request:
 
 permissions:
+  actions: read
   contents: write
   pull-requests: write
   id-token: write
@@ -123,43 +124,47 @@ jobs:
             });
             
             // Create new PR
+            const prBody = [
+              '## 🚀 Release PR',
+              '',
+              'This PR contains version bumps and changelog updates for the next release.',
+              '',
+              '### 📦 What\'s included',
+              '',
+              '- ✅ Version bumps in `package.json`',
+              '- ✅ Updated `CHANGELOG.md` files',
+              '- ✅ Ready to publish',
+              '',
+              '### ✅ CI Status',
+              '',
+              'CI checks have passed on the base commit. They will run again on this PR.',
+              '',
+              '### 🎯 How to release',
+              '',
+              '1. **Review** the changes in the "Files changed" tab',
+              '2. **Edit** CHANGELOGs if needed (commit directly to this branch)',
+              '3. **Wait** for CI to pass',
+              '4. **Merge** this PR to publish to npm',
+              '',
+              '### 📝 What happens on merge?',
+              '',
+              '- Git tags will be created',
+              '- Packages will be published to npm',
+              '- Release branch will be deleted',
+              '',
+              '---',
+              '',
+              `**Changed files:** ${files.files.length}`,
+              `**Commits:** ${files.commits.length}`
+            ].join('\n');
+            
             const { data: pr } = await github.rest.pulls.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: '🚀 Release: Next Version',
               head: 'release-next',
               base: 'main',
-              body: `## 🚀 Release PR
-              
-This PR contains version bumps and changelog updates for the next release.
-
-### 📦 What's included
-
-- ✅ Version bumps in \`package.json\`
-- ✅ Updated \`CHANGELOG.md\` files  
-- ✅ Ready to publish
-
-### ✅ CI Status
-
-CI checks have passed on the base commit. They will run again on this PR.
-
-### 🎯 How to release
-
-1. **Review** the changes in the "Files changed" tab
-2. **Edit** CHANGELOGs if needed (commit directly to this branch)
-3. **Wait** for CI to pass
-4. **Merge** this PR to publish to npm
-
-### 📝 What happens on merge?
-
-- Git tags will be created
-- Packages will be published to npm
-- Release branch will be deleted
-
----
-
-**Changed files:** ${files.files.length}
-**Commits:** ${files.commits.length}`,
+              body: prBody,
               draft: false
             });
             
