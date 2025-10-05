@@ -26,17 +26,21 @@ async function main() {
     const output = stdout + stderr;
     core.debug(`nx release output: ${output}`);
 
-    // Check if there are no changes
-    const hasNoChanges = output.includes('No changes were detected');
+    // Check if there are actual version changes
+    // Look for "UPDATE" lines or version bump indicators (✍️ New version)
+    const hasVersionUpdates = output.includes('UPDATE ') || output.includes('New version') || output.includes('✍️');
+    
+    // Also check if the dry-run note appears (means changes were staged)
+    const hasDryRunNote = output.includes('NOTE: The "dryRun" flag means no changes were made');
 
-    if (hasNoChanges) {
-      core.info('No releasable changes found');
-      core.setOutput('has_changes', 'false');
-      console.log('has_changes=false');
-    } else {
+    if (hasVersionUpdates && hasDryRunNote) {
       core.info('Found releasable changes');
       core.setOutput('has_changes', 'true');
       console.log('has_changes=true');
+    } else {
+      core.info('No releasable changes found');
+      core.setOutput('has_changes', 'false');
+      console.log('has_changes=false');
     }
   } catch (error) {
     // nx release might exit with non-zero even on success in dry-run
@@ -49,9 +53,17 @@ async function main() {
     if (error instanceof Error && 'stdout' in error && 'stderr' in error) {
       const execError = error as ExecError;
       const output = (execError.stdout || '') + (execError.stderr || '');
-      const hasNoChanges = output.includes('No changes were detected');
+      
+      // Check if there are actual version changes
+      const hasVersionUpdates = output.includes('UPDATE ') || output.includes('New version') || output.includes('✍️');
+      const hasDryRunNote = output.includes('NOTE: The "dryRun" flag means no changes were made');
 
-      if (hasNoChanges) {
+      if (hasVersionUpdates && hasDryRunNote) {
+        core.info('Found releasable changes');
+        core.setOutput('has_changes', 'true');
+        console.log('has_changes=true');
+        return;
+      } else {
         core.info('No releasable changes found');
         core.setOutput('has_changes', 'false');
         console.log('has_changes=false');
