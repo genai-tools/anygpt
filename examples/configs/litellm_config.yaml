@@ -1,0 +1,92 @@
+# LiteLLM Proxy Configuration
+# This is the LiteLLM side configuration that defines available models and providers
+# 
+# Start with: litellm --config litellm_config.yaml --port 4000
+
+model_list:
+  # OpenAI Models
+  - model_name: gpt-4o
+    litellm_params:
+      model: openai/gpt-4o
+      api_key: os.environ/OPENAI_API_KEY
+  
+  - model_name: gpt-4-turbo
+    litellm_params:
+      model: openai/gpt-4-turbo-preview
+      api_key: os.environ/OPENAI_API_KEY
+  
+  - model_name: gpt-3.5-turbo
+    litellm_params:
+      model: openai/gpt-3.5-turbo
+      api_key: os.environ/OPENAI_API_KEY
+
+  # Anthropic Models
+  - model_name: claude-3-opus
+    litellm_params:
+      model: anthropic/claude-3-opus-20240229
+      api_key: os.environ/ANTHROPIC_API_KEY
+  
+  - model_name: claude-3-sonnet
+    litellm_params:
+      model: anthropic/claude-3-sonnet-20240229
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+  # Azure OpenAI with Load Balancing
+  - model_name: gpt-4-azure
+    litellm_params:
+      model: azure/gpt-4
+      api_base: os.environ/AZURE_API_BASE_EU
+      api_key: os.environ/AZURE_API_KEY_EU
+      rpm: 60  # Rate limit per minute
+  
+  - model_name: gpt-4-azure
+    litellm_params:
+      model: azure/gpt-4
+      api_base: os.environ/AZURE_API_BASE_US
+      api_key: os.environ/AZURE_API_KEY_US
+      rpm: 60
+
+  # Google Gemini
+  - model_name: gemini-pro
+    litellm_params:
+      model: gemini/gemini-pro
+      api_key: os.environ/GEMINI_API_KEY
+
+  # Local Ollama (for development)
+  - model_name: llama3
+    litellm_params:
+      model: ollama/llama3
+      api_base: http://localhost:11434
+
+# General Settings
+general_settings:
+  # Master key for authentication (optional but recommended)
+  master_key: sk-litellm-master-key
+  
+  # Enable Slack alerts for issues
+  # alerting: ["slack"]
+  # alerting_threshold: 300  # seconds
+
+# LiteLLM Settings
+litellm_settings:
+  # Drop unsupported parameters instead of failing
+  drop_params: true
+  
+  # Success callbacks for logging/observability
+  # success_callback: ["langfuse"]
+  
+  # Set timeout
+  request_timeout: 600
+  
+  # Enable caching
+  # cache: true
+  # cache_params:
+  #   type: "redis"
+  #   host: "localhost"
+  #   port: 6379
+
+# Router Settings (for load balancing)
+router_settings:
+  routing_strategy: "simple-shuffle"  # or "least-busy", "usage-based-routing"
+  model_group_alias:
+    gpt-4: "gpt-4-azure"  # Alias gpt-4 to load-balanced Azure instances
