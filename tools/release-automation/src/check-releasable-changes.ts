@@ -1,9 +1,11 @@
-#!/usr/bin/env node
+#!/usr/bin/env -S node --experimental-strip-types
 /**
  * Check if there are releasable changes
  * 
  * This script runs `nx release version --dry-run` to check if there are
  * any changes that would trigger a release based on conventional commits.
+ * 
+ * Runs directly with Node 24's native TypeScript support - no build needed!
  */
 
 import * as core from '@actions/core';
@@ -39,8 +41,14 @@ async function main() {
   } catch (error) {
     // nx release might exit with non-zero even on success in dry-run
     // Check the error output
+    interface ExecError extends Error {
+      stdout?: string;
+      stderr?: string;
+    }
+    
     if (error instanceof Error && 'stdout' in error && 'stderr' in error) {
-      const output = (error as any).stdout + (error as any).stderr;
+      const execError = error as ExecError;
+      const output = (execError.stdout || '') + (execError.stderr || '');
       const hasNoChanges = output.includes('No changes were detected');
 
       if (hasNoChanges) {
