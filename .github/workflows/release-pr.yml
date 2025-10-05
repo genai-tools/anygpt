@@ -16,31 +16,8 @@ permissions:
   id-token: write
 
 jobs:
-  # Step 1: Always run CI
-  ci:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          filter: tree:0
-          fetch-depth: 0
-
-      - uses: actions/setup-node@v5
-        with:
-          node-version: lts/*
-
-      - run: npm install --no-package-lock
-      - run: npm run build
-
-      - name: Run CI checks
-        run: |
-          npx nx format:check || true
-          npx nx run-many -t lint test build typecheck
-          npx nx fix-ci || true
-
-  # Step 2: Create Release PR (manual trigger via workflow_dispatch or automatic)
+  # Step 1: Create Release PR immediately (CI will run on the PR)
   create-release-pr:
-    needs: ci
     if: |
       github.ref == 'refs/heads/main' && 
       github.event_name == 'push' &&
@@ -61,8 +38,8 @@ jobs:
       - run: npm install --no-package-lock
       - run: npm run build
 
-      # Check if there are changes to release
-      - name: Check for changes
+      # Check for releasable changes
+      - name: Check for releasable changes
         id: check
         run: |
           if npx nx release version --dry-run 2>&1 | grep -q "No changes were detected"; then
@@ -92,95 +69,72 @@ jobs:
           # Push branch
           git push origin release-next
 
-      # Create PR
+      # Create PR using GitHub CLI
       - name: Create Release PR
         if: steps.check.outputs.has_changes == 'true'
-        uses: actions/github-script@v7
+        run: |
+          gh pr create \
+            --title "🚀 Release: Next Version" \
+            --body "$(cat <<'EOF'
+          ## 🚀 Release PR
+          
+          This PR contains version bumps and changelog updates for the next release.
+          
+          ### 📦 What's included
+          
+          - ✅ Version bumps in \`package.json\`
+          - ✅ Updated \`CHANGELOG.md\` files
+          - ✅ Ready to publish
+          
+          ### ✅ CI Status
+          
+          **CI will run on this PR** - you can see all test results here!
+          
+          ### 🎯 How to release
+          
+          1. **Review** the changes in the "Files changed" tab
+          2. **Check** CI results below (all checks must pass ✅)
+          3. **Edit** CHANGELOGs if needed (commit directly to this branch)
+          4. **Merge** this PR to publish to npm
+          
+          ### 📝 What happens on merge?
+          
+          - Git tags will be created
+          - Packages will be published to npm
+          - Release branch will be deleted
+          EOF
+          )" \
+            --head release-next \
+            --base main \
+            --label release || echo "PR already exists"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Step 2: Run CI on PRs (including Release PR)
+  ci:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
         with:
-          script: |
-            // Close any existing release PRs
-            const { data: existingPRs } = await github.rest.pulls.list({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              head: `${context.repo.owner}:release-next`
-            });
-            
-            for (const pr of existingPRs) {
-              await github.rest.pulls.update({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: pr.number,
-                state: 'closed'
-              });
-            }
-            
-            // Get version info from package.json changes
-            const { data: files } = await github.rest.repos.compareCommits({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              base: 'main',
-              head: 'release-next'
-            });
-            
-            // Create new PR
-            const prBody = [
-              '## 🚀 Release PR',
-              '',
-              'This PR contains version bumps and changelog updates for the next release.',
-              '',
-              '### 📦 What\'s included',
-              '',
-              '- ✅ Version bumps in `package.json`',
-              '- ✅ Updated `CHANGELOG.md` files',
-              '- ✅ Ready to publish',
-              '',
-              '### ✅ CI Status',
-              '',
-              'CI checks have passed on the base commit. They will run again on this PR.',
-              '',
-              '### 🎯 How to release',
-              '',
-              '1. **Review** the changes in the "Files changed" tab',
-              '2. **Edit** CHANGELOGs if needed (commit directly to this branch)',
-              '3. **Wait** for CI to pass',
-              '4. **Merge** this PR to publish to npm',
-              '',
-              '### 📝 What happens on merge?',
-              '',
-              '- Git tags will be created',
-              '- Packages will be published to npm',
-              '- Release branch will be deleted',
-              '',
-              '---',
-              '',
-              `**Changed files:** ${files.files.length}`,
-              `**Commits:** ${files.commits.length}`
-            ].join('\n');
-            
-            const { data: pr } = await github.rest.pulls.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: '🚀 Release: Next Version',
-              head: 'release-next',
-              base: 'main',
-              body: prBody,
-              draft: false
-            });
-            
-            // Add label
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: pr.number,
-              labels: ['release']
-            });
-            
-            console.log(`Created Release PR #${pr.number}`);
+          filter: tree:0
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: lts/*
+
+      - run: npm install --no-package-lock
+      - run: npm run build
+
+      - name: Run CI checks
+        run: |
+          npx nx format:check || true
+          npx nx run-many -t lint test build typecheck
+          npx nx fix-ci || true
 
   # Step 3: Publish when Release PR is merged
   publish:
-    needs: ci
     if: |
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
