@@ -38,6 +38,9 @@ export {
   type FactoryProviderConfig
 } from './factory.js';
 
+// Configuration loader (not exported by default, used internally)
+export { loadConfig, validateConfig } from './loader.js';
+
 // Note: Connector factory functions (like openai()) should be imported directly 
 // from their packages to keep config package connector-agnostic:
 // import { openai } from '@anygpt/openai';
