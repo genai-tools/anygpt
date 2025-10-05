@@ -42,38 +42,47 @@ jobs:
         id: check
         run: npx check-releasable-changes
 
-      # Create release branch
-      - name: Create release branch
+      # Create or update release branch
+      - name: Create or update release branch
         if: steps.check.outputs.has_changes == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Delete old release branch if exists
-          git push origin --delete release-next || true
+          # Fetch remote to check if branch exists
+          git fetch origin release-next || true
           
-          # Create fresh release branch from main
-          git checkout -b release-next
+          # Create or checkout release branch
+          if git rev-parse --verify origin/release-next >/dev/null 2>&1; then
+            echo "Branch exists, checking out..."
+            git checkout -B release-next origin/release-next
+          else
+            echo "Creating new branch..."
+            git checkout -b release-next
+          fi
+          
+          # Reset to main to get latest changes
+          git reset --hard origin/main
           
           # Run nx release (version only)
           npx nx release version --git-commit=false --stage-changes
           
           # Commit the changes
-          git commit -m "chore(release): version bump"
+          git commit -m "chore(release): version bump [skip ci]"
           
-          # Push branch
-          git push origin release-next
+          # Force push to update the branch
+          git push origin release-next --force
 
-      # Create PR using GitHub CLI
-      - name: Create Release PR
+      # Create PR if it doesn't exist
+      - name: Create or update Release PR
         if: steps.check.outputs.has_changes == 'true'
         run: |
-          # Close any existing release PRs first
-          gh pr list --head release-next --state open --json number --jq '.[].number' | \
-            xargs -I {} gh pr close {} --comment "Superseded by new release PR" || true
+          # Check if PR already exists
+          existing_pr=$(gh pr list --head release-next --base main --state open --json number --jq '.[0].number')
           
-          # Create new PR
-          gh pr create \
+          if [ -z "$existing_pr" ]; then
+            echo "Creating new Release PR..."
+            gh pr create \
             --title "🚀 Release: Next Version" \
             --body "$(cat <<'EOF'
           ## 🚀 Release PR
@@ -104,8 +113,11 @@ jobs:
           - Release branch will be deleted
           EOF
           )" \
-            --head release-next \
-            --base main
+              --head release-next \
+              --base main
+          else
+            echo "Release PR #$existing_pr already exists, it will be updated by the force push"
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
