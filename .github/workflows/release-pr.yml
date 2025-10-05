@@ -138,10 +138,22 @@ jobs:
       - run: npm install --no-package-lock
       - run: npm run build
 
+      - name: Set affected base
+        run: |
+          # Use production branch as base (represents last published state)
+          # Falls back to HEAD~1 if production branch doesn't exist yet
+          if git rev-parse --verify origin/production >/dev/null 2>&1; then
+            echo "NX_BASE=origin/production" >> $GITHUB_ENV
+            echo "Comparing to production branch (last published state)"
+          else
+            echo "NX_BASE=HEAD~1" >> $GITHUB_ENV
+            echo "Production branch not found, using HEAD~1"
+          fi
+
       - name: Run CI checks
         run: |
           npx nx format:check || true
-          npx nx run-many -t lint test build typecheck
+          npx nx affected -t lint test build typecheck --base=$NX_BASE
           npx nx fix-ci || true
 
   # Step 3: Publish when Release PR is merged
@@ -200,5 +212,12 @@ jobs:
       - name: Push tags
         run: |
           git push --tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Update production branch (source of truth for what's published)
+      - name: Update production branch
+        run: |
+          git push origin main:production --force
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
