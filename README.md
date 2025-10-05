@@ -284,6 +284,10 @@ npx nx run-many -t lint
 - **[Configuration Guide](./docs/configuration.md)** - Complete configuration setup and examples
 - **[Troubleshooting Guide](./docs/troubleshooting.md)** - Common issues, recent fixes, and debugging
 
+### Integration Examples
+- **[LiteLLM Integration](./examples/litellm-integration.md)** - Use AnyGPT with LiteLLM Proxy for 100+ providers and enterprise features
+- **[Example Configurations](./examples/)** - Ready-to-use config examples for various setups
+
 ### Development Guidelines
 - **[Testing Guide](./docs/guidelines/testing.md)** - Comprehensive testing strategy, patterns, and coverage goals
 - **[E2E Testing Guide](./e2e/README.md)** - End-to-end test suite documentation and patterns
