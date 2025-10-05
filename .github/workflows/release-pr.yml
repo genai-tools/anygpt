@@ -41,12 +41,16 @@ jobs:
       - name: Check for releasable changes
         id: check
         run: |
-          if npx nx release version --dry-run 2>&1 | grep -q "No changes were detected"; then
+          echo "Running nx release version --dry-run..."
+          OUTPUT=$(npx nx release version --dry-run 2>&1)
+          echo "$OUTPUT"
+          
+          if echo "$OUTPUT" | grep -q "No changes were detected"; then
             echo "has_changes=false" >> $GITHUB_OUTPUT
-            echo "No releasable changes found"
+            echo "❌ No releasable changes found"
           else
             echo "has_changes=true" >> $GITHUB_OUTPUT
-            echo "Found releasable changes"
+            echo "✅ Found releasable changes"
           fi
 
       # Create release branch
