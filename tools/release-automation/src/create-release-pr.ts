@@ -1,9 +1,11 @@
-#!/usr/bin/env node
+#!/usr/bin/env -S node --experimental-strip-types
 /**
  * Create or update Release PR
  * 
  * This script is called by GitHub Actions to create/update a Release PR
  * when releasable changes are detected.
+ * 
+ * Runs directly with Node 24's native TypeScript support - no build needed!
  */
 
 import * as core from '@actions/core';

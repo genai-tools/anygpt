@@ -5,12 +5,12 @@
   "type": "module",
   "description": "Release automation scripts for GitHub Actions",
   "scripts": {
-    "create-release-pr": "node dist/create-release-pr.js",
-    "check-releasable-changes": "node dist/check-releasable-changes.js"
+    "create-release-pr": "node --experimental-strip-types src/create-release-pr.ts",
+    "check-releasable-changes": "node --experimental-strip-types src/check-releasable-changes.ts"
   },
   "bin": {
-    "create-release-pr": "./dist/create-release-pr.js",
-    "check-releasable-changes": "./dist/check-releasable-changes.js"
+    "create-release-pr": "./src/create-release-pr.ts",
+    "check-releasable-changes": "./src/check-releasable-changes.ts"
   },
   "dependencies": {
     "@actions/core": "^1.10.1",

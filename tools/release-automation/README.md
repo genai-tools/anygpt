@@ -16,13 +16,14 @@ Creates or updates a Release PR when releasable changes are detected.
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-**Local testing:**
+**Local testing (Node 22.6+):**
 ```bash
 cd tools/release-automation
 npm install
-npm run build
 GITHUB_TOKEN=your_token npm run create-release-pr
 ```
+
+**Note:** Scripts run directly with `--experimental-strip-types` in Node 24+. No build step needed!
 
 ### `check-releasable-changes`
 
@@ -46,12 +47,14 @@ npm run check-releasable-changes
 
 ## Development
 
-### Build
+### Run Scripts
+
+Scripts run directly with Node 24's native TypeScript support:
 
 ```bash
-npm run build
-# or from workspace root
-npx nx build release-automation
+# No build needed!
+npm run create-release-pr
+npm run check-releasable-changes
 ```
 
 ### Lint
@@ -66,6 +69,14 @@ npx nx lint release-automation
 cd tools/release-automation
 npx tsc --noEmit
 ```
+
+### Why No Build Step?
+
+We use Node 24's `--experimental-strip-types` flag to run TypeScript directly:
+- ✅ No compilation needed
+- ✅ Faster development
+- ✅ Simpler CI/CD
+- ✅ One less build step to maintain
 
 ## Benefits
 
