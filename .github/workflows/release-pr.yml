@@ -58,6 +58,9 @@ jobs:
           # Run nx release (version only)
           npx nx release version --git-commit=false --stage-changes
           
+          # Commit the changes
+          git commit -m "chore(release): version bump"
+          
           # Push branch
           git push origin release-next
 
