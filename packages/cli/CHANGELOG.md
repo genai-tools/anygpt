@@ -1,3 +1,9 @@
+## 0.1.6 (2025-10-05)
+
+### 🧱 Updated Dependencies
+
+- Updated config to 0.3.0
+
 ## 0.1.5 (2025-10-04)
 
 This was a version bump only for cli to align it with other projects, there were no code changes.
