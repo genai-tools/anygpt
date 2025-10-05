@@ -56,7 +56,7 @@ jobs:
           git checkout -b release-next
           
           # Run nx release (version only)
-          npx nx release version --yes
+          npx nx release version --git-commit=false --stage-changes
           
           # Push branch
           git push origin release-next
