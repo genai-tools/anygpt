@@ -1,0 +1,24 @@
+{
+  "name": "@anygpt/release-automation",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Release automation scripts for GitHub Actions",
+  "scripts": {
+    "create-release-pr": "node dist/create-release-pr.js",
+    "check-releasable-changes": "node dist/check-releasable-changes.js"
+  },
+  "bin": {
+    "create-release-pr": "./dist/create-release-pr.js",
+    "check-releasable-changes": "./dist/check-releasable-changes.js"
+  },
+  "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^6.0.0",
+    "@octokit/rest": "^20.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "24.6.2",
+    "typescript": "~5.9.2"
+  }
+}

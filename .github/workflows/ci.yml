@@ -1,4 +1,7 @@
-name: CI
+name: CI (Legacy)
+
+# This workflow is now integrated into release-pr.yml
+# Keeping for backwards compatibility with existing PRs
 
 on:
   pull_request:
