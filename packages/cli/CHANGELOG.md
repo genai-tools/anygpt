@@ -1,3 +1,14 @@
+## 0.4.0 (2025-10-06)
+
+### 🚀 Features
+
+- **cli:** add awesome feature ([3d38939](https://github.com/genai-tools/anygpt/commit/3d38939))
+- **cli:** add awesome feature ([cfdf905](https://github.com/genai-tools/anygpt/commit/cfdf905))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.1.7 (2025-10-06)
 
 ### 🧱 Updated Dependencies
