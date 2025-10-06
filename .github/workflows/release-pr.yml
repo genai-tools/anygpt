@@ -1,92 +1,23 @@
-# Release Workflow - Manual CLI with PR visualization
+# Release Workflow - Local CLI with automated CI and publish
 #
 # Flow:
-# 1. Run locally: nx release version (on main)
-# 2. Push to main
-# 3. Workflow creates PR: main → production
-# 4. Review PR + CI checks
-# 5. Merge → Publishes to npm
+# 1. Run locally: npm run release (creates PR)
+# 2. Workflow runs CI checks on PR
+# 3. Merge PR → Publishes to npm
 
 name: Release
 
 on:
-  push:
-    branches: [main]
   pull_request:
+    branches: [production]
+  push:
     branches: [production]
 
 permissions:
   contents: write
-  pull-requests: write
   id-token: write
 
 jobs:
-  create-pr:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Check for version changes
-        id: check
-        run: |
-          if git diff --name-only HEAD~1 HEAD | grep -qE 'package\.json|CHANGELOG\.md'; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Extract changelogs
-        if: steps.check.outputs.changed == 'true'
-        id: changelog
-        run: |
-          {
-            echo "content<<EOF"
-            for file in packages/*/CHANGELOG.md; do
-              if [ -f "$file" ]; then
-                pkg=$(basename $(dirname "$file"))
-                echo "### 📦 $pkg"
-                sed -n '/^## /,/^## /p' "$file" | head -n -1 | head -n 15
-                echo ""
-              fi
-            done
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
-
-      - name: Create/Update PR
-        if: steps.check.outputs.changed == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
-          CHANGELOG: ${{ steps.changelog.outputs.content }}
-        run: |
-          pr=$(gh pr list --head main --base production --state open --json number -q '.[0].number')
-          
-          cat > /tmp/pr-body.md << 'PRBODY'
-## 🚀 Release PR
-
-This PR will publish the version changes to npm when merged.
-
-### 📋 Changelog
-
-PRBODY
-          echo "${CHANGELOG}" >> /tmp/pr-body.md
-          cat >> /tmp/pr-body.md << 'PRBODY'
-
-### ✅ Next Steps
-
-1. Review changes in the Files tab
-2. Wait for CI checks to pass
-3. Merge to publish to npm
-PRBODY
-
-          if [ -z "$pr" ]; then
-            gh pr create --title "Release: $(date +%Y-%m-%d)" --body-file /tmp/pr-body.md --head main --base production
-          else
-            gh pr edit "$pr" --body-file /tmp/pr-body.md
-          fi
-
   ci-checks:
     if: github.event_name == 'pull_request' && github.base_ref == 'production'
     runs-on: ubuntu-latest
