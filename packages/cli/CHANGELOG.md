@@ -1,3 +1,13 @@
+## 0.14.0 (2025-10-06)
+
+### 🚀 Features
+
+- **cli:** add another feature ([f8cee01](https://github.com/genai-tools/anygpt/commit/f8cee01))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.13.0 (2025-10-06)
 
 ### 🚀 Features
