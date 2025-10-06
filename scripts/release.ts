@@ -176,11 +176,24 @@ ${changelog}
     ]);
     console.log(`✅ PR created: ${prUrl}`);
 
+    // Extract PR number from URL
+    const prNumber = prUrl.trim().split('/').pop() || '';
+
+    // Enable auto-merge with merge commit strategy
+    console.log('🔄 Enabling auto-merge...');
+    await execa('gh', ['pr', 'merge', '--auto', '--merge', prNumber]);
+    console.log('✅ Auto-merge enabled - PR will merge when CI passes');
+
     // Open in browser
     await execa('gh', ['pr', 'view', '--web']);
   } else {
     console.log(`\n📝 Updating existing PR #${existingPR}...`);
     await execa('gh', ['pr', 'edit', existingPR, '--body-file', prBodyPath]);
+
+    // Enable auto-merge with merge commit strategy
+    console.log('🔄 Enabling auto-merge...');
+    await execa('gh', ['pr', 'merge', '--auto', '--merge', existingPR]);
+    console.log('✅ Auto-merge enabled - PR will merge when CI passes');
 
     const { stdout: repoName } = await execa('gh', [
       'repo',
