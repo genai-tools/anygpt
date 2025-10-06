@@ -1,3 +1,11 @@
+## 0.1.4 (2025-10-06)
+
+### 🧱 Updated Dependencies
+
+- Updated router to 0.2.3
+- Updated types to 0.1.4
+- Updated openai to 0.1.4
+
 ## 0.1.4-0 (2025-10-06)
 
 ### 🧱 Updated Dependencies
