@@ -211,9 +211,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Step 2: Run CI on PRs (including Release PR)
+  # Step 2: Run CI on regular PRs (not release PRs)
+  # Release PRs have their own dedicated workflow: release-next-ci.yml
   ci:
-    if: github.event_name == 'pull_request'
+    if: |
+      github.event_name == 'pull_request' &&
+      github.head_ref != 'release-next'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -240,20 +243,10 @@ jobs:
             echo "Production branch not found, using HEAD~1"
           fi
 
-      - name: Run CI checks
+      - name: Run CI checks on affected projects
         run: |
           npx nx format:check || true
-          
-          # For release PRs, run checks on all packages being released
-          # For other PRs, run only on affected projects
-          if [[ "${{ github.head_ref }}" == "release-next" ]]; then
-            echo "Running CI on all release packages..."
-            npx nx run-many -t lint test build typecheck --projects='packages/*,packages/connectors/*'
-          else
-            echo "Running CI on affected projects..."
-            npx nx affected -t lint test build typecheck --base=$NX_BASE
-          fi
-          
+          npx nx affected -t lint test build typecheck --base=$NX_BASE
           npx nx fix-ci || true
 
   # Step 3: Publish when Release PR is merged

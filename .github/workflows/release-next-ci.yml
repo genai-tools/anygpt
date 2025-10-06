@@ -1,0 +1,57 @@
+# CI for Release Branch
+# Runs comprehensive checks on all packages in the release
+
+name: Release Branch CI
+
+on:
+  push:
+    branches:
+      - release-next
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+    # Only run if PR is from release-next branch
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: read
+
+jobs:
+  validate-release:
+    # Only run for release-next branch or PRs from release-next
+    if: |
+      github.ref == 'refs/heads/release-next' ||
+      github.head_ref == 'release-next'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          filter: tree:0
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: npm install --no-package-lock
+
+      - name: Build tools
+        run: npm run build
+
+      - name: Format check
+        run: npx nx format:check || true
+
+      - name: Run full CI on all release packages
+        run: |
+          echo "Running comprehensive CI on all packages..."
+          npx nx run-many -t lint test build typecheck --projects='packages/*,packages/connectors/*'
+
+      - name: Fix CI issues
+        if: failure()
+        run: npx nx fix-ci || true
