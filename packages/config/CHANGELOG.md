@@ -1,3 +1,9 @@
+## 0.3.2 (2025-10-06)
+
+### 🧱 Updated Dependencies
+
+- Updated router to 0.3.0
+
 ## 0.3.1 (2025-10-06)
 
 ### 🧱 Updated Dependencies
