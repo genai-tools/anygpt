@@ -105,7 +105,20 @@ async function main() {
   // Get current commit SHA before release
   const { stdout: beforeSha } = await execa('git', ['rev-parse', 'HEAD']);
 
-  // Run nx release
+  // Run nx release with dry-run first to check what would change
+  console.log('\n📝 Checking for version changes...');
+  const { stdout: dryRunOutput } = await execa('npx', ['nx', 'release', 'version', '--dry-run'], {
+    stdio: 'pipe',
+  });
+  
+  // Check if there are any version changes
+  if (dryRunOutput.includes('No changes were detected')) {
+    console.log('\n❌ No version changes would be made');
+    console.log('ℹ️  No changes detected - nothing to release');
+    return;
+  }
+
+  // Run actual release
   console.log('\n📝 Running nx release version...');
   await execa('npx', ['nx', 'release', 'version', '--git-commit', '--git-tag=false'], {
     stdio: 'inherit',
