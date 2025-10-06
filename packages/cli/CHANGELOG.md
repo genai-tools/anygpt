@@ -1,3 +1,18 @@
+## 0.16.0 (2025-10-06)
+
+### 🚀 Features
+
+- **cli:** add list-models command ([5e01ccd](https://github.com/genai-tools/anygpt/commit/5e01ccd))
+
+### 🧱 Updated Dependencies
+
+- Updated config to 0.3.2
+- Updated router to 0.3.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.15.0 (2025-10-06)
 
 ### 🚀 Features
