@@ -105,24 +105,20 @@ async function main() {
   // Get current commit SHA before release
   const { stdout: beforeSha } = await execa('git', ['rev-parse', 'HEAD']);
 
-  // Run nx release with dry-run first to check what would change
-  console.log('\n📝 Checking for version changes...');
-  const { stdout: dryRunOutput } = await execa('npx', ['nx', 'release', 'version', '--dry-run'], {
-    stdio: 'pipe',
-  });
-  
-  // Check if there are any version changes
-  if (dryRunOutput.includes('No changes were detected')) {
-    console.log('\n❌ No version changes would be made');
-    console.log('ℹ️  No changes detected - nothing to release');
-    return;
+  // Run nx release (version + changelog + commit + tag)
+  console.log('\n📝 Running nx release...');
+  try {
+    await execa('npx', ['nx', 'release', '--skip-publish'], {
+      stdio: 'inherit',
+    });
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message?.includes('No changes were detected')) {
+      console.log('\n❌ No version changes were made');
+      console.log('ℹ️  No changes detected - nothing to release');
+      return;
+    }
+    throw error;
   }
-
-  // Run actual release
-  console.log('\n📝 Running nx release version...');
-  await execa('npx', ['nx', 'release', 'version', '--git-commit', '--git-tag=false'], {
-    stdio: 'inherit',
-  });
 
   // Check if nx created a new commit (version bump)
   const { stdout: afterSha } = await execa('git', ['rev-parse', 'HEAD']);
@@ -133,11 +129,11 @@ async function main() {
     return;
   }
 
-  console.log('\n✅ Version bumps created');
+  console.log('\n✅ Version bumps and tags created');
 
-  // Push to main
-  console.log('📤 Pushing to main...');
-  await execa('git', ['push', 'origin', 'main'], { stdio: 'inherit' });
+  // Push to main with tags
+  console.log('📤 Pushing to main with tags...');
+  await execa('git', ['push', 'origin', 'main', '--follow-tags'], { stdio: 'inherit' });
 
   // Extract changelog
   console.log('\n📋 Extracting changelog...');
