@@ -9,7 +9,7 @@ import {
   getTagsAtCommit,
   pushWithTags,
   getNewTags,
-  getDiff,
+  getDiffSinceLastRelease,
 } from '../../lib/git-operations';
 import {
   extractChangelog,
@@ -29,7 +29,7 @@ import {
 
 export default async function runExecutor(
   options: ReleaseExecutorSchema,
-  context: ExecutorContext
+  _context: ExecutorContext
 ): Promise<{ success: boolean }> {
   const {
     baseBranch = 'main',
@@ -125,7 +125,7 @@ export default async function runExecutor(
     let aiSummary = '';
     if (aiProvider !== 'none') {
       console.log('📊 Getting diff for AI analysis...');
-      const diff = await getDiff(beforeSha, afterSha, diffPaths);
+      const diff = await getDiffSinceLastRelease(diffPaths);
       aiSummary = await generateAISummary(changelog, releases, diff, aiCommand);
     }
 

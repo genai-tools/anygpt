@@ -56,3 +56,32 @@ export async function getDiff(
   );
   return stdout;
 }
+
+export async function getLastReleaseTag(): Promise<string | null> {
+  try {
+    // Get the most recent tag that matches the release pattern
+    const { stdout } = await execa('git', [
+      'describe',
+      '--tags',
+      '--abbrev=0',
+      '--match=*@*',
+    ]);
+    return stdout.trim();
+  } catch {
+    return null;
+  }
+}
+
+export async function getDiffSinceLastRelease(
+  paths: string[]
+): Promise<string> {
+  const lastTag = await getLastReleaseTag();
+  const base = lastTag || 'HEAD~10'; // Fallback to last 10 commits if no tag
+  
+  const { stdout } = await execa(
+    'git',
+    ['diff', `${base}..HEAD`, '--', ...paths],
+    { stdio: 'pipe' }
+  );
+  return stdout;
+}
