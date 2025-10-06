@@ -213,6 +213,9 @@ ${changelog}
         } else if (error.message?.includes('Protected branch rules not configured')) {
           console.log('⚠️  Auto-merge requires branch protection rules on production branch');
           console.log('   You can merge manually or enable branch protection in repo settings');
+        } else if (error.message?.includes('Auto merge is not allowed for this repository')) {
+          console.log('⚠️  Auto-merge is not enabled for this repository');
+          console.log('   Enable it in Settings → General → Pull Requests → Allow auto-merge');
         } else {
           throw error;
         }
