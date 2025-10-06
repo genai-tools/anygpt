@@ -1,3 +1,11 @@
+## 0.1.7 (2025-10-06)
+
+### 🧱 Updated Dependencies
+
+- Updated config to 0.3.1
+- Updated router to 0.2.3
+- Updated types to 0.1.4
+
 ## 0.1.7-draft.0 (2025-10-06)
 
 ### 🚀 Features
