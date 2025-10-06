@@ -315,3 +315,10 @@ jobs:
           git push origin HEAD:refs/heads/production --force
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Delete release-next branch so it starts fresh next time
+      - name: Delete release branch
+        run: |
+          git push origin --delete release-next || echo "Branch already deleted"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
