@@ -101,10 +101,33 @@ export class OpenAIConnector extends BaseConnector {
 
   override async listModels(): Promise<ModelInfo[]> {
     try {
-      return getChatModels();
+      // Try to fetch models from the API
+      const response = await this.client.models.list();
+      const models: ModelInfo[] = [];
+      
+      for await (const model of response) {
+        // Log the full model object to see what fields are available
+        this.logger.debug(`Model data: ${JSON.stringify(model)}`);
+        
+        models.push({
+          id: model.id,
+          name: model.id,
+          description: model.owned_by ? `Owner: ${model.owned_by}` : undefined,
+          // Store any additional metadata that might be present
+          metadata: (model as any).metadata || undefined,
+        });
+      }
+      
+      // If no models returned from API, fall back to static list
+      if (models.length === 0) {
+        return getChatModels();
+      }
+      
+      return models;
     } catch (error) {
-      this.handleError(error, 'list models');
-      return [];
+      // If API call fails, fall back to static model list
+      this.logger.debug(`Failed to fetch models from API, using static list: ${error}`);
+      return getChatModels();
     }
   }
 
