@@ -94,18 +94,40 @@ async function getExistingPR(): Promise<string | null> {
   }
 }
 
-async function generateAISummary(changelog: string, releases: PackageRelease[]): Promise<string> {
+async function generateAISummary(
+  changelog: string, 
+  releases: PackageRelease[],
+  baseSha: string,
+  headSha: string
+): Promise<string> {
   try {
     const releaseInfo = releases.map(r => `${r.name}@${r.version}`).join(', ');
+    
+    // Get the diff for the release
+    console.log('📊 Getting diff for AI analysis...');
+    const { stdout: diff } = await execa('git', [
+      'diff',
+      `${baseSha}..${headSha}`,
+      '--',
+      'packages/*/src/**',
+      'packages/connectors/*/src/**',
+    ], {
+      stdio: 'pipe',
+    });
+
     const prompt = `Generate a concise, professional summary for this release PR. Include:
 1. A brief overview of what's being released (${releaseInfo})
 2. Key highlights from the changelog
-3. Any important notes for reviewers
+3. Notable code changes from the diff
+4. Any important notes for reviewers
 
 Changelog:
 ${changelog}
 
-Keep it under 200 words and use a friendly, professional tone.`;
+Code Changes (diff):
+${diff.slice(0, 5000)}${diff.length > 5000 ? '\n... (truncated)' : ''}
+
+Keep it under 250 words and use a friendly, professional tone. Focus on what matters to reviewers.`;
 
     console.log('🤖 Generating AI summary...');
     const { stdout } = await execa('npx', ['anygpt', 'chat', prompt], {
@@ -205,8 +227,8 @@ async function main() {
     prTitle = `Release: ${new Date().toISOString().split('T')[0]}`;
   }
 
-  // Generate AI summary
-  const aiSummary = await generateAISummary(changelog, releases);
+  // Generate AI summary with diff
+  const aiSummary = await generateAISummary(changelog, releases, beforeSha.trim(), afterSha.trim());
 
   // Create PR body
   const prBody = `## 🚀 Release PR
