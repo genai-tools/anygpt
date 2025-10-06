@@ -4,7 +4,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "release": "./scripts/release.sh",
+    "release": "jiti scripts/release.ts",
     "build": "npx tsdown --cwd tools/nx-tsdown && npx tsdown --cwd tools/nx-tsgo && npx tsdown --cwd tools/nx-vitest"
   },
   "private": true,
