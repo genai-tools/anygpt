@@ -137,7 +137,7 @@ export default async function runExecutor(
     }
 
     // Create PR body (without changelog)
-    const prBody = buildPRBody(aiSummary);
+    const prBody = buildPRBody(aiSummary, releases);
 
     // Check for existing PR
     const existingPR = await getExistingPR(baseBranch, targetBranch);

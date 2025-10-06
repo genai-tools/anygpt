@@ -26,17 +26,24 @@ export async function getExistingPR(
   }
 }
 
-export function buildPRBody(aiSummary: string): string {
+export function buildPRBody(
+  aiSummary: string,
+  releases: Array<{ name: string; version: string }>
+): string {
+  const releasesList = releases
+    .map((r) => `- \`${r.name}@${r.version}\``)
+    .join('\n');
+
   return `## 🚀 Release PR
 
-This PR will publish the version changes to npm when merged.
+${releasesList ? `### 📦 Packages to Publish\n\n${releasesList}\n\n` : ''}${aiSummary ? `### 💡 What Changed\n\n${aiSummary}\n\n` : ''}### ⚡ Auto-Merge Enabled
 
-${aiSummary ? `### 🤖 AI Summary\n\n${aiSummary}\n\n` : ''}### ✅ Next Steps
+This PR will **automatically merge** once all CI checks pass ✅
 
-1. Review changes in the Files tab
-2. Check the changelog comment below 📋
-3. Wait for CI checks to pass ✅
-4. Merge to publish to npm 📦
+If checks fail, review the errors and push fixes to this branch.
+
+---
+*Full changelog details are in the comment below 📋*
 `;
 }
 
