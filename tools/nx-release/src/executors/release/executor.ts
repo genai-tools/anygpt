@@ -25,6 +25,7 @@ import {
   enableAutoMerge,
   openPRInBrowser,
   getRepoName,
+  addChangelogComment,
 } from '../../lib/pr-creation';
 
 export default async function runExecutor(
@@ -72,6 +73,13 @@ export default async function runExecutor(
 
     // Get list of existing tags before release
     const existingTags = await getTagsAtCommit(beforeSha);
+
+    // Get diff for AI summary BEFORE creating new tags
+    let diffForAI = '';
+    if (aiProvider !== 'none') {
+      console.log('📊 Getting diff for AI analysis...');
+      diffForAI = await getDiffSinceLastRelease(diffPaths);
+    }
 
     // Run nx release (version + changelog + commit + tag)
     console.log('\n📝 Running nx release...');
@@ -121,16 +129,15 @@ export default async function runExecutor(
     // Build PR title from releases
     const prTitle = buildPRTitle(releases);
 
-    // Generate AI summary if enabled
+    // Generate AI summary if enabled (using pre-captured diff)
     let aiSummary = '';
-    if (aiProvider !== 'none') {
-      console.log('📊 Getting diff for AI analysis...');
-      const diff = await getDiffSinceLastRelease(diffPaths);
-      aiSummary = await generateAISummary(changelog, releases, diff, aiCommand);
+    if (aiProvider !== 'none' && diffForAI) {
+      console.log('🤖 Generating AI summary...');
+      aiSummary = await generateAISummary(changelog, releases, diffForAI, aiCommand);
     }
 
-    // Create PR body
-    const prBody = buildPRBody(changelog, aiSummary);
+    // Create PR body (without changelog)
+    const prBody = buildPRBody(aiSummary, releases);
 
     // Check for existing PR
     const existingPR = await getExistingPR(baseBranch, targetBranch);
@@ -142,6 +149,10 @@ export default async function runExecutor(
       // Extract PR number from URL
       const prNumber = prUrl.split('/').pop() || '';
 
+      // Add changelog as a comment
+      console.log('📋 Adding changelog comment...');
+      await addChangelogComment(prNumber, changelog);
+
       // Enable auto-merge if requested
       if (autoMerge) {
         await enableAutoMerge(prNumber);
@@ -151,6 +162,10 @@ export default async function runExecutor(
       await openPRInBrowser();
     } else {
       await updatePR(existingPR, prBody);
+
+      // Update changelog comment
+      console.log('📋 Adding changelog comment...');
+      await addChangelogComment(existingPR, changelog);
 
       console.log(
         'ℹ️  Auto-merge not enabled for existing PR - enable manually if needed'
