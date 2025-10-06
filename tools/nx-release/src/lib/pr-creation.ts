@@ -26,23 +26,38 @@ export async function getExistingPR(
   }
 }
 
-export function buildPRBody(
-  changelog: string,
-  aiSummary: string
-): string {
+export function buildPRBody(aiSummary: string): string {
   return `## 🚀 Release PR
 
 This PR will publish the version changes to npm when merged.
 
-${aiSummary ? `### 🤖 AI Summary\n\n${aiSummary}\n\n` : ''}### 📋 Changelog
-${changelog}
-
-### ✅ Next Steps
+${aiSummary ? `### 🤖 AI Summary\n\n${aiSummary}\n\n` : ''}### ✅ Next Steps
 
 1. Review changes in the Files tab
-2. Wait for CI checks to pass ✅
-3. Merge to publish to npm 📦
+2. Check the changelog comment below 📋
+3. Wait for CI checks to pass ✅
+4. Merge to publish to npm 📦
 `;
+}
+
+export async function addChangelogComment(
+  prNumber: string,
+  changelog: string
+): Promise<void> {
+  const commentBody = `## 📋 Changelog
+
+${changelog}
+
+---
+*This changelog was automatically generated from conventional commits.*`;
+
+  await execa('gh', [
+    'pr',
+    'comment',
+    prNumber,
+    '--body',
+    commentBody,
+  ]);
 }
 
 export async function createPR(
