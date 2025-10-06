@@ -66,7 +66,7 @@ jobs:
           git reset --hard origin/main
           
           # Run nx release (version + changelog in one command)
-          npx nx release --skip-publish --git-commit=false
+          npx nx release --skip-publish --git-commit false
           
           # Stage all changes (versions + changelogs)
           git add .
