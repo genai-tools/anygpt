@@ -148,7 +148,34 @@ jobs:
               --head release-next \
               --base main
           else
-            echo "Release PR #$existing_pr already exists, it will be updated by the force push"
+            echo "Release PR #$existing_pr already exists, updating description..."
+            gh pr edit $existing_pr --body "$(cat <<'EOF'
+          ## 🚀 Release PR
+          
+          This PR contains version bumps and changelog updates for the next release.
+          
+          ### 📋 Changelog
+          
+          ${{ steps.changelog.outputs.CHANGELOG_CONTENT }}
+          
+          ### ✅ CI Status
+          
+          CI checks will run automatically. All checks must pass before merging.
+          
+          ### 🎯 How to release
+          
+          1. **Review** the changelog above and changes in the "Files changed" tab
+          2. **Wait** for CI checks to pass ✅
+          3. **Edit** CHANGELOGs if needed (commit directly to this branch)
+          4. **Merge** this PR to publish to npm
+          
+          ### 📝 What happens on merge?
+          
+          - Git tags will be created
+          - Packages will be published to npm
+          - `production` branch will be updated
+          EOF
+          )"
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
