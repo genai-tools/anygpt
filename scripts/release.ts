@@ -198,18 +198,10 @@ ${changelog}
     console.log(`\n📝 Updating existing PR #${existingPR}...`);
     await execa('gh', ['pr', 'edit', existingPR, '--body-file', prBodyPath]);
 
-    // Enable auto-merge with merge commit strategy
-    console.log('🔄 Enabling auto-merge...');
-    try {
-      await execa('gh', ['pr', 'merge', '--auto', '--merge', existingPR]);
-      console.log('✅ Auto-merge enabled - PR will merge when CI passes');
-    } catch (error: unknown) {
-      if (error instanceof Error && error.message?.includes('is in clean status')) {
-        console.log('ℹ️  PR is already mergeable - auto-merge not needed');
-      } else {
-        throw error;
-      }
-    }
+    // Note: We don't enable auto-merge for existing PRs because they might have
+    // stale check status from previous commits. Auto-merge should only be enabled
+    // when creating a new PR, or manually by the user after checks pass.
+    console.log('ℹ️  Auto-merge not enabled for existing PR - enable manually if needed');
 
     const { stdout: repoName } = await execa('gh', [
       'repo',
