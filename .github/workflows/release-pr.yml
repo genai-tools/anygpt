@@ -243,7 +243,17 @@ jobs:
       - name: Run CI checks
         run: |
           npx nx format:check || true
-          npx nx affected -t lint test build typecheck --base=$NX_BASE
+          
+          # For release PRs, run checks on all packages being released
+          # For other PRs, run only on affected projects
+          if [[ "${{ github.head_ref }}" == "release-next" ]]; then
+            echo "Running CI on all release packages..."
+            npx nx run-many -t lint test build typecheck --projects='packages/*,packages/connectors/*'
+          else
+            echo "Running CI on affected projects..."
+            npx nx affected -t lint test build typecheck --base=$NX_BASE
+          fi
+          
           npx nx fix-ci || true
 
   # Step 3: Publish when Release PR is merged
