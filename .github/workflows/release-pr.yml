@@ -1,10 +1,6 @@
-# Release Workflow - Publish to npm
-#
-# Flow:
-# 1. PR is merged to production
-# 2. Workflow publishes to npm
+# Publish to npm when PR is merged to production
 
-name: Publish Release
+name: Publish to npm
 
 on:
   push:
@@ -16,9 +12,6 @@ permissions:
 
 jobs:
   publish:
-    if: |
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/production'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
