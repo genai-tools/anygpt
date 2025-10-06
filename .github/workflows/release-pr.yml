@@ -26,24 +26,7 @@ jobs:
       - run: npm install --no-package-lock
       - run: npm run build
 
-      - name: Create tags
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          git diff HEAD~1 HEAD --name-only | grep 'package.json' | while read file; do
-            if [[ "$file" == packages/*/package.json ]]; then
-              name=$(jq -r '.name' "$file" | sed 's/@anygpt\///')
-              version=$(jq -r '.version' "$file")
-              tag="${name}@${version}"
-              git tag -a "$tag" -m "Release $tag" || true
-            fi
-          done
-
-      - name: Publish
-        run: npx nx release publish --yes
+      - name: Publish to npm
+        run: npx nx release publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
-
-      - name: Push tags
-        run: git push --tags
