@@ -33,9 +33,10 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
+          cache: 'npm'
 
       - run: node -v
-      - run: npm install --no-package-lock
+      - run: npm ci --prefer-offline
       - run: npm run build
 
       # Check for releasable changes
@@ -193,8 +194,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
+          cache: 'npm'
 
-      - run: npm install --no-package-lock
+      - run: npm ci --prefer-offline
       - run: npm run build
 
       - name: Set affected base
@@ -233,8 +235,9 @@ jobs:
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
 
-      - run: npm install --no-package-lock
+      - run: npm ci --prefer-offline
       - run: npm run build
 
       - name: Configure Git
