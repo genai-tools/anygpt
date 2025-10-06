@@ -1,3 +1,13 @@
+## 0.9.0 (2025-10-06)
+
+### 🚀 Features
+
+- **cli:** add awesome feature ([ec399ac](https://github.com/genai-tools/anygpt/commit/ec399ac))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.8.0 (2025-10-06)
 
 ### 🚀 Features
