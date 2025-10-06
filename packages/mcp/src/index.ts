@@ -6,8 +6,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { GenAIRouter } from "@anygpt/router";
-import { OpenAIConnectorFactory } from "@anygpt/openai";
+import { setupRouterFromFactory } from "@anygpt/config";
 import type { ChatCompletionRequest, ChatMessage, ModelInfo } from "@anygpt/types";
 
 type ChatCompletionToolArgs = {
@@ -22,22 +21,33 @@ type ListModelsToolArgs = {
   provider?: string;
 };
 
-// Initialize the router with OpenAI connector and configuration
-const router = new GenAIRouter({
-  timeout: parseInt(process.env.TIMEOUT || '30000'),
-  maxRetries: parseInt(process.env.MAX_RETRIES || '3'),
-  providers: {
-    openai: {
-      type: 'openai',
-      api: {
-        url: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
-        token: process.env.OPENAI_API_KEY || '',
-        headers: {}
-      }
-    }
+// Load router from config file
+let router: any;
+let defaultProvider: string | undefined;
+let defaultModel: string | undefined;
+
+async function initializeRouter() {
+  try {
+    // Try to load config from standard location
+    const configPath = process.env.CONFIG_PATH || './.anygpt/anygpt.config.ts';
+    const absoluteConfigPath = new URL(configPath, `file://${process.cwd()}/`).href;
+    const module = await import(absoluteConfigPath);
+    const config = module.default;
+    
+    const { router: r, config: c } = await setupRouterFromFactory(config);
+    router = r;
+    defaultProvider = c.defaults?.provider;
+    defaultModel = c.defaults?.model;
+    
+    console.error(`✅ Loaded config from ${configPath}`);
+    console.error(`   Default provider: ${defaultProvider || 'none'}`);
+    console.error(`   Default model: ${defaultModel || 'none'}`);
+  } catch (error) {
+    console.error(`⚠️  Failed to load config: ${error}`);
+    console.error('   MCP server will not work without a valid config file');
+    throw error;
   }
-});
-router.registerConnector(new OpenAIConnectorFactory());
+}
 
 // Create MCP server instance
 const server = new Server(
@@ -52,8 +62,11 @@ const server = new Server(
   }
 );
 
-// Define the chat completion tool
+// Define the chat completion tool - schema will be built after config loads
 server.setRequestHandler(ListToolsRequestSchema, async () => {
+  const modelDefault = defaultModel ? { default: defaultModel } : {};
+  const providerDefault = defaultProvider ? { default: defaultProvider } : {};
+  
   return {
     tools: [
       {
@@ -83,27 +96,24 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             model: {
               type: "string",
-              description: "The model to use for completion (use list_models tool to see available options)",
-              default: "gpt-3.5-turbo"
+              description: `The model to use for completion${defaultModel ? ` (default: ${defaultModel})` : ''}`,
+              ...modelDefault
             },
             provider: {
               type: "string",
-              description: "The AI provider to use",
-              enum: ["openai", "mock"],
-              default: "openai"
+              description: `The AI provider to use${defaultProvider ? ` (default: ${defaultProvider})` : ''}`,
+              ...providerDefault
             },
             temperature: {
               type: "number",
-              description: "Sampling temperature",
+              description: "Sampling temperature (0-2)",
               minimum: 0,
-              maximum: 2,
-              default: 1
+              maximum: 2
             },
             max_tokens: {
               type: "number",
               description: "Maximum number of tokens to generate",
-              minimum: 1,
-              default: 1000
+              minimum: 1
             }
           },
           required: ["messages"]
@@ -117,9 +127,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {
             provider: {
               type: "string",
-              description: "The AI provider to list models from",
-              enum: ["openai", "mock"],
-              default: "openai"
+              description: `The AI provider to list models from${defaultProvider ? ` (default: ${defaultProvider})` : ''}`,
+              ...providerDefault
             }
           }
         }
@@ -188,11 +197,11 @@ async function handleChatCompletion(args: ChatCompletionToolArgs) {
       content: message.content,
     }));
 
-    const providerId = args.provider || 'openai';
+    const providerId = args.provider || defaultProvider || 'openai';
 
     const request: ChatCompletionRequest = {
       messages,
-      model: args.model || process.env.DEFAULT_MODEL || 'gpt-3.5-turbo',
+      model: args.model || defaultModel || 'gpt-3.5-turbo',
       temperature: args.temperature,
       max_tokens: args.max_tokens,
       provider: providerId,
@@ -207,7 +216,7 @@ async function handleChatCompletion(args: ChatCompletionToolArgs) {
 
 async function handleListModels(args: ListModelsToolArgs): Promise<{ provider: string; models: ModelInfo[] }> {
   try {
-    const providerId = args.provider || 'openai';
+    const providerId = args.provider || defaultProvider || 'openai';
     const models = await router.listModels(providerId);
     return {
       models,
@@ -221,6 +230,9 @@ async function handleListModels(args: ListModelsToolArgs): Promise<{ provider: s
 // Start the server
 async function main() {
   try {
+    // Initialize router from config first
+    await initializeRouter();
+    
     const transport = new StdioServerTransport();
     await server.connect(transport);
     
