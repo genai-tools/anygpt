@@ -74,6 +74,13 @@ export default async function runExecutor(
     // Get list of existing tags before release
     const existingTags = await getTagsAtCommit(beforeSha);
 
+    // Get diff for AI summary BEFORE creating new tags
+    let diffForAI = '';
+    if (aiProvider !== 'none') {
+      console.log('📊 Getting diff for AI analysis...');
+      diffForAI = await getDiffSinceLastRelease(diffPaths);
+    }
+
     // Run nx release (version + changelog + commit + tag)
     console.log('\n📝 Running nx release...');
     try {
@@ -122,12 +129,11 @@ export default async function runExecutor(
     // Build PR title from releases
     const prTitle = buildPRTitle(releases);
 
-    // Generate AI summary if enabled
+    // Generate AI summary if enabled (using pre-captured diff)
     let aiSummary = '';
-    if (aiProvider !== 'none') {
-      console.log('📊 Getting diff for AI analysis...');
-      const diff = await getDiffSinceLastRelease(diffPaths);
-      aiSummary = await generateAISummary(changelog, releases, diff, aiCommand);
+    if (aiProvider !== 'none' && diffForAI) {
+      console.log('🤖 Generating AI summary...');
+      aiSummary = await generateAISummary(changelog, releases, diffForAI, aiCommand);
     }
 
     // Create PR body (without changelog)
