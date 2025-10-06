@@ -32,8 +32,9 @@ jobs:
 
       - uses: actions/setup-node@v5
         with:
-          node-version: lts/*
+          node-version: '24'
 
+      - run: node -v
       - run: npm install --no-package-lock
       - run: npm run build
 
@@ -191,7 +192,7 @@ jobs:
 
       - uses: actions/setup-node@v5
         with:
-          node-version: lts/*
+          node-version: '24'
 
       - run: npm install --no-package-lock
       - run: npm run build
@@ -230,7 +231,7 @@ jobs:
 
       - uses: actions/setup-node@v5
         with:
-          node-version: lts/*
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
 
       - run: npm install --no-package-lock
