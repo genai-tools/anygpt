@@ -1,0 +1,27 @@
+{
+  "name": "nx-release",
+  "version": "0.0.1",
+  "private": false,
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.cjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.cts",
+      "import": "./dist/index.cjs",
+      "default": "./dist/index.cjs"
+    }
+  },
+  "executors": "./executors.json",
+  "peerDependencies": {
+    "@nx/devkit": "*"
+  },
+  "dependencies": {
+    "execa": "^9.6.0"
+  },
+  "scripts": {
+    "build": "tsdown"
+  }
+}

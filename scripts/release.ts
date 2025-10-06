@@ -270,10 +270,10 @@ ${changelog}
     // Extract PR number from URL
     const prNumber = prUrl.trim().split('/').pop() || '';
 
-    // Enable auto-merge with merge commit strategy
+    // Enable auto-merge (uses repository default merge strategy)
     console.log('🔄 Enabling auto-merge...');
     try {
-      await execa('gh', ['pr', 'merge', '--auto', '--merge', prNumber]);
+      await execa('gh', ['pr', 'merge', '--auto', prNumber]);
       console.log('✅ Auto-merge enabled - PR will merge when CI passes');
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -321,7 +321,8 @@ ${changelog}
   }
 
   console.log('\n🎉 Release process complete!');
-  console.log('   Review the PR and merge when CI passes\n');
+  console.log('   Review the PR and merge when CI passes');
+  console.log('\n💡 Tip: After the PR merges, run `git pull origin production && git push` to sync main with production\n');
 }
 
 main().catch((error) => {
