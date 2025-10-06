@@ -104,7 +104,7 @@ async function main() {
 
   // Run nx release
   console.log('\n📝 Running nx release version...');
-  await execa('npx', ['nx', 'release', 'version', '--skipPublish'], {
+  await execa('npx', ['nx', 'release', 'version'], {
     stdio: 'inherit',
   });
 
