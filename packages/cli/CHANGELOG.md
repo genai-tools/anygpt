@@ -1,3 +1,13 @@
+## 0.12.0 (2025-10-06)
+
+### 🚀 Features
+
+- **cli:** add optional --usage flag to chat command for clean output ([9657f16](https://github.com/genai-tools/anygpt/commit/9657f16))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.11.0 (2025-10-06)
 
 ### 🚀 Features
