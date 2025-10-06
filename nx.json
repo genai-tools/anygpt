@@ -57,10 +57,7 @@
       }
     },
     "version": {
-      "conventionalCommits": true,
-      "git": {
-        "baseBranch": "main"
-      }
+      "conventionalCommits": true
     }
   },
   "tui": {
