@@ -181,8 +181,16 @@ ${changelog}
 
     // Enable auto-merge with merge commit strategy
     console.log('🔄 Enabling auto-merge...');
-    await execa('gh', ['pr', 'merge', '--auto', '--merge', prNumber]);
-    console.log('✅ Auto-merge enabled - PR will merge when CI passes');
+    try {
+      await execa('gh', ['pr', 'merge', '--auto', '--merge', prNumber]);
+      console.log('✅ Auto-merge enabled - PR will merge when CI passes');
+    } catch (error: unknown) {
+      if (error instanceof Error && error.message?.includes('is in clean status')) {
+        console.log('ℹ️  PR is already mergeable - auto-merge not needed');
+      } else {
+        throw error;
+      }
+    }
 
     // Open in browser
     await execa('gh', ['pr', 'view', '--web']);
@@ -192,8 +200,16 @@ ${changelog}
 
     // Enable auto-merge with merge commit strategy
     console.log('🔄 Enabling auto-merge...');
-    await execa('gh', ['pr', 'merge', '--auto', '--merge', existingPR]);
-    console.log('✅ Auto-merge enabled - PR will merge when CI passes');
+    try {
+      await execa('gh', ['pr', 'merge', '--auto', '--merge', existingPR]);
+      console.log('✅ Auto-merge enabled - PR will merge when CI passes');
+    } catch (error: unknown) {
+      if (error instanceof Error && error.message?.includes('is in clean status')) {
+        console.log('ℹ️  PR is already mergeable - auto-merge not needed');
+      } else {
+        throw error;
+      }
+    }
 
     const { stdout: repoName } = await execa('gh', [
       'repo',
