@@ -62,15 +62,14 @@ jobs:
           
           # Create or checkout release branch
           if git rev-parse --verify origin/release-next >/dev/null 2>&1; then
-            echo "Branch exists, checking out..."
+            echo "Branch exists, checking out and merging main..."
             git checkout -B release-next origin/release-next
+            # Merge main into release-next to accumulate commits
+            git merge origin/main --no-edit -m "chore: merge main into release-next"
           else
-            echo "Creating new branch..."
-            git checkout -b release-next
+            echo "Creating new branch from main..."
+            git checkout -b release-next origin/main
           fi
-          
-          # Reset to main to get latest changes
-          git reset --hard origin/main
           
           # Run nx release version (generates versions)
           # Use 'prerelease' specifier with --preid if provided via workflow_dispatch
