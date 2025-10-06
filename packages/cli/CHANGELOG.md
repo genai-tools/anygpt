@@ -1,3 +1,33 @@
+## 0.7.0 (2025-10-06)
+
+### 🚀 Features
+
+- **cli:** add awesome feature ([7e9a33a](https://github.com/genai-tools/anygpt/commit/7e9a33a))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
+## 0.6.0 (2025-10-06)
+
+### 🚀 Features
+
+- **cli:** add awesome feature ([0ed1284](https://github.com/genai-tools/anygpt/commit/0ed1284))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
+## 0.5.0 (2025-10-06)
+
+### 🚀 Features
+
+- **cli:** add awesome feature ([188f855](https://github.com/genai-tools/anygpt/commit/188f855))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.4.0 (2025-10-06)
 
 ### 🚀 Features
