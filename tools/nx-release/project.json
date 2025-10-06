@@ -1,0 +1,7 @@
+{
+  "name": "nx-release",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "tools/nx-release/src",
+  "projectType": "library",
+  "tags": []
+}
