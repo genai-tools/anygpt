@@ -102,14 +102,19 @@ async function main() {
   console.log('📥 Pulling latest changes...');
   await execa('git', ['pull', 'origin', 'main'], { stdio: 'inherit' });
 
+  // Get current commit SHA before release
+  const { stdout: beforeSha } = await execa('git', ['rev-parse', 'HEAD']);
+
   // Run nx release
   console.log('\n📝 Running nx release version...');
   await execa('npx', ['nx', 'release', 'version'], {
     stdio: 'inherit',
   });
 
-  // Check if there were changes
-  if (!(await hasUncommittedChanges())) {
+  // Check if nx created a new commit (version bump)
+  const { stdout: afterSha } = await execa('git', ['rev-parse', 'HEAD']);
+  
+  if (beforeSha.trim() === afterSha.trim()) {
     console.log('\n❌ No version changes were made');
     console.log('ℹ️  No changes detected - nothing to release');
     return;
