@@ -1,266 +1,108 @@
-# Simplified Release PR Workflow
-# Uses a label-based approach for better control
+# Release Workflow - Manual CLI with PR visualization
+#
+# Flow:
+# 1. Run locally: nx release version (on main)
+# 2. Push to main
+# 3. Workflow creates PR: main → production
+# 4. Review PR + CI checks
+# 5. Merge → Publishes to npm
 
-name: CI and Release
+name: Release
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-  workflow_dispatch:
-    inputs:
-      preid:
-        description: 'Prerelease identifier (e.g., beta, rc, alpha)'
-        required: false
-        type: string
+    branches: [production]
 
 permissions:
-  actions: read
   contents: write
   pull-requests: write
   id-token: write
 
 jobs:
-  # Step 1: Create Release PR immediately (CI will run on the PR)
-  create-release-pr:
-    if: |
-      github.ref == 'refs/heads/main' && 
-      github.event_name == 'push' &&
-      !startsWith(github.event.head_commit.message, 'chore(release)')
+  create-pr:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    outputs:
-      has_changes: ${{ steps.check.outputs.has_changes }}
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v5
-        with:
-          node-version: '24'
-
-      - run: node -v
-      - run: npm install --no-package-lock
-      - run: npm run build
-
-      # Check for releasable changes
-      - name: Check for releasable changes
+      - name: Check for version changes
         id: check
-        run: npx check-releasable-changes
-
-      # Create or update release branch
-      - name: Create or update release branch
-        if: steps.check.outputs.has_changes == 'true'
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Fetch remote to check if branch exists
-          git fetch origin release-next || true
-          
-          # Create or checkout release branch
-          if git rev-parse --verify origin/release-next >/dev/null 2>&1; then
-            echo "Branch exists, checking out and merging main..."
-            git checkout -B release-next origin/release-next
-            # Merge main into release-next to accumulate commits
-            git merge origin/main --no-edit -m "chore: merge main into release-next"
+          if git diff --name-only HEAD~1 HEAD | grep -qE 'package\.json|CHANGELOG\.md'; then
+            echo "changed=true" >> $GITHUB_OUTPUT
           else
-            echo "Creating new branch from main..."
-            git checkout -b release-next origin/main
+            echo "changed=false" >> $GITHUB_OUTPUT
           fi
-          
-          # Run nx release version (generates versions)
-          # Use 'prerelease' specifier with --preid if provided via workflow_dispatch
-          if [ -n "${{ inputs.preid }}" ]; then
-            npx nx release version prerelease --preid=${{ inputs.preid }} --stage-changes --git-commit=false --git-tag=false
-          else
-            npx nx release version --stage-changes --git-commit=false --git-tag=false
-          fi
-          
-          # Generate changelogs for each changed package
-          for file in packages/*/package.json packages/connectors/*/package.json; do
-            if git diff --cached --quiet "$file"; then
-              continue  # Skip if no changes
-            fi
-            pkg_name=$(jq -r '.name' "$file" | sed 's/@anygpt\///')
-            version=$(jq -r '.version' "$file")
-            echo "Generating changelog for $pkg_name@$version"
-            npx nx release changelog "$version" --projects="$pkg_name" --stage-changes --git-commit=false --git-tag=false || true
-          done
-          
-          # Commit the changes (NO [skip ci] - we want CI to run!)
-          git commit -m "chore(release): version bump and changelog"
-          
-          # Force push to update the branch
-          git push origin release-next --force
 
-      # Generate changelog summary for PR
-      - name: Generate changelog summary
-        if: steps.check.outputs.has_changes == 'true'
+      - name: Extract changelogs
+        if: steps.check.outputs.changed == 'true'
         id: changelog
         run: |
-          # Get the changelog from the release-next branch
-          git fetch origin release-next
-          git checkout release-next
-          
-          # Extract changelogs from all packages
-          CHANGELOG=""
-          for file in packages/*/CHANGELOG.md packages/connectors/*/CHANGELOG.md; do
-            if [ -f "$file" ]; then
-              pkg_name=$(dirname "$file")
-              
-              # Get the latest version section (first section after the header)
-              latest_section=$(awk '/^## /{if(++count==1)next; if(count==2)exit} count==1' "$file")
-              
-              # Skip if it's just a "version bump only" message
-              if echo "$latest_section" | grep -q "This was a version bump only"; then
-                echo "Skipping $pkg_name (version bump only)"
-                continue
+          {
+            echo "content<<EOF"
+            for file in packages/*/CHANGELOG.md; do
+              if [ -f "$file" ]; then
+                pkg=$(basename $(dirname "$file"))
+                echo "### 📦 $pkg"
+                sed -n '/^## /,/^## /p' "$file" | head -n -1 | head -n 15
+                echo ""
               fi
-              
-              # Only add if there's actual content
-              if [ -n "$latest_section" ]; then
-                echo "## Changes in $pkg_name" >> /tmp/changelog.md
-                echo "" >> /tmp/changelog.md
-                echo "$latest_section" >> /tmp/changelog.md
-                echo "" >> /tmp/changelog.md
-              fi
-            fi
-          done
-          
-          # Save for PR body
-          cat /tmp/changelog.md
-          echo "CHANGELOG_CONTENT<<EOF" >> $GITHUB_OUTPUT
-          cat /tmp/changelog.md >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          
-          git checkout main
+            done
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
-      # Create or update PR
-      - name: Create or update Release PR
-        if: steps.check.outputs.has_changes == 'true'
-        run: |
-          # Check if PR already exists
-          existing_pr=$(gh pr list --head release-next --base main --state open --json number --jq '.[0].number')
-          
-          if [ -z "$existing_pr" ]; then
-            echo "Creating new Release PR..."
-            gh pr create \
-            --title "🚀 Release: Next Version" \
-            --body "$(cat <<'EOF'
-          ## 🚀 Release PR
-          
-          This PR contains version bumps and changelog updates for the next release.
-          
-          ### 📋 Changelog
-          
-          ${{ steps.changelog.outputs.CHANGELOG_CONTENT }}
-          
-          ### ✅ CI Status
-          
-          CI checks will run automatically. All checks must pass before merging.
-          
-          ### 🎯 How to release
-          
-          1. **Review** the changelog above and changes in the "Files changed" tab
-          2. **Wait** for CI checks to pass ✅
-          3. **Edit** CHANGELOGs if needed (commit directly to this branch)
-          4. **Merge** this PR to publish to npm
-          
-          ### 📝 What happens on merge?
-          
-          - Git tags will be created
-          - Packages will be published to npm
-          - `production` branch will be updated
-          EOF
-          )" \
-              --head release-next \
-              --base main
-          else
-            echo "Release PR #$existing_pr already exists, updating description..."
-            gh pr edit $existing_pr --body "$(cat <<'EOF'
-          ## 🚀 Release PR
-          
-          This PR contains version bumps and changelog updates for the next release.
-          
-          ### 📋 Changelog
-          
-          ${{ steps.changelog.outputs.CHANGELOG_CONTENT }}
-          
-          ### ✅ CI Status
-          
-          CI checks will run automatically. All checks must pass before merging.
-          
-          ### 🎯 How to release
-          
-          1. **Review** the changelog above and changes in the "Files changed" tab
-          2. **Wait** for CI checks to pass ✅
-          3. **Edit** CHANGELOGs if needed (commit directly to this branch)
-          4. **Merge** this PR to publish to npm
-          
-          ### 📝 What happens on merge?
-          
-          - Git tags will be created
-          - Packages will be published to npm
-          - `production` branch will be updated
-          EOF
-          )"
-          fi
+      - name: Create/Update PR
+        if: steps.check.outputs.changed == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          pr=$(gh pr list --head main --base production --state open --json number -q '.[0].number')
+          
+          body="## 🚀 Release PR
 
-  # Step 2: Run CI on regular PRs (not release PRs)
-  # Release PRs have their own dedicated workflow: release-next-ci.yml
-  ci:
-    if: |
-      github.event_name == 'pull_request' &&
-      github.head_ref != 'release-next'
+This PR will publish the version changes to npm when merged.
+
+### 📋 Changelog
+
+${{ steps.changelog.outputs.content }}
+
+### ✅ Next Steps
+
+1. Review changes in the Files tab
+2. Wait for CI checks to pass
+3. Merge to publish to npm"
+
+          if [ -z "$pr" ]; then
+            gh pr create --title "Release: $(date +%Y-%m-%d)" --body "$body" --head main --base production
+          else
+            gh pr edit "$pr" --body "$body"
+          fi
+
+  ci-checks:
+    if: github.event_name == 'pull_request' && github.base_ref == 'production'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-        with:
-          filter: tree:0
-          fetch-depth: 0
-
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
-
       - run: npm install --no-package-lock
       - run: npm run build
+      - run: npx nx affected -t lint test --base=origin/production
 
-      - name: Set affected base
-        run: |
-          # Use production branch as base (represents last published state)
-          # Falls back to HEAD~1 if production branch doesn't exist yet
-          if git rev-parse --verify origin/production >/dev/null 2>&1; then
-            echo "NX_BASE=origin/production" >> $GITHUB_ENV
-            echo "Comparing to production branch (last published state)"
-          else
-            echo "NX_BASE=HEAD~1" >> $GITHUB_ENV
-            echo "Production branch not found, using HEAD~1"
-          fi
-
-      - name: Run CI checks on affected projects
-        run: |
-          npx nx format:check || true
-          npx nx affected -t lint test build typecheck --base=$NX_BASE
-          npx nx fix-ci || true
-
-  # Step 3: Publish when Release PR is merged to production
   publish:
     if: |
       github.event_name == 'push' &&
-      github.ref == 'refs/heads/production' &&
-      startsWith(github.event.head_commit.message, 'Merge pull request')
+      github.ref == 'refs/heads/production'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v5
         with:
@@ -270,56 +112,24 @@ jobs:
       - run: npm install --no-package-lock
       - run: npm run build
 
-      - name: Configure Git
+      - name: Create tags
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      # Extract version info and create tags
-      - name: Create git tags
-        run: |
-          # Find all package.json files that were changed
+          
           git diff HEAD~1 HEAD --name-only | grep 'package.json' | while read file; do
             if [[ "$file" == packages/*/package.json ]]; then
-              pkg_dir=$(dirname "$file")
-              pkg_name=$(jq -r '.name' "$file" | sed 's/@anygpt\///')
+              name=$(jq -r '.name' "$file" | sed 's/@anygpt\///')
               version=$(jq -r '.version' "$file")
-              tag="${pkg_name}@${version}"
-              
-              echo "Creating tag: $tag"
-              git tag -a "$tag" -m "Release $tag" || echo "Tag $tag already exists"
+              tag="${name}@${version}"
+              git tag -a "$tag" -m "Release $tag" || true
             fi
           done
 
-      # Publish to npm
-      - name: Publish to npm
-        run: |
-          # Use nx release publish from the tags
-          npx nx release publish --yes
+      - name: Publish
+        run: npx nx release publish --yes
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
 
-      # Push tags to GitHub
       - name: Push tags
-        run: |
-          git push --tags
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Sync production back to main to keep them aligned
-      - name: Sync production to main
-        run: |
-          git fetch origin main
-          git checkout main
-          git merge origin/production --no-edit -m "chore: sync production releases back to main"
-          git push origin main
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-
-      # Delete release-next branch so it starts fresh next time
-      - name: Delete release branch
-        run: |
-          git push origin --delete release-next || echo "Branch already deleted"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: git push --tags
