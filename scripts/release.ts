@@ -321,7 +321,8 @@ ${changelog}
   }
 
   console.log('\n🎉 Release process complete!');
-  console.log('   Review the PR and merge when CI passes\n');
+  console.log('   Review the PR and merge when CI passes');
+  console.log('\n💡 Tip: After the PR merges, run `git pull origin production && git push` to sync main with production\n');
 }
 
 main().catch((error) => {
