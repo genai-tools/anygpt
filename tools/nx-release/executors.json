@@ -1,0 +1,9 @@
+{
+  "executors": {
+    "release": {
+      "implementation": "./dist/executors/release/executor.cjs",
+      "schema": "./src/executors/release/schema.json",
+      "description": "Create a release PR with AI-generated summary"
+    }
+  }
+}
