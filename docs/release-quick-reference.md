@@ -1,6 +1,6 @@
 # Release Quick Reference
 
-Quick reference for the AnyGPT release workflow.
+Quick reference for the AnyGPT automated release workflow.
 
 ## 🚀 Quick Start
 
@@ -9,11 +9,11 @@ Quick reference for the AnyGPT release workflow.
 git commit -m "feat(config): add awesome feature"
 git push
 
-# 2. Bot creates Release PR automatically
-# → Go to GitHub and review
+# 2. Run release command
+npm run release
 
-# 3. Merge the PR
-# → Automatic publish to npm! 🚀
+# 3. Wait for CI to pass
+# → PR auto-merges and publishes to npm! 🚀
 ```
 
 ## 📝 Commit Format
@@ -39,11 +39,11 @@ git commit -m "chore(package): description"
 
 | Step | What Happens | Your Action |
 |------|--------------|-------------|
-| 1. Push | CI runs (lint, test, build) | Wait for ✅ |
-| 2. Bot | Creates Release PR | Review PR |
-| 3. Review | Check versions & CHANGELOGs | Edit if needed |
-| 4. CI | Runs on Release PR | Wait for ✅ |
-| 5. Merge | Publishes to npm | Click merge |
+| 1. Commit | Make changes with conventional commits | `git commit -m "feat: ..."` |
+| 2. Release | Run release command | `npm run release` |
+| 3. AI | Generates PR summary | Automatic |
+| 4. CI | Runs checks on PR | Wait for ✅ |
+| 5. Auto-merge | Merges & publishes to npm | Automatic |
 
 ## 🎛️ Common Tasks
 
@@ -51,37 +51,34 @@ git commit -m "chore(package): description"
 
 ```bash
 git commit -m "feat(config): feature A"
-git push
-
 git commit -m "feat(cli): feature B"
 git push
 
-# Bot updates the same Release PR
+# Run release once
+npm run release
+
+# Both changes in one release
 ```
 
-### Edit Changelog
+### Update Existing Release PR
 
 ```bash
-git fetch origin release-next
-git checkout release-next
-vim packages/config/CHANGELOG.md
-git commit -am "docs: improve changelog"
-git push origin release-next
+git commit -m "fix(cli): additional fix"
+git push
+
+# Run release again
+npm run release
+
+# Existing PR is updated
 ```
-
-### Cancel Release
-
-1. Close the Release PR
-2. Don't merge
-3. No publish happens
 
 ### Emergency Fix
 
 ```bash
 git commit -m "fix(config): critical bug"
 git push
-# Review Release PR quickly
-# Merge immediately
+npm run release
+# Auto-merges when CI passes (2-3 min)
 ```
 
 ## 🔍 Check Status

@@ -1,76 +1,78 @@
 # Release Workflow
 
-This document describes the automated Release PR workflow for AnyGPT packages.
+This document describes the automated release workflow for AnyGPT packages.
 
 ## 🎯 Overview
 
-We use a **Release PR workflow** to ensure safe, reviewable releases:
+We use a **fully automated release workflow** with AI-powered PR summaries:
 
-1. Developer pushes `feat`/`fix` commits to `main`
-2. CI validates the changes (lint, test, build)
-3. Bot automatically creates a **Release PR** with version bumps
-4. Team reviews the PR and waits for CI to pass
-5. Merging the PR triggers automatic publishing to npm
+1. Developer runs `npm run release` on `main` branch
+2. Script detects changes, bumps versions, creates tags
+3. **AI generates intelligent PR summary** analyzing changelog + code diff
+4. PR is created with **auto-merge enabled**
+5. CI validates the changes
+6. PR **auto-merges** when CI passes
+7. Packages are published to npm automatically
+8. `main` branch syncs with `production`
 
 ## 🔄 Workflow Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Developer pushes feat/fix commit to main                    │
+│ Developer: npm run release                                   │
 └─────────────────┬───────────────────────────────────────────┘
                   │
                   ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ CI runs: lint, test, build, typecheck                       │
-│ ✅ Must pass before proceeding                              │
+│ Nx Release:                                                  │
+│ - Detects changes (conventional commits)                     │
+│ - Bumps versions                                             │
+│ - Updates CHANGELOGs                                         │
+│ - Creates git tags                                           │
+│ - Pushes to main                                             │
 └─────────────────┬───────────────────────────────────────────┘
                   │
                   ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ Bot checks: Are there releasable changes?                   │
-│ (using conventional commits)                                 │
+│ AI Summary Generation:                                       │
+│ - Analyzes changelog                                         │
+│ - Reviews code diff                                          │
+│ - Generates intelligent PR summary                           │
+└─────────────────┬───────────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Create Release PR (main → production)                        │
+│ - Title: "Release cli v0.12.0"                              │
+│ - 🤖 AI-generated summary                                    │
+│ - 📋 Full changelog                                          │
+│ - ✅ Auto-merge enabled                                      │
+└─────────────────┬───────────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│ CI Checks (on PR):                                           │
+│ - Lint, test, build, typecheck                               │
 └─────────────────┬───────────────────────────────────────────┘
                   │
         ┌─────────┴─────────┐
         │                   │
-        ▼ No                ▼ Yes
+        ▼ Fail              ▼ Pass
     ┌───────┐         ┌──────────────────────────────────────┐
-    │ Stop  │         │ Bot creates release-next branch      │
-    └───────┘         │ Runs: npx nx release version --yes   │
-                      │ - Bumps versions                     │
-                      │ - Updates CHANGELOGs                 │
-                      └─────────┬────────────────────────────┘
-                                │
+    │ Fix   │         │ Auto-Merge to production             │
+    │ & Push│         └─────────┬────────────────────────────┘
+    └───────┘                   │
                                 ▼
                       ┌──────────────────────────────────────┐
-                      │ Bot creates/updates Release PR       │
-                      │ 📋 Shows all changes                 │
-                      │ 🏷️  Labeled: "release"              │
-                      └─────────┬────────────────────────────┘
-                                │
-                                ▼
-                      ┌──────────────────────────────────────┐
-                      │ YOU REVIEW THE PR                    │
-                      │ - Check version bumps                │
-                      │ - Review CHANGELOGs                  │
-                      │ - Edit if needed                     │
-                      │ - Wait for CI ✅                     │
-                      └─────────┬────────────────────────────┘
-                                │
-                      ┌─────────┴─────────┐
-                      │                   │
-                      ▼ Close PR          ▼ Merge PR
-                  ┌───────┐         ┌──────────────────────┐
-                  │ Stop  │         │ Publish workflow     │
-                  └───────┘         │ - Creates git tags   │
-                                    │ - Publishes to npm   │
-                                    │ - Deletes branch     │
-                                    └──────────────────────┘
+                      │ Publish Workflow:                    │
+                      │ - Publishes to npm                   │
+                      │ - Syncs main with production         │
+                      └──────────────────────────────────────┘
 ```
 
 ## 📋 How It Works
 
-### Step 1: Push Changes
+### Step 1: Make Changes
 
 Commit your changes using [Conventional Commits](https://www.conventionalcommits.org/):
 
@@ -90,120 +92,122 @@ BREAKING CHANGE: Configuration format has changed"
 git push
 ```
 
-### Step 2: Automatic CI Validation
+### Step 2: Run Release Command
 
-GitHub Actions automatically runs:
+```bash
+npm run release
+```
+
+This command:
+
+1. **Validates environment**:
+   - Checks you're on `main` branch
+   - Ensures no uncommitted changes
+   - Pulls latest from origin
+
+2. **Runs Nx Release**:
+   - Detects changes via conventional commits
+   - Bumps package versions
+   - Updates `CHANGELOG.md` files
+   - Creates git tags
+   - Commits and pushes to `main`
+
+3. **Generates AI Summary**:
+   - Analyzes changelog entries
+   - Reviews code diff (up to 5000 chars)
+   - Uses your `anygpt` CLI to generate intelligent summary
+   - Highlights key changes and reviewer notes
+
+4. **Creates Release PR**:
+   - Title: "Release cli v0.12.0" (shows actual packages)
+   - 🤖 AI-generated summary section
+   - 📋 Full changelog
+   - ✅ Auto-merge enabled
+
+### Step 3: Automatic CI Validation
+
+GitHub Actions automatically runs on the PR:
 - ✅ Code formatting check
 - ✅ Linting
 - ✅ Unit tests
 - ✅ Build
 - ✅ Type checking
 
-**If CI fails**, the workflow stops here. Fix the issues and push again.
+**If CI fails**, fix the issues and push to `main`, then run `npm run release` again.
 
-### Step 3: Release PR Creation
+### Step 4: Review the Release PR (Optional)
 
-If CI passes and there are releasable changes, the bot:
+The PR includes:
 
-1. **Creates `release-next` branch** from `main`
-2. **Runs `nx release version`** to:
-   - Detect changes via conventional commits
-   - Bump package versions
-   - Update `CHANGELOG.md` files
-3. **Creates/Updates Release PR** with:
-   - Title: "🚀 Release: Next Version"
-   - Label: `release`
-   - Description with all changes
+1. **AI Summary** 🤖
+   - Overview of what's being released
+   - Key highlights from changelog
+   - Notable code changes
+   - Important notes for reviewers
 
-### Step 4: Review the Release PR
-
-**What to review:**
-
-1. **Version Bumps** (in `package.json` files)
-   - Check if version increments are correct
-   - Verify dependent packages are updated
-
-2. **CHANGELOGs** (in `CHANGELOG.md` files)
-   - Review generated changelog entries
-   - Edit descriptions if needed
-   - Add missing context
+2. **Full Changelog** 📋
+   - All version bumps
+   - Detailed change entries
+   - Contributor credits
 
 3. **CI Status**
-   - Wait for all checks to pass ✅
-   - Fix any issues if checks fail
+   - All checks must pass before auto-merge
 
-**How to edit:**
+**The PR will auto-merge when CI passes** - no manual action needed!
 
-If you need to modify the changelog or version:
+### Step 5: Automatic Merge & Publish
 
-```bash
-# Checkout the release branch
-git fetch origin release-next
-git checkout release-next
+When CI passes:
 
-# Make your edits
-vim packages/config/CHANGELOG.md
-
-# Commit and push
-git commit -am "docs: improve changelog description"
-git push origin release-next
-
-# The PR will update automatically
-```
-
-### Step 5: Merge to Release
-
-When ready to release:
-
-1. **Ensure CI is green** ✅
-2. **Click "Merge pull request"**
-3. **Confirm the merge**
-
-**What happens automatically:**
-
-- ✅ Git tags are created (e.g., `config@0.3.0`, `cli@0.1.6`)
-- ✅ Packages are published to npm
-- ✅ Release branch is deleted
-- ✅ GitHub releases are created (optional)
+1. **Auto-merge** merges PR to `production`
+2. **Publish workflow** triggers:
+   - ✅ Publishes packages to npm
+   - ✅ Syncs `main` branch with `production`
+3. **Done!** Packages are live on npm
 
 ## 🎛️ Advanced Usage
 
 ### Batching Multiple Changes
 
-The workflow automatically batches changes:
+Make multiple commits before running release:
 
 ```bash
-# Push multiple commits
+# Make multiple changes
 git commit -m "feat(config): add feature A"
+git commit -m "feat(cli): add feature B"
 git push
 
-git commit -m "feat(cli): add feature B"  
-git push
+# Run release once
+npm run release
 
-# Bot updates the SAME Release PR
 # Both changes will be in one release
 ```
 
-### Canceling a Release
+### Updating an Existing Release PR
 
-To cancel a pending release:
+If a release PR already exists:
 
-1. **Close the Release PR** (don't merge)
-2. The `release-next` branch will be deleted on next run
-3. No packages are published
+```bash
+# Make more changes
+git commit -m "fix(cli): critical bug"
+git push
 
-You can reopen or recreate the PR later.
+# Run release again
+npm run release
+
+# The existing PR will be updated (auto-merge NOT re-enabled for safety)
+```
 
 ### Emergency Fixes
 
-If you need to release a fix immediately:
+For urgent fixes:
 
-1. Push the fix to `main`
-2. Wait for Release PR to update (or create new one)
-3. Review quickly
-4. Merge immediately
+1. Make the fix and push to `main`
+2. Run `npm run release`
+3. CI will validate
+4. Auto-merge when CI passes
 
-The workflow is fast - typically takes 2-3 minutes from push to publish.
+Typically takes 2-3 minutes from release command to npm publish.
 
 ## 📦 Package Versioning
 
@@ -241,7 +245,7 @@ Based on [Conventional Commits](https://www.conventionalcommits.org/):
 
 ## 🔍 Troubleshooting
 
-### Release PR Not Created
+### "No changes detected"
 
 **Possible causes:**
 
@@ -249,36 +253,46 @@ Based on [Conventional Commits](https://www.conventionalcommits.org/):
    - Only `docs:`, `chore:`, `style:` commits
    - Solution: Add `feat:` or `fix:` commit
 
-2. **CI failed**
-   - Lint, test, or build errors
-   - Solution: Fix errors and push again
+2. **Already released**
+   - Changes were already released
+   - Solution: Make new changes
 
 3. **No conventional commits**
    - Commits don't follow format
    - Solution: Use `feat:`, `fix:`, etc.
+
+### Auto-merge Not Working
+
+**Check:**
+
+1. **Branch protection configured?**
+   - Required: `ci-checks` status check
+   - Settings → Branches → production
+
+2. **Auto-merge enabled for repo?**
+   - Settings → General → Pull Requests → Allow auto-merge
+
+3. **CI passing?**
+   - Check PR status
+   - Fix any failing tests
 
 ### CI Fails on Release PR
 
 **Steps to fix:**
 
 1. Check the CI logs in the PR
-2. Fix the issues locally
-3. Push to the `release-next` branch:
-   ```bash
-   git checkout release-next
-   # fix issues
-   git commit -am "fix: resolve CI issues"
-   git push origin release-next
-   ```
+2. Fix the issues locally on `main`
+3. Push to `main`
+4. Run `npm run release` again
 
 ### Wrong Version Bump
 
 **To fix:**
 
-1. Edit `package.json` in the `release-next` branch
-2. Update the version manually
-3. Commit and push
-4. Update `CHANGELOG.md` if needed
+1. The version is determined by conventional commits
+2. Check your commit messages
+3. If needed, manually edit `package.json` and `CHANGELOG.md` on `main`
+4. Run `npm run release` again
 
 ### Publish Failed
 
@@ -288,10 +302,18 @@ Based on [Conventional Commits](https://www.conventionalcommits.org/):
 2. If npm publish failed, you can retry:
    ```bash
    # Manually publish from the tag
-   git checkout config@0.3.0
-   cd packages/config
+   git checkout cli@0.12.0
+   cd packages/cli
    npm publish
    ```
+
+### AI Summary Generation Failed
+
+**Not critical** - release continues without AI summary:
+
+1. Check if `anygpt` CLI is working: `npx anygpt chat "test"`
+2. Verify API credentials are configured
+3. The release will still work, just without the AI summary section
 
 ## 🔐 Security
 
@@ -405,7 +427,33 @@ If you encounter issues:
 3. Check the [Troubleshooting](#troubleshooting) section
 4. Ask in team chat or create an issue
 
+## 🤖 AI-Powered Features
+
+### Intelligent PR Summaries
+
+The release script uses your own `anygpt` CLI to generate smart summaries:
+
+**Input:**
+- Changelog entries
+- Code diff (up to 5000 characters)
+- Package names and versions
+
+**Output:**
+- Overview of what's being released
+- Key highlights and features
+- Notable code changes
+- Important notes for reviewers
+
+**Clean Output:**
+The `--usage` flag is NOT used, so token statistics don't clutter the PR description.
+
+### Configuration
+
+AI summary generation requires:
+- `anygpt` CLI configured with API credentials
+- See `.anygpt/anygpt.config.ts` for configuration
+
 ---
 
-**Last Updated:** 2025-10-05
-**Workflow Version:** 1.0
+**Last Updated:** 2025-10-06
+**Workflow Version:** 2.0 (AI-Powered)
