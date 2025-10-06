@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import { execa } from 'execa';
 import { readFile, writeFile } from 'fs/promises';
-import { join } from 'path';
 
 async function getCurrentBranch(): Promise<string> {
   const { stdout } = await execa('git', ['branch', '--show-current']);
@@ -52,7 +51,7 @@ async function extractChangelog(): Promise<string> {
         if (entry) {
           changelog += `\n### 📦 ${pkgName}\n${entry}\n`;
         }
-      } catch (error) {
+      } catch {
         // Skip files that can't be read
       }
     }
