@@ -10,6 +10,7 @@ The AnyGPT CLI provides:
 - **🔧 Flexible Configuration** - Support for multiple providers and models
 - **📊 Context Management** - Smart conversation context handling
 - **🔀 Advanced Features** - Fork, summarize, and condense conversations
+- **📤 Custom Output Formats** - Export conversations in multiple formats
 - **⚡ TypeScript-first** - Built with full type safety
 
 ## 🚀 **Quick Start**
