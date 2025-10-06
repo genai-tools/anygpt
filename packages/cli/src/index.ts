@@ -12,6 +12,7 @@ import { conversationContinueCommand } from './commands/conversation/continue.js
 import { conversationDeleteCommand } from './commands/conversation/delete.js';
 import { chatCommand } from './commands/chat.js';
 import { configCommand } from './commands/config.js';
+import { listModelsCommand } from './commands/list-models.js';
 import { withCLIContext } from './utils/cli-context.js';
 
 
@@ -44,6 +45,14 @@ program
   .description('Show resolved configuration')
   .option('--json', 'output as JSON')
   .action(withCLIContext(configCommand));
+
+// List models command
+program
+  .command('list-models')
+  .description('List available models from a provider')
+  .option('--provider <name>', 'provider name from config (uses default from config if not specified)')
+  .option('--json', 'output as JSON')
+  .action(withCLIContext(listModelsCommand));
 
 // Conversation commands
 const conversation = program
