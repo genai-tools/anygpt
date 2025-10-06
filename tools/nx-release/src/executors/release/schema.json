@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "version": 2,
+  "title": "Release executor",
+  "description": "Create a release PR with version bumps, changelog, and AI summary",
+  "type": "object",
+  "properties": {
+    "baseBranch": {
+      "type": "string",
+      "description": "Base branch to release from",
+      "default": "main"
+    },
+    "targetBranch": {
+      "type": "string",
+      "description": "Target branch to merge into (production branch)",
+      "default": "production"
+    },
+    "changelogPatterns": {
+      "type": "array",
+      "description": "Glob patterns for changelog files",
+      "default": ["packages/*/CHANGELOG.md", "packages/connectors/*/CHANGELOG.md"],
+      "items": {
+        "type": "string"
+      }
+    },
+    "aiProvider": {
+      "type": "string",
+      "description": "AI provider for generating release summaries",
+      "enum": ["anygpt", "none"],
+      "default": "anygpt"
+    },
+    "aiCommand": {
+      "type": "string",
+      "description": "Command to run for AI summary generation",
+      "default": "npx anygpt chat"
+    },
+    "autoMerge": {
+      "type": "boolean",
+      "description": "Enable auto-merge on the PR when CI passes",
+      "default": true
+    },
+    "skipPublish": {
+      "type": "boolean",
+      "description": "Skip publishing (passed to nx release)",
+      "default": true
+    },
+    "diffPaths": {
+      "type": "array",
+      "description": "Paths to include in diff for AI analysis",
+      "default": ["packages/*/src/**", "packages/connectors/*/src/**"],
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": []
+}
