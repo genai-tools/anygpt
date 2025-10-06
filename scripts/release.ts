@@ -94,6 +94,31 @@ async function getExistingPR(): Promise<string | null> {
   }
 }
 
+async function generateAISummary(changelog: string, releases: PackageRelease[]): Promise<string> {
+  try {
+    const releaseInfo = releases.map(r => `${r.name}@${r.version}`).join(', ');
+    const prompt = `Generate a concise, professional summary for this release PR. Include:
+1. A brief overview of what's being released (${releaseInfo})
+2. Key highlights from the changelog
+3. Any important notes for reviewers
+
+Changelog:
+${changelog}
+
+Keep it under 200 words and use a friendly, professional tone.`;
+
+    console.log('🤖 Generating AI summary...');
+    const { stdout } = await execa('npx', ['anygpt', 'chat', prompt], {
+      stdio: 'pipe',
+    });
+    
+    return stdout.trim();
+  } catch {
+    console.log('⚠️  AI summary generation failed, using default summary');
+    return '';
+  }
+}
+
 async function main() {
   console.log('🚀 Starting release process...\n');
 
@@ -180,12 +205,15 @@ async function main() {
     prTitle = `Release: ${new Date().toISOString().split('T')[0]}`;
   }
 
+  // Generate AI summary
+  const aiSummary = await generateAISummary(changelog, releases);
+
   // Create PR body
   const prBody = `## 🚀 Release PR
 
 This PR will publish the version changes to npm when merged.
 
-### 📋 Changelog
+${aiSummary ? `### 🤖 AI Summary\n\n${aiSummary}\n\n` : ''}### 📋 Changelog
 ${changelog}
 
 ### ✅ Next Steps
