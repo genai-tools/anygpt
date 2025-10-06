@@ -270,11 +270,11 @@ ${changelog}
     // Extract PR number from URL
     const prNumber = prUrl.trim().split('/').pop() || '';
 
-    // Enable auto-merge with merge commit strategy
+    // Enable auto-merge with squash strategy (no merge commits)
     console.log('🔄 Enabling auto-merge...');
     try {
-      await execa('gh', ['pr', 'merge', '--auto', '--merge', prNumber]);
-      console.log('✅ Auto-merge enabled - PR will merge when CI passes');
+      await execa('gh', ['pr', 'merge', '--auto', '--squash', prNumber]);
+      console.log('✅ Auto-merge enabled - PR will squash merge when CI passes');
     } catch (error: unknown) {
       if (error instanceof Error) {
         if (error.message?.includes('is in clean status')) {
