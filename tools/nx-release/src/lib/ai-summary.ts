@@ -8,13 +8,13 @@ export async function generateAISummary(
   aiCommand: string
 ): Promise<string> {
   try {
-    const prompt = `Generate a brief, focused summary of the actual code changes in this release.
+    const prompt = `Generate a focused summary of the actual code changes in this release.
 
 IMPORTANT:
 - Focus ONLY on actual functional changes, new features, and bug fixes
 - Ignore version bumps, dependency updates, and package.json changes
-- Keep it under 100 words
 - Use bullet points for clarity
+- Be concise but comprehensive - adjust length based on complexity
 - Skip mentioning package versions unless it's critical context
 
 Code Changes (diff):
@@ -23,7 +23,7 @@ ${diff.slice(0, 5000)}${diff.length > 5000 ? '\n... (truncated)' : ''}
 Changelog:
 ${changelog}
 
-Provide a concise summary of what actually changed in the code.`;
+Provide a clear summary of what actually changed in the code. Keep it brief for simple changes, more detailed for complex ones.`;
 
     console.log('🤖 Generating AI summary...');
     const [command, ...args] = aiCommand.split(' ');
