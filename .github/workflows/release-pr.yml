@@ -64,11 +64,10 @@ jobs:
           # Reset to main to get latest changes
           git reset --hard origin/main
           
-          # Run nx release (version + changelog)
-          npx nx release version --git-commit=false --stage-changes
-          npx nx release changelog --git-commit=false
+          # Run nx release (version + changelog in one command)
+          npx nx release --skip-publish --git-commit=false
           
-          # Stage changelog changes
+          # Stage all changes (versions + changelogs)
           git add .
           
           # Commit the changes (NO [skip ci] - we want CI to run!)
