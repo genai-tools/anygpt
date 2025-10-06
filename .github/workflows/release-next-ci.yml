@@ -1,38 +1,19 @@
 # CI for Release Branch
-# Runs comprehensive checks on all packages in the release
+# Runs comprehensive checks on all packages in the release-next branch
 
 name: Release Branch CI
 
 on:
-  # Trigger when release PR workflow completes
-  workflow_run:
-    workflows: ["CI and Release"]
-    types:
-      - completed
-    branches:
-      - main
-  # Also trigger on manual pushes to release-next
   push:
     branches:
       - release-next
-  # And on PRs from release-next
-  pull_request:
-    branches:
-      - main
-    types: [opened, synchronize, reopened]
 
 permissions:
   actions: read
   contents: read
-  pull-requests: read
 
 jobs:
-  validate-release:
-    # Only run for release-next branch or PRs from release-next
-    # Skip if workflow_run was triggered but not for a release
-    if: |
-      github.event_name != 'workflow_run' ||
-      github.event.workflow_run.conclusion == 'success'
+  ci-checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
