@@ -117,6 +117,10 @@ async function main() {
   // Get current commit SHA before release
   const { stdout: beforeSha } = await execa('git', ['rev-parse', 'HEAD']);
 
+  // Get list of existing tags before release
+  const { stdout: beforeTags } = await execa('git', ['tag', '--points-at', 'HEAD']);
+  const existingTags = new Set(beforeTags.split('\n').filter(Boolean));
+
   // Run nx release (version + changelog + commit + tag)
   console.log('\n📝 Running nx release...');
   try {
@@ -147,9 +151,24 @@ async function main() {
   console.log('📤 Pushing to main with tags...');
   await execa('git', ['push', 'origin', 'main', '--follow-tags'], { stdio: 'inherit' });
 
-  // Extract changelog and releases
+  // Get new tags created by this release
+  const { stdout: afterTags } = await execa('git', ['tag', '--points-at', 'HEAD']);
+  const newTags = afterTags.split('\n').filter(tag => tag && !existingTags.has(tag));
+  
+  // Extract package releases from new tags (format: "cli@0.10.0")
+  const releases: PackageRelease[] = newTags
+    .map(tag => {
+      const match = tag.match(/^(.+)@([\d.]+)$/);
+      if (match) {
+        return { name: match[1], version: match[2] };
+      }
+      return null;
+    })
+    .filter((r): r is PackageRelease => r !== null);
+
+  // Extract changelog
   console.log('\n📋 Extracting changelog...');
-  const { changelog, releases } = await extractChangelog();
+  const { changelog } = await extractChangelog();
 
   // Build PR title from releases
   let prTitle = 'Release';
