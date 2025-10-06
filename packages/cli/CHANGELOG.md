@@ -1,3 +1,13 @@
+## 0.13.0 (2025-10-06)
+
+### 🚀 Features
+
+- **cli:** add awesome feature ([deb4861](https://github.com/genai-tools/anygpt/commit/deb4861))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.12.0 (2025-10-06)
 
 ### 🚀 Features
