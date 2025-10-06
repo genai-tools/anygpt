@@ -1,15 +1,12 @@
-# Release Workflow - Local CLI with automated CI and publish
+# Release Workflow - Publish to npm
 #
 # Flow:
-# 1. Run locally: npm run release (creates PR)
-# 2. Workflow runs CI checks on PR
-# 3. Merge PR → Publishes to npm
+# 1. PR is merged to production
+# 2. Workflow publishes to npm
 
-name: Release
+name: Publish Release
 
 on:
-  pull_request:
-    branches: [production]
   push:
     branches: [production]
 
@@ -18,18 +15,6 @@ permissions:
   id-token: write
 
 jobs:
-  ci-checks:
-    if: github.event_name == 'pull_request' && github.base_ref == 'production'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: '24'
-      - run: npm install --no-package-lock
-      - run: npm run build
-      - run: npx nx affected -t lint test --base=origin/production
-
   publish:
     if: |
       github.event_name == 'push' &&
