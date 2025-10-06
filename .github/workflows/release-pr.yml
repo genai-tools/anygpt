@@ -1,15 +1,8 @@
-# Release Workflow - Local CLI with automated CI and publish
-#
-# Flow:
-# 1. Run locally: npm run release (creates PR)
-# 2. Workflow runs CI checks on PR
-# 3. Merge PR → Publishes to npm
+# Publish to npm when PR is merged to production
 
-name: Release
+name: Publish to npm
 
 on:
-  pull_request:
-    branches: [production]
   push:
     branches: [production]
 
@@ -18,22 +11,7 @@ permissions:
   id-token: write
 
 jobs:
-  ci-checks:
-    if: github.event_name == 'pull_request' && github.base_ref == 'production'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: '24'
-      - run: npm install --no-package-lock
-      - run: npm run build
-      - run: npx nx affected -t lint test --base=origin/production
-
   publish:
-    if: |
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/production'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -48,24 +26,7 @@ jobs:
       - run: npm install --no-package-lock
       - run: npm run build
 
-      - name: Create tags
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          git diff HEAD~1 HEAD --name-only | grep 'package.json' | while read file; do
-            if [[ "$file" == packages/*/package.json ]]; then
-              name=$(jq -r '.name' "$file" | sed 's/@anygpt\///')
-              version=$(jq -r '.version' "$file")
-              tag="${name}@${version}"
-              git tag -a "$tag" -m "Release $tag" || true
-            fi
-          done
-
-      - name: Publish
-        run: npx nx release publish --yes
+      - name: Publish to npm
+        run: npx nx release publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
-
-      - name: Push tags
-        run: git push --tags
