@@ -16,13 +16,19 @@ async function hasUncommittedChanges(): Promise<boolean> {
   }
 }
 
-async function extractChangelog(): Promise<string> {
+interface PackageRelease {
+  name: string;
+  version: string;
+}
+
+async function extractChangelog(): Promise<{ changelog: string; releases: PackageRelease[] }> {
   const packages = [
     'packages/*/CHANGELOG.md',
     'packages/connectors/*/CHANGELOG.md',
   ];
 
   let changelog = '';
+  const releases: PackageRelease[] = [];
 
   for (const pattern of packages) {
     const { stdout } = await execa('bash', [
@@ -42,6 +48,12 @@ async function extractChangelog(): Promise<string> {
         const firstHeaderIdx = lines.findIndex((l) => l.startsWith('## '));
         if (firstHeaderIdx === -1) continue;
 
+        // Extract version from first header (e.g., "## 0.8.0 (2025-10-06)")
+        const versionMatch = lines[firstHeaderIdx].match(/##\s+([\d.]+)/);
+        if (versionMatch) {
+          releases.push({ name: pkgName, version: versionMatch[1] });
+        }
+
         const secondHeaderIdx = lines.findIndex(
           (l, i) => i > firstHeaderIdx && l.startsWith('## ')
         );
@@ -57,7 +69,7 @@ async function extractChangelog(): Promise<string> {
     }
   }
 
-  return changelog;
+  return { changelog, releases };
 }
 
 async function getExistingPR(): Promise<string | null> {
@@ -135,9 +147,19 @@ async function main() {
   console.log('📤 Pushing to main with tags...');
   await execa('git', ['push', 'origin', 'main', '--follow-tags'], { stdio: 'inherit' });
 
-  // Extract changelog
+  // Extract changelog and releases
   console.log('\n📋 Extracting changelog...');
-  const changelog = await extractChangelog();
+  const { changelog, releases } = await extractChangelog();
+
+  // Build PR title from releases
+  let prTitle = 'Release';
+  if (releases.length === 1) {
+    prTitle = `Release ${releases[0].name} v${releases[0].version}`;
+  } else if (releases.length > 1) {
+    prTitle = `Release: ${releases.map(r => `${r.name}@${r.version}`).join(', ')}`;
+  } else {
+    prTitle = `Release: ${new Date().toISOString().split('T')[0]}`;
+  }
 
   // Create PR body
   const prBody = `## 🚀 Release PR
@@ -166,7 +188,7 @@ ${changelog}
       'pr',
       'create',
       '--title',
-      `Release: ${new Date().toISOString().split('T')[0]}`,
+      prTitle,
       '--body-file',
       prBodyPath,
       '--head',
