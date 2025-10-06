@@ -1,3 +1,13 @@
+## 0.1.7-draft.0 (2025-10-06)
+
+### 🚀 Features
+
+- **cli:** add support for custom output formats ([13b8619](https://github.com/genai-tools/anygpt/commit/13b8619))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.1.7-0 (2025-10-06)
 
 ### 🧱 Updated Dependencies
