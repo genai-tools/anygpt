@@ -1,3 +1,13 @@
+## 0.10.0 (2025-10-06)
+
+### 🚀 Features
+
+- **cli:** add awesome feature ([756ca2d](https://github.com/genai-tools/anygpt/commit/756ca2d))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.9.0 (2025-10-06)
 
 ### 🚀 Features
