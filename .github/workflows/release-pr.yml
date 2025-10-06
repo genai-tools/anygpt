@@ -59,27 +59,32 @@ jobs:
         if: steps.check.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+          CHANGELOG: ${{ steps.changelog.outputs.content }}
         run: |
           pr=$(gh pr list --head main --base production --state open --json number -q '.[0].number')
           
-          body="## 🚀 Release PR
+          cat > /tmp/pr-body.md << 'PRBODY'
+## 🚀 Release PR
 
 This PR will publish the version changes to npm when merged.
 
 ### 📋 Changelog
 
-${{ steps.changelog.outputs.content }}
+PRBODY
+          echo "${CHANGELOG}" >> /tmp/pr-body.md
+          cat >> /tmp/pr-body.md << 'PRBODY'
 
 ### ✅ Next Steps
 
 1. Review changes in the Files tab
 2. Wait for CI checks to pass
-3. Merge to publish to npm"
+3. Merge to publish to npm
+PRBODY
 
           if [ -z "$pr" ]; then
-            gh pr create --title "Release: $(date +%Y-%m-%d)" --body "$body" --head main --base production
+            gh pr create --title "Release: $(date +%Y-%m-%d)" --body-file /tmp/pr-body.md --head main --base production
           else
-            gh pr edit "$pr" --body "$body"
+            gh pr edit "$pr" --body-file /tmp/pr-body.md
           fi
 
   ci-checks:
