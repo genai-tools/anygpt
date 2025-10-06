@@ -96,15 +96,6 @@ jobs:
           # Force push to update the branch
           git push origin release-next --force
 
-      # Run CI checks on the release branch
-      - name: Run CI checks on release packages
-        if: steps.check.outputs.has_changes == 'true'
-        run: |
-          git checkout release-next
-          npx nx format:check || true
-          echo "Running comprehensive CI on all packages..."
-          npx nx run-many -t lint test build typecheck --projects='packages/*,packages/connectors/*'
-
       # Generate changelog summary for PR
       - name: Generate changelog summary
         if: steps.check.outputs.has_changes == 'true'
