@@ -1,12 +1,11 @@
 # CI for Release Branch
 # Runs comprehensive checks on all packages in the release-next branch
 
-name: Release Branch CI
-
+name: Check Release before publish
 on:
-  push:
+  pull_request_target:
     branches:
-      - release-next
+      - production
 
 permissions:
   actions: read
@@ -17,14 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-        with:
-          ref: release-next
-          filter: tree:0
-          fetch-depth: 0
-
       - uses: actions/setup-node@v5
         with:
-          node-version: '24'
+          node-version: lts/*
 
       - name: Install dependencies
         run: npm install --no-package-lock
