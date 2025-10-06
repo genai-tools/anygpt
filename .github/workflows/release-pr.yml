@@ -249,13 +249,12 @@ jobs:
           npx nx affected -t lint test build typecheck --base=$NX_BASE
           npx nx fix-ci || true
 
-  # Step 3: Publish when Release PR is merged
+  # Step 3: Publish when Release PR is merged to production
   publish:
     if: |
       github.event_name == 'push' &&
-      github.ref == 'refs/heads/main' &&
-      startsWith(github.event.head_commit.message, 'Merge pull request') &&
-      contains(github.event.head_commit.message, 'Release')
+      github.ref == 'refs/heads/production' &&
+      startsWith(github.event.head_commit.message, 'Merge pull request')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -305,14 +304,6 @@ jobs:
       - name: Push tags
         run: |
           git push --tags
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Update production branch (source of truth for what's published)
-      - name: Update production branch
-        run: |
-          # Update production branch to current main (what was just published)
-          git push origin HEAD:refs/heads/production --force
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
