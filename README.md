@@ -1,11 +1,11 @@
 # AnyGPT Ecosystem
 
-A comprehensive TypeScript ecosystem for building AI-powered applications with support for multiple providers, MCP protocol, and flexible configuration management.
+A comprehensive TypeScript ecosystem for building AI-powered applications with support for multiple providers, MCP protocol, and 
+flexible configuration management.
 
 ## Why?
 
 **Problem**: Building AI applications requires dealing with different provider APIs, complex configuration management, and protocol translations for MCP clients.
-
 **Solution**: This monorepo provides a modular ecosystem with clean separation of concerns:
 - **Type System**: Pure type definitions with zero runtime overhead
 - **Router Layer**: Provider abstraction and routing with connector pattern
