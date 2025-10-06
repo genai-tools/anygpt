@@ -4,6 +4,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "release":"npx nx release --skip-publish -y -preid=draft",
     "build": "npx tsdown --cwd tools/nx-tsdown && npx tsdown --cwd tools/nx-tsgo && npx tsdown --cwd tools/nx-vitest"
   },
   "private": true,
