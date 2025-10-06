@@ -65,11 +65,19 @@ jobs:
           # Reset to main to get latest changes
           git reset --hard origin/main
           
-          # Run nx release (version + changelog, skip publish)
-          npx nx release --skip-publish
+          # Run nx release version (generates versions)
+          npx nx release version --stage-changes --git-commit=false --git-tag=false
           
-          # Stage all changes (versions + changelogs)
-          git add .
+          # Generate changelogs for each changed package
+          for file in packages/*/package.json packages/connectors/*/package.json; do
+            if git diff --cached --quiet "$file"; then
+              continue  # Skip if no changes
+            fi
+            pkg_name=$(jq -r '.name' "$file" | sed 's/@anygpt\///')
+            version=$(jq -r '.version' "$file")
+            echo "Generating changelog for $pkg_name@$version"
+            npx nx release changelog "$version" --projects="$pkg_name" --stage-changes --git-commit=false --git-tag=false || true
+          done
           
           # Commit the changes (NO [skip ci] - we want CI to run!)
           git commit -m "chore(release): version bump and changelog"
