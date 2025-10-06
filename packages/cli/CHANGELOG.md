@@ -1,3 +1,13 @@
+## 0.8.0 (2025-10-06)
+
+### 🚀 Features
+
+- **cli:** add awesome feature ([3bfe554](https://github.com/genai-tools/anygpt/commit/3bfe554))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.7.0 (2025-10-06)
 
 ### 🚀 Features
