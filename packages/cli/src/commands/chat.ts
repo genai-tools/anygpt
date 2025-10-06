@@ -6,6 +6,7 @@ interface ChatOptions {
   url?: string;
   token?: string;
   model?: string;
+  usage?: boolean;
 }
 
 export async function chatCommand(
@@ -40,8 +41,8 @@ export async function chatCommand(
       console.log('No response received');
     }
     
-    // Show usage info if available
-    if (response.usage) {
+    // Show usage info only if --usage flag is provided
+    if (options.usage && response.usage) {
       console.log('');
       console.log(`📊 Usage: ${response.usage.prompt_tokens} input + ${response.usage.completion_tokens} output = ${response.usage.total_tokens} tokens`);
     }
