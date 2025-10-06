@@ -15,7 +15,7 @@ export async function hasUncommittedChanges(): Promise<boolean> {
 }
 
 export async function pullLatest(branch: string): Promise<void> {
-  await execa('git', ['pull', 'origin', branch], { stdio: 'inherit' });
+  await execa('git', ['pull', '--rebase', 'origin', branch], { stdio: 'inherit' });
 }
 
 export async function getCurrentCommitSha(): Promise<string> {
