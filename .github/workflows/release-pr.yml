@@ -307,6 +307,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # Sync production back to main to keep them aligned
+      - name: Sync production to main
+        run: |
+          git fetch origin main
+          git checkout main
+          git merge origin/production --no-edit -m "chore: sync production releases back to main"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+
       # Delete release-next branch so it starts fresh next time
       - name: Delete release branch
         run: |
