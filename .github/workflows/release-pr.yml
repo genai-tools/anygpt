@@ -110,11 +110,23 @@ jobs:
           for file in packages/*/CHANGELOG.md packages/connectors/*/CHANGELOG.md; do
             if [ -f "$file" ]; then
               pkg_name=$(dirname "$file")
-              echo "## Changes in $pkg_name" >> /tmp/changelog.md
-              echo "" >> /tmp/changelog.md
+              
               # Get the latest version section (first section after the header)
-              awk '/^## /{if(++count==1)next; if(count==2)exit} count==1' "$file" >> /tmp/changelog.md
-              echo "" >> /tmp/changelog.md
+              latest_section=$(awk '/^## /{if(++count==1)next; if(count==2)exit} count==1' "$file")
+              
+              # Skip if it's just a "version bump only" message
+              if echo "$latest_section" | grep -q "This was a version bump only"; then
+                echo "Skipping $pkg_name (version bump only)"
+                continue
+              fi
+              
+              # Only add if there's actual content
+              if [ -n "$latest_section" ]; then
+                echo "## Changes in $pkg_name" >> /tmp/changelog.md
+                echo "" >> /tmp/changelog.md
+                echo "$latest_section" >> /tmp/changelog.md
+                echo "" >> /tmp/changelog.md
+              fi
             fi
           done
           
