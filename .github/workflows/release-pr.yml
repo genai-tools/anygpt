@@ -95,6 +95,10 @@ jobs:
           
           # Force push to update the branch
           git push origin release-next --force
+          
+          # Trigger CI by making an empty commit (workflows don't trigger from GITHUB_TOKEN PRs)
+          git commit --allow-empty -m "chore: trigger CI checks"
+          git push origin release-next
 
       # Generate changelog summary for PR
       - name: Generate changelog summary
