@@ -131,11 +131,24 @@ export class GenAIRouter implements IRouter {
   }
 
   async listModels(provider: string): Promise<ModelInfo[]> {
+    // Validate provider exists in config
+    if (!this.config.providers?.[provider]) {
+      throw new Error(`Provider '${provider}' not configured`);
+    }
+
+    const providerConfig = this.config.providers[provider];
     
-    const connector = this.getConnector(provider, {
-      timeout: this.config.timeout,
-      maxRetries: this.config.maxRetries,
-    });
+    // Normalize config
+    const normalizedConfig = {
+      baseURL: providerConfig.api.url,
+      apiKey: providerConfig.api.token,
+      headers: providerConfig.api.headers,
+      timeout: providerConfig.timeout || this.config.timeout,
+      maxRetries: providerConfig.maxRetries || this.config.maxRetries,
+    };
+    
+    // Get connector from registry based on provider type
+    const connector = this.getConnector(providerConfig.type, normalizedConfig);
 
     try {
       return await connector.listModels();
