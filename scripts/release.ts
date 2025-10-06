@@ -104,12 +104,12 @@ async function main() {
 
   // Run nx release
   console.log('\n📝 Running nx release version...');
-  await execa('npx', ['nx', 'release', 'version', '--skip-publish'], {
+  await execa('npx', ['nx', 'release', 'version', '--skipPublish'], {
     stdio: 'inherit',
   });
 
   // Check if there were changes
-  if (await hasUncommittedChanges()) {
+  if (!(await hasUncommittedChanges())) {
     console.log('\n❌ No version changes were made');
     console.log('ℹ️  No changes detected - nothing to release');
     return;
