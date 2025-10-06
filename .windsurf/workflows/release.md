@@ -21,7 +21,11 @@ description: Minimal release procedure
 
 # Step 2 · Stage & commit
 - **Action**: Stage files for one Nx component at a time and create a dedicated commit for that component.
-- **Rule**: Produce separate conventional commits per component (e.g., `feat(cli): ...`, `feat(router): ...`) and a standalone `docs:` commit for documentation-only changes. Do not batch multiple components into a single commit. Only use `git add`, `git commit`, and `git reset` if needed—no rebase/pull operations.
+- **Component naming**: Use the Nx project name from `project.json` (e.g., `openai`, not `connectors/openai`). Run the `npx nx graph --print | jq ...` command from Step 1 to map file paths to actual project names.
+- **Commit message format**:
+  - **Title**: Conventional commit format (e.g., `feat(openai): add list-models support`)
+  - **Body**: Summarize the change in 1-2 sentences. Reference related issues or PRs if found in code comments (e.g., `Fixes #123`, `Related to #456`).
+- **Rule**: Produce separate commits per component and a standalone `docs:` commit for documentation-only changes. Do not batch multiple components into a single commit. Only use `git add`, `git commit`, and `git reset` if needed—no rebase/pull operations.
 
 # Step 3 · Release
 - **Command**: `npm run release`
