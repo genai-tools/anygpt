@@ -185,8 +185,15 @@ ${changelog}
       await execa('gh', ['pr', 'merge', '--auto', '--merge', prNumber]);
       console.log('✅ Auto-merge enabled - PR will merge when CI passes');
     } catch (error: unknown) {
-      if (error instanceof Error && error.message?.includes('is in clean status')) {
-        console.log('ℹ️  PR is already mergeable - auto-merge not needed');
+      if (error instanceof Error) {
+        if (error.message?.includes('is in clean status')) {
+          console.log('ℹ️  PR is already mergeable - auto-merge not needed');
+        } else if (error.message?.includes('Protected branch rules not configured')) {
+          console.log('⚠️  Auto-merge requires branch protection rules on production branch');
+          console.log('   You can merge manually or enable branch protection in repo settings');
+        } else {
+          throw error;
+        }
       } else {
         throw error;
       }
