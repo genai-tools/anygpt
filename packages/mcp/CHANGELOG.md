@@ -1,3 +1,9 @@
+## 0.2.1 (2025-10-07)
+
+### 🧱 Updated Dependencies
+
+- Updated openai to 0.3.0
+
 ## 0.2.0 (2025-10-06)
 
 ### 🚀 Features

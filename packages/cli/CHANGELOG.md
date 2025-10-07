@@ -1,3 +1,13 @@
+## 0.17.0 (2025-10-07)
+
+### 🚀 Features
+
+- **cli:** add dynamic connector import for list-models ([57d5ead](https://github.com/genai-tools/anygpt/commit/57d5ead))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.16.0 (2025-10-06)
 
 ### 🚀 Features
