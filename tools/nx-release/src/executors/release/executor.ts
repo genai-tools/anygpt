@@ -85,9 +85,9 @@ export default async function runExecutor(
       console.log('📊 Getting diff for AI analysis...');
       
       if (existingPR) {
-        // For existing PR, diff from the PR's base commit (target branch at PR creation)
-        const prBaseCommit = await getPRBaseCommit(existingPR);
-        console.log(`   Using PR base commit: ${prBaseCommit.substring(0, 7)}`);
+        // For existing PR, diff from the target branch HEAD (where PR will merge)
+        const prBaseCommit = await getPRBaseCommit(existingPR, targetBranch);
+        console.log(`   Using ${targetBranch} branch HEAD: ${prBaseCommit.substring(0, 7)}`);
         diffForAI = await getDiff(prBaseCommit, beforeSha, diffPaths);
       } else {
         // For new PR, diff from last release tag
