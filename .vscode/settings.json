@@ -1,4 +1,5 @@
 {
     "typescript.tsdk": "node_modules/typescript/lib",
-    "git.rebaseWhenSync": true
+    "git.rebaseWhenSync": true,
+    "git.followTagsWhenSync": true
 }
