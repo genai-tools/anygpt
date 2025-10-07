@@ -11,7 +11,7 @@ import {
   ListPromptsRequestSchema,
   GetPromptRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { setupRouterFromFactory } from "@anygpt/config";
+import { setupRouterFromFactory, type FactoryProviderConfig, type ModelAlias } from "@anygpt/config";
 import {
   listTools,
   handleChatCompletion,
@@ -29,8 +29,8 @@ import { logger } from "./lib/logger.js";
 let router: any;
 let defaultProvider: string | undefined;
 let defaultModel: string | undefined;
-let configuredProviders: Record<string, { type: string; models?: Record<string, { tags: string[] }> }> = {};
-let aliases: Record<string, Array<{ provider: string; model?: string; tag?: string }>> | undefined;
+let configuredProviders: Record<string, FactoryProviderConfig> = {};
+let aliases: Record<string, ModelAlias[]> | undefined;
 
 async function initializeRouter() {
   try {
