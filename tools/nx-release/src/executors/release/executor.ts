@@ -1,6 +1,6 @@
 import { execa } from 'execa';
 import type { ExecutorContext } from '@nx/devkit';
-import type { ReleaseExecutorSchema } from './schema';
+import type { ReleaseExecutorSchema } from './schema.js';
 import {
   getCurrentBranch,
   hasUncommittedChanges,
@@ -12,13 +12,13 @@ import {
   getNewTags,
   getDiffSinceLastRelease,
   getDiff,
-} from '../../lib/git-operations';
+} from '../../lib/git-operations.js';
 import {
   extractChangelog,
   extractReleasesFromTags,
   buildPRTitle,
-} from '../../lib/changelog';
-import { generateAISummary } from '../../lib/ai-summary';
+} from '../../lib/changelog.js';
+import { generateAISummary } from '../../lib/ai-summary.js';
 import {
   getExistingPR,
   buildPRBody,
@@ -29,7 +29,7 @@ import {
   getRepoName,
   addChangelogComment,
   getPRBaseCommit,
-} from '../../lib/pr-creation';
+} from '../../lib/pr-creation.js';
 
 export default async function runExecutor(
   options: ReleaseExecutorSchema,
@@ -42,8 +42,8 @@ export default async function runExecutor(
       'packages/*/CHANGELOG.md',
       'packages/connectors/*/CHANGELOG.md',
     ],
-    aiProvider = 'anygpt',
-    aiCommand = 'npx anygpt chat',
+    aiCommand,
+    maxLinesPerFile = 150,
     autoMerge = true,
     skipPublish = true,
     diffPaths = ['packages/*/src/**', 'packages/connectors/*/src/**'],
@@ -82,7 +82,7 @@ export default async function runExecutor(
     
     // Get diff for AI summary BEFORE creating new tags
     let diffForAI = '';
-    if (aiProvider !== 'none') {
+    if (aiCommand) {
       console.log('📊 Getting diff for AI analysis...');
       
       if (existingPR) {
@@ -176,9 +176,11 @@ export default async function runExecutor(
 
     // Generate AI summary if enabled (using pre-captured diff)
     let aiSummary = '';
-    if (aiProvider !== 'none' && diffForAI) {
+    if (aiCommand && diffForAI) {
       console.log('🤖 Generating AI summary...');
-      aiSummary = await generateAISummary(changelog, releases, diffForAI, aiCommand);
+      aiSummary = await generateAISummary(changelog, releases, diffForAI, aiCommand, {
+        maxLinesPerFile,
+      });
     }
 
     // Create PR body (without changelog)
