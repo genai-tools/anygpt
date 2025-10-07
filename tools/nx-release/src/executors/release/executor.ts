@@ -4,12 +4,14 @@ import type { ReleaseExecutorSchema } from './schema';
 import {
   getCurrentBranch,
   hasUncommittedChanges,
+  hasUnpushedCommits,
   pullLatest,
   getCurrentCommitSha,
   getTagsAtCommit,
   pushWithTags,
   getNewTags,
   getDiffSinceLastRelease,
+  getDiff,
 } from '../../lib/git-operations';
 import {
   extractChangelog,
@@ -26,6 +28,7 @@ import {
   openPRInBrowser,
   getRepoName,
   addChangelogComment,
+  getPRBaseCommit,
 } from '../../lib/pr-creation';
 
 export default async function runExecutor(
@@ -74,11 +77,23 @@ export default async function runExecutor(
     // Get list of existing tags before release
     const existingTags = await getTagsAtCommit(beforeSha);
 
+    // Check for existing PR to determine diff base
+    const existingPR = await getExistingPR(baseBranch, targetBranch);
+    
     // Get diff for AI summary BEFORE creating new tags
     let diffForAI = '';
     if (aiProvider !== 'none') {
       console.log('📊 Getting diff for AI analysis...');
-      diffForAI = await getDiffSinceLastRelease(diffPaths);
+      
+      if (existingPR) {
+        // For existing PR, diff from the target branch HEAD (where PR will merge)
+        const prBaseCommit = await getPRBaseCommit(existingPR, targetBranch);
+        console.log(`   Using ${targetBranch} branch HEAD: ${prBaseCommit.substring(0, 7)}`);
+        diffForAI = await getDiff(prBaseCommit, beforeSha, diffPaths);
+      } else {
+        // For new PR, diff from last release tag
+        diffForAI = await getDiffSinceLastRelease(diffPaths);
+      }
     }
 
     // Run nx release (version + changelog + commit + tag)
@@ -98,15 +113,45 @@ export default async function runExecutor(
         console.log('ℹ️  No changes detected - nothing to release');
         return { success: true };
       }
-      throw error;
+      
+      // Handle first release for new packages
+      if (
+        error instanceof Error &&
+        error.message?.includes('No git tags matching pattern')
+      ) {
+        console.log('\n⚠️  Detected new package(s) without git tags');
+        console.log('🔄 Retrying with --first-release flag...\n');
+        
+        const args = ['nx', 'release', '--first-release'];
+        if (skipPublish) {
+          args.push('--skip-publish');
+        }
+        await execa('npx', args, { stdio: 'inherit' });
+      } else {
+        throw error;
+      }
     }
 
     // Check if nx created a new commit (version bump)
     const afterSha = await getCurrentCommitSha();
 
     if (beforeSha === afterSha) {
-      console.log('\n❌ No version changes were made');
-      console.log('ℹ️  No changes detected - nothing to release');
+      // No version bump, but check if there are other commits to push
+      const hasUnpushed = await hasUnpushedCommits(baseBranch);
+      
+      if (!hasUnpushed) {
+        console.log('\n❌ No version changes were made');
+        console.log('ℹ️  No changes detected - nothing to release');
+        return { success: true };
+      }
+      
+      // We have unpushed commits (e.g., CI fixes, docs) but no version bump
+      console.log('\n⚠️  No version changes, but found unpushed commits');
+      console.log('📤 Pushing commits to update PR...');
+      await pushWithTags(baseBranch);
+      
+      console.log('✅ PR updated with latest commits');
+      console.log('ℹ️  No package versions were bumped - PR will not publish to npm');
       return { success: true };
     }
 
@@ -139,9 +184,7 @@ export default async function runExecutor(
     // Create PR body (without changelog)
     const prBody = buildPRBody(aiSummary, releases);
 
-    // Check for existing PR
-    const existingPR = await getExistingPR(baseBranch, targetBranch);
-
+    // Use the existingPR we already checked earlier
     if (!existingPR) {
       const prUrl = await createPR(prTitle, prBody, baseBranch, targetBranch);
       console.log(`✅ PR created: ${prUrl}`);

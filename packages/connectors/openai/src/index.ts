@@ -18,6 +18,7 @@ import { getModelInfo, getChatModels, type OpenAIModelInfo } from './models.js';
 export interface OpenAIConnectorConfig extends ConnectorConfig {
   apiKey?: string;
   baseURL?: string;  // Essential for OpenAI-compatible APIs
+  defaultHeaders?: Record<string, string>;  // Custom headers for API requests
 }
 
 type ResponseInputMessage = {
@@ -52,6 +53,7 @@ export class OpenAIConnector extends BaseConnector {
       baseURL: config.baseURL,  // Support custom endpoints
       timeout: this.config.timeout,
       maxRetries: this.config.maxRetries,
+      defaultHeaders: config.defaultHeaders,  // Support custom headers
     });
   }
 
@@ -111,10 +113,12 @@ export class OpenAIConnector extends BaseConnector {
         
         models.push({
           id: model.id,
-          name: model.id,
-          description: model.owned_by ? `Owner: ${model.owned_by}` : undefined,
-          // Store any additional metadata that might be present
-          metadata: (model as any).metadata || undefined,
+          provider: this.getProviderId(),
+          display_name: model.id,
+          capabilities: {
+            input: { text: true },
+            output: { text: true, streaming: true },
+          },
         });
       }
       

@@ -22,6 +22,7 @@ type ListModelsToolArgs = {
 };
 
 // Load router from config file
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let router: any;
 let defaultProvider: string | undefined;
 let defaultModel: string | undefined;

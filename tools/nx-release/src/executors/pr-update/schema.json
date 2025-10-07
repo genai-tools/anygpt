@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "version": 2,
+  "title": "PR Update executor",
+  "description": "Update release PR description with AI summary",
+  "type": "object",
+  "properties": {
+    "baseBranch": {
+      "type": "string",
+      "description": "The base branch (source of PR)",
+      "default": "main"
+    },
+    "targetBranch": {
+      "type": "string",
+      "description": "The target branch (destination of PR)",
+      "default": "production"
+    },
+    "aiProvider": {
+      "type": "string",
+      "enum": ["anygpt", "none"],
+      "description": "AI provider for generating summary",
+      "default": "anygpt"
+    },
+    "aiCommand": {
+      "type": "string",
+      "description": "Command to run AI provider",
+      "default": "npx anygpt chat"
+    },
+    "diffPaths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Paths to include in diff for AI analysis",
+      "default": ["packages/*/src/**", "packages/connectors/*/src/**"]
+    },
+    "changelogPatterns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Glob patterns for changelog files",
+      "default": ["packages/*/CHANGELOG.md", "packages/connectors/*/CHANGELOG.md"]
+    }
+  }
+}
