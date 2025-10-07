@@ -67,6 +67,14 @@
           "aiProvider": "anygpt",
           "autoMerge": true
         }
+      },
+      "pr-update": {
+        "executor": "./tools/nx-release:pr-update",
+        "options": {
+          "baseBranch": "main",
+          "targetBranch": "production",
+          "aiProvider": "anygpt"
+        }
       }
     }
   },
