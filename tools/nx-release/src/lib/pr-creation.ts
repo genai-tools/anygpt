@@ -148,15 +148,12 @@ export async function getRepoName(): Promise<string> {
   return stdout.trim();
 }
 
-export async function getPRBaseCommit(prNumber: string): Promise<string> {
-  const { stdout } = await execa('gh', [
-    'pr',
-    'view',
-    prNumber,
-    '--json',
-    'baseRefOid',
-    '-q',
-    '.baseRefOid',
+export async function getPRBaseCommit(prNumber: string, targetBranch: string): Promise<string> {
+  // Get the current HEAD of the target branch (e.g., production)
+  // This represents where the PR will merge into
+  const { stdout } = await execa('git', [
+    'rev-parse',
+    `origin/${targetBranch}`,
   ]);
   return stdout.trim();
 }
