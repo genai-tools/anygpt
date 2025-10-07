@@ -98,7 +98,23 @@ export default async function runExecutor(
         console.log('ℹ️  No changes detected - nothing to release');
         return { success: true };
       }
-      throw error;
+      
+      // Handle first release for new packages
+      if (
+        error instanceof Error &&
+        error.message?.includes('No git tags matching pattern')
+      ) {
+        console.log('\n⚠️  Detected new package(s) without git tags');
+        console.log('🔄 Retrying with --first-release flag...\n');
+        
+        const args = ['nx', 'release', '--first-release'];
+        if (skipPublish) {
+          args.push('--skip-publish');
+        }
+        await execa('npx', args, { stdio: 'inherit' });
+      } else {
+        throw error;
+      }
     }
 
     // Check if nx created a new commit (version bump)
