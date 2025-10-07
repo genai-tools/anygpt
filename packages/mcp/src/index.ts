@@ -5,27 +5,32 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ListResourceTemplatesRequestSchema,
+  ReadResourceRequestSchema,
+  ListPromptsRequestSchema,
+  GetPromptRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { setupRouterFromFactory } from "@anygpt/config";
-import type { ChatCompletionRequest, ChatMessage, ModelInfo } from "@anygpt/types";
+import { setupRouterFromFactory, type FactoryProviderConfig, type ModelAlias } from "@anygpt/config";
+import {
+  listTools,
+  handleChatCompletion,
+  handleListModels,
+  handleListProviders,
+  type ChatCompletionToolArgs,
+  type ListModelsToolArgs,
+} from "./lib/tools.js";
+import { listResources, listResourceTemplates, readResource } from "./lib/resources.js";
+import { listPrompts, getPrompt } from "./lib/prompts.js";
+import { logger } from "./lib/logger.js";
 
-type ChatCompletionToolArgs = {
-  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
-  model?: string;
-  provider?: string;
-  temperature?: number;
-  max_tokens?: number;
-};
-
-type ListModelsToolArgs = {
-  provider?: string;
-};
-
-// Load router from config file
+// Application state
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let router: any;
 let defaultProvider: string | undefined;
 let defaultModel: string | undefined;
+let configuredProviders: Record<string, FactoryProviderConfig> = {};
+let aliases: Record<string, ModelAlias[]> | undefined;
 
 async function initializeRouter() {
   try {
@@ -39,13 +44,22 @@ async function initializeRouter() {
     router = r;
     defaultProvider = c.defaults?.provider;
     defaultModel = c.defaults?.model;
+    configuredProviders = c.providers || {};
+    aliases = c.defaults?.aliases;
     
-    console.error(`✅ Loaded config from ${configPath}`);
-    console.error(`   Default provider: ${defaultProvider || 'none'}`);
-    console.error(`   Default model: ${defaultModel || 'none'}`);
+    const providersList = Object.keys(configuredProviders).join(', ') || 'none';
+    const aliasesList = aliases ? Object.keys(aliases).join(', ') : 'none';
+    
+    logger.info('Initialized successfully');
+    logger.info(`Config: ${configPath}`);
+    logger.info(`Providers: ${providersList}`);
+    logger.info(`Default: ${defaultProvider || 'none'}/${defaultModel || 'none'}`);
+    if (aliases) {
+      logger.info(`Aliases: ${aliasesList}`);
+    }
   } catch (error) {
-    console.error(`⚠️  Failed to load config: ${error}`);
-    console.error('   MCP server will not work without a valid config file');
+    logger.error('Failed to load config', error instanceof Error ? error : undefined);
+    logger.error('Server cannot start without valid config');
     throw error;
   }
 }
@@ -59,120 +73,55 @@ const server = new Server(
   {
     capabilities: {
       tools: {},
+      resources: {},
+      resourceTemplates: {},
+      prompts: {},
+      sampling: {},
     },
   }
 );
 
-// Define the chat completion tool - schema will be built after config loads
+// Tools handler
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  const modelDefault = defaultModel ? { default: defaultModel } : {};
-  const providerDefault = defaultProvider ? { default: defaultProvider } : {};
-  
-  return {
-    tools: [
-      {
-        name: "chat_completion",
-        description: "Send a chat completion request to AI providers via the gateway",
-        inputSchema: {
-          type: "object",
-          properties: {
-            messages: {
-              type: "array",
-              description: "Array of chat messages",
-              items: {
-                type: "object",
-                properties: {
-                  role: {
-                    type: "string",
-                    enum: ["system", "user", "assistant"],
-                    description: "The role of the message sender"
-                  },
-                  content: {
-                    type: "string",
-                    description: "The content of the message"
-                  }
-                },
-                required: ["role", "content"]
-              }
-            },
-            model: {
-              type: "string",
-              description: `The model to use for completion${defaultModel ? ` (default: ${defaultModel})` : ''}`,
-              ...modelDefault
-            },
-            provider: {
-              type: "string",
-              description: `The AI provider to use${defaultProvider ? ` (default: ${defaultProvider})` : ''}`,
-              ...providerDefault
-            },
-            temperature: {
-              type: "number",
-              description: "Sampling temperature (0-2)",
-              minimum: 0,
-              maximum: 2
-            },
-            max_tokens: {
-              type: "number",
-              description: "Maximum number of tokens to generate",
-              minimum: 1
-            }
-          },
-          required: ["messages"]
-        }
-      },
-      {
-        name: "list_models",
-        description: "List available models from AI providers",
-        inputSchema: {
-          type: "object",
-          properties: {
-            provider: {
-              type: "string",
-              description: `The AI provider to list models from${defaultProvider ? ` (default: ${defaultProvider})` : ''}`,
-              ...providerDefault
-            }
-          }
-        }
-      }
-    ],
-  };
+  return listTools({ defaultModel, defaultProvider });
 });
 
-// Handle tool calls
+// Tool calls handler
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
   try {
+    const context = {
+      router,
+      defaultProvider,
+      defaultModel,
+      configuredProviders,
+      aliases,
+    };
+
+    let result;
     switch (name) {
-      case "chat_completion": {
-        const toolArgs = (args ?? {}) as ChatCompletionToolArgs;
-        const result = await handleChatCompletion(toolArgs);
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(result, null, 2),
-            },
-          ],
-        };
-      }
-
-      case "list_models": {
-        const toolArgs = (args ?? {}) as ListModelsToolArgs;
-        const models = await handleListModels(toolArgs);
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(models, null, 2),
-            },
-          ],
-        };
-      }
-
+      case "anygpt_chat_completion":
+        result = await handleChatCompletion((args ?? {}) as ChatCompletionToolArgs, context);
+        break;
+      case "anygpt_list_models":
+        result = await handleListModels((args ?? {}) as ListModelsToolArgs, context);
+        break;
+      case "anygpt_list_providers":
+        result = handleListProviders(context);
+        break;
       default:
         throw new Error(`Unknown tool: ${name}`);
     }
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(result, null, 2),
+        },
+      ],
+    };
   } catch (error) {
     return {
       content: [
@@ -186,47 +135,32 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 });
 
-// Implementation using the router and connectors
-async function handleChatCompletion(args: ChatCompletionToolArgs) {
-  try {
-    if (!Array.isArray(args.messages) || args.messages.length === 0) {
-      throw new Error("messages array is required");
-    }
+// Resources handlers
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return listResources();
+});
 
-    const messages: ChatMessage[] = args.messages.map((message) => ({
-      role: message.role,
-      content: message.content,
-    }));
+// Resource templates handler
+server.setRequestHandler(ListResourceTemplatesRequestSchema, async () => {
+  return listResourceTemplates();
+});
 
-    const providerId = args.provider || defaultProvider || 'openai';
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  return readResource(request.params.uri, {
+    configuredProviders,
+    defaultProvider,
+    defaultModel,
+  });
+});
 
-    const request: ChatCompletionRequest = {
-      messages,
-      model: args.model || defaultModel || 'gpt-3.5-turbo',
-      temperature: args.temperature,
-      max_tokens: args.max_tokens,
-      provider: providerId,
-    };
+// Prompts handlers
+server.setRequestHandler(ListPromptsRequestSchema, async () => {
+  return listPrompts();
+});
 
-    const response = await router.chatCompletion(request);
-    return response;
-  } catch (error) {
-    throw new Error(`Chat completion failed: ${error instanceof Error ? error.message : String(error)}`);
-  }
-}
-
-async function handleListModels(args: ListModelsToolArgs): Promise<{ provider: string; models: ModelInfo[] }> {
-  try {
-    const providerId = args.provider || defaultProvider || 'openai';
-    const models = await router.listModels(providerId);
-    return {
-      models,
-      provider: providerId,
-    };
-  } catch (error) {
-    throw new Error(`Failed to list models: ${error instanceof Error ? error.message : String(error)}`);
-  }
-}
+server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+  return getPrompt(request.params.name, request.params.arguments || {});
+});
 
 // Start the server
 async function main() {
@@ -237,28 +171,27 @@ async function main() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
     
-    // Log to stderr (not stdout which is used for MCP communication)
-    console.error("GenAI Gateway MCP server started and listening on stdio");
+    logger.info('Server started and listening on stdio');
   } catch (error) {
-    console.error("Failed to start server:", error);
+    logger.error('Failed to start server', error instanceof Error ? error : undefined);
     process.exit(1);
   }
 }
 
 // Handle graceful shutdown
 process.on('SIGINT', async () => {
-  console.error('Received SIGINT, shutting down gracefully...');
+  logger.info('Received SIGINT, shutting down gracefully');
   await server.close();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
-  console.error('Received SIGTERM, shutting down gracefully...');
+  logger.info('Received SIGTERM, shutting down gracefully');
   await server.close();
   process.exit(0);
 });
 
 main().catch((error) => {
-  console.error("Fatal error:", error);
+  logger.error('Fatal error', error instanceof Error ? error : undefined);
   process.exit(1);
 });
