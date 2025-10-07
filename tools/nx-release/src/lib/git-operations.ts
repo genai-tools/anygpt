@@ -54,7 +54,76 @@ export async function getDiff(
     ['diff', `${baseSha}..${headSha}`, '--', ...paths],
     { stdio: 'pipe' }
   );
-  return stdout;
+  return filterDiff(stdout);
+}
+
+/**
+ * Filter diff to remove noise and limit large files
+ */
+function filterDiff(diff: string): string {
+  const lines = diff.split('\n');
+  const result: string[] = [];
+  let currentFile = '';
+  let currentFileLines: string[] = [];
+  let inFile = false;
+  
+  // Files to completely exclude from diff
+  const excludeFiles = [
+    'package-lock.json',
+    'yarn.lock',
+    'pnpm-lock.yaml',
+    'npm-shrinkwrap.json',
+  ];
+  
+  const maxLinesPerFile = 1000;
+  
+  for (const line of lines) {
+    // Detect file header
+    if (line.startsWith('diff --git')) {
+      // Save previous file if any
+      if (inFile && currentFileLines.length > 0) {
+        if (currentFileLines.length > maxLinesPerFile) {
+          result.push(...currentFileLines.slice(0, maxLinesPerFile));
+          result.push(`... (${currentFileLines.length - maxLinesPerFile} more lines truncated for ${currentFile})`);
+        } else {
+          result.push(...currentFileLines);
+        }
+      }
+      
+      // Start new file
+      currentFile = line;
+      currentFileLines = [];
+      
+      // Check if this file should be excluded
+      const shouldExclude = excludeFiles.some(excludeFile => 
+        line.includes(excludeFile)
+      );
+      
+      if (shouldExclude) {
+        inFile = false;
+        result.push(line);
+        result.push('... (lockfile changes excluded from diff)');
+        result.push('');
+      } else {
+        inFile = true;
+        currentFileLines.push(line);
+      }
+    } else if (inFile) {
+      currentFileLines.push(line);
+    }
+  }
+  
+  // Don't forget the last file
+  if (inFile && currentFileLines.length > 0) {
+    if (currentFileLines.length > maxLinesPerFile) {
+      result.push(...currentFileLines.slice(0, maxLinesPerFile));
+      result.push(`... (${currentFileLines.length - maxLinesPerFile} more lines truncated)`);
+    } else {
+      result.push(...currentFileLines);
+    }
+  }
+  
+  return result.join('\n');
 }
 
 export async function getLastReleaseTag(): Promise<string | null> {
