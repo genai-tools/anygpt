@@ -1,7 +1,11 @@
 import { defineConfig } from 'tsdown';
 
 export default defineConfig({
-  entry: ['src/index.ts', 'src/executors/release/executor.ts'],
+  entry: [
+    'src/index.ts',
+    'src/executors/release/executor.ts',
+    'src/executors/pr-update/executor.ts',
+  ],
   format: ['cjs'],
   clean: true,
   dts: false,

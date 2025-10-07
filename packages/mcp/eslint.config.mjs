@@ -10,6 +10,9 @@ export default [
         {
           ignoredFiles: [
             '{projectRoot}/**/*.config.{js,cjs,mjs,ts,cts,mts}',
+            '{projectRoot}/**/*.spec.ts',
+            '{projectRoot}/**/vite.config.ts',
+            '{projectRoot}/**/tsdown.config.ts',
           ],
         },
       ],

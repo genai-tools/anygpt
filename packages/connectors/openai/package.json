@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/openai",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "OpenAI connector for AnyGPT - integrates OpenAI API with the router",
   "type": "module",
   "main": "./dist/index.js",

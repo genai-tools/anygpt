@@ -4,6 +4,11 @@
       "implementation": "./dist/executors/release/executor.cjs",
       "schema": "./src/executors/release/schema.json",
       "description": "Create a release PR with AI-generated summary"
+    },
+    "pr-update": {
+      "implementation": "./dist/executors/pr-update/executor.cjs",
+      "schema": "./src/executors/pr-update/schema.json",
+      "description": "Update existing release PR description with AI summary"
     }
   }
 }

@@ -4,6 +4,11 @@
 
 import type { IConnector } from '@anygpt/types';
 
+export interface ModelMetadata {
+  tags: string[];
+  [key: string]: unknown; // Allow additional metadata like cost, context window, etc.
+}
+
 export interface FactoryProviderConfig {
   name?: string;
   connector: IConnector;
@@ -11,6 +16,13 @@ export interface FactoryProviderConfig {
     defaultModel?: string;
     [key: string]: unknown;
   };
+  models?: Record<string, ModelMetadata>;
+}
+
+export interface ModelAlias {
+  provider: string;
+  model?: string;  // Direct model name
+  tag?: string;    // Or reference a tag
 }
 
 export interface FactoryConfig {
@@ -22,6 +34,13 @@ export interface FactoryConfig {
     logging?: {
       level?: 'debug' | 'info' | 'warn' | 'error';
     };
+    // Per-provider defaults
+    providers?: Record<string, {
+      model?: string;
+      [key: string]: unknown;
+    }>;
+    // Model aliases for cross-provider model mapping
+    aliases?: Record<string, ModelAlias[]>;
   };
   providers: Record<string, FactoryProviderConfig>;
 }

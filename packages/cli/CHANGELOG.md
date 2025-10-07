@@ -1,3 +1,27 @@
+## 0.18.0 (2025-10-07)
+
+### 🚀 Features
+
+- **cody:** improve documentation and connection modes ([0fb3871](https://github.com/genai-tools/anygpt/commit/0fb3871))
+
+### 🧱 Updated Dependencies
+
+- Updated config to 0.4.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
+## 0.17.0 (2025-10-07)
+
+### 🚀 Features
+
+- **cli:** add dynamic connector import for list-models ([57d5ead](https://github.com/genai-tools/anygpt/commit/57d5ead))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.16.0 (2025-10-06)
 
 ### 🚀 Features

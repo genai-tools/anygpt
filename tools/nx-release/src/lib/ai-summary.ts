@@ -8,24 +8,33 @@ export async function generateAISummary(
   aiCommand: string
 ): Promise<string> {
   try {
+    // Identify new packages (first release = v0.1.0 or v0.2.0 with lots of new files)
+    const newPackages = releases.filter(r => 
+      r.version.match(/^0\.[12]\.0$/)
+    ).map(r => r.name);
+    
+    const newPackagesNote = newPackages.length > 0 
+      ? `\n\nNEW PACKAGES (first release): ${newPackages.join(', ')}\n- These are brand new packages being added to the monorepo\n- Treat these as major new features, not just bug fixes`
+      : '';
+
     const prompt = `Generate a focused summary of the actual code changes in this release.
 
 IMPORTANT:
 - Focus ONLY on actual functional changes, new features, and bug fixes
+- **ESPECIALLY highlight any new packages being added** - these are major features
 - Ignore version bumps, dependency updates, and package.json changes
 - Use bullet points for clarity
 - Be concise but comprehensive - adjust length based on complexity
-- Skip mentioning package versions unless it's critical context
+- Skip mentioning package versions unless it's critical context${newPackagesNote}
 
 Code Changes (diff):
-${diff.slice(0, 5000)}${diff.length > 5000 ? '\n... (truncated)' : ''}
+${diff}
 
 Changelog:
 ${changelog}
 
 Provide a clear summary of what actually changed in the code. Keep it brief for simple changes, more detailed for complex ones.`;
 
-    console.log('🤖 Generating AI summary...');
     const [command, ...args] = aiCommand.split(' ');
     const { stdout } = await execa(command, [...args, prompt], {
       stdio: 'pipe',

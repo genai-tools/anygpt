@@ -53,22 +53,21 @@ function processConfigForDisplay(config: any): any {
         // Get package name from the connector's static property
         const packageName = (value.constructor as any).packageName || `@anygpt/${value.constructor.name.toLowerCase().replace('connector', '')}`;
         
-        const connectorInfo = {
-          type: packageName,
-          options: {}
+        const connectorInfo: { type: string; options?: any } = {
+          type: packageName
         };
         
         try {
           if (value.getUserConfig && typeof value.getUserConfig === 'function') {
             // Use user config (only explicitly set values)
             const userConfig = value.getUserConfig();
-            if (userConfig && typeof userConfig === 'object') {
+            if (userConfig && typeof userConfig === 'object' && Object.keys(userConfig).length > 0) {
               connectorInfo.options = userConfig;
             }
           } else if (value.config || value.getConfig) {
             // Fallback to full config if getUserConfig not available
             const connectorConfig = value.config || value.getConfig?.();
-            if (connectorConfig && typeof connectorConfig === 'object') {
+            if (connectorConfig && typeof connectorConfig === 'object' && Object.keys(connectorConfig).length > 0) {
               connectorInfo.options = connectorConfig;
             }
           }
