@@ -45,7 +45,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@modelcontextprotocol/sdk": "^1.19.1",
     "@anygpt/config": "0.4.0",
     "@anygpt/types": "0.1.4"
   }
