@@ -38,24 +38,30 @@ jobs:
           PR_NUMBER=$(git log -1 --pretty=%B | grep -oP 'Merge pull request #\K\d+' || echo "")
           
           if [ -n "$PR_NUMBER" ]; then
-            # Extract published packages from git tags
-            PACKAGES=$(git tag --points-at HEAD | grep '@' | sed 's/@/ v/' | sed 's/^/- `/' | sed 's/$/'`'/' || echo "")
+            # Extract published packages from git tags and format them
+            PACKAGES=$(git tag --points-at HEAD | grep '@' | while read tag; do
+              echo "- \`${tag//@/ v}\`"
+            done)
             
             if [ -n "$PACKAGES" ]; then
-              COMMENT="## 📦 Published to npm
+              cat > /tmp/pr-comment.md << 'EOF'
+          ## 📦 Published to npm
 
           The following packages have been successfully published:
 
-          $PACKAGES
+          EOF
+              echo "$PACKAGES" >> /tmp/pr-comment.md
+              cat >> /tmp/pr-comment.md << 'EOF'
 
           You can install them with:
-          \`\`\`bash
+          ```bash
           npm install <package-name>
-          \`\`\`
+          ```
 
-          View on npm: https://www.npmjs.com/search?q=%40anygpt"
+          View on npm: https://www.npmjs.com/search?q=%40anygpt
+          EOF
               
-              echo "$COMMENT" | gh pr comment "$PR_NUMBER" --body-file -
+              gh pr comment "$PR_NUMBER" --body-file /tmp/pr-comment.md
             fi
           fi
         env:
