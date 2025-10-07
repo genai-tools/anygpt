@@ -113,10 +113,12 @@ export class OpenAIConnector extends BaseConnector {
         
         models.push({
           id: model.id,
-          name: model.id,
-          description: model.owned_by ? `Owner: ${model.owned_by}` : undefined,
-          // Store any additional metadata that might be present
-          metadata: (model as any).metadata || undefined,
+          provider: this.getProviderId(),
+          display_name: model.id,
+          capabilities: {
+            input: { text: true },
+            output: { text: true, streaming: true },
+          },
         });
       }
       
