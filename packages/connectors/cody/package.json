@@ -27,5 +27,8 @@
     "connector"
   ],
   "author": "AnyGPT Team",
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
 }
