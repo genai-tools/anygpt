@@ -1,16 +1,15 @@
 import type { ExecutorContext } from '@nx/devkit';
-import type { PrUpdateExecutorSchema } from './schema';
+import type { PrUpdateExecutorSchema } from './schema.js';
 import {
   getCurrentBranch,
   getCurrentCommitSha,
   getDiff,
-} from '../../lib/git-operations';
+} from '../../lib/git-operations.js';
 import {
   extractChangelog,
   extractReleasesFromTags,
-  buildPRTitle,
-} from '../../lib/changelog';
-import { generateAISummary } from '../../lib/ai-summary';
+} from '../../lib/changelog.js';
+import { generateAISummary } from '../../lib/ai-summary.js';
 import {
   getExistingPR,
   buildPRBody,
@@ -18,7 +17,7 @@ import {
   getPRBaseCommit,
   getRepoName,
   addChangelogComment,
-} from '../../lib/pr-creation';
+} from '../../lib/pr-creation.js';
 import { execa } from 'execa';
 
 export default async function runExecutor(
@@ -32,8 +31,8 @@ export default async function runExecutor(
       'packages/*/CHANGELOG.md',
       'packages/connectors/*/CHANGELOG.md',
     ],
-    aiProvider = 'anygpt',
-    aiCommand = 'npx anygpt chat',
+    aiCommand,
+    maxLinesPerFile = 150,
     diffPaths = ['packages/*/src/**', 'packages/connectors/*/src/**'],
   } = options;
 
@@ -65,7 +64,7 @@ export default async function runExecutor(
 
     // Get diff from target branch HEAD
     let diffForAI = '';
-    if (aiProvider !== 'none') {
+    if (aiCommand) {
       console.log('📊 Getting diff for AI analysis...');
       const prBaseCommit = await getPRBaseCommit(existingPR, targetBranch);
       console.log(
@@ -99,18 +98,18 @@ export default async function runExecutor(
     console.log('📋 Extracting changelog...');
     const { changelog } = await extractChangelog(changelogPatterns);
 
-    // Build PR title from releases
-    const prTitle = buildPRTitle(releases);
-
     // Generate AI summary if enabled
     let aiSummary = '';
-    if (aiProvider !== 'none' && diffForAI) {
+    if (aiCommand && diffForAI) {
       console.log('🤖 Generating AI summary...');
       aiSummary = await generateAISummary(
         changelog,
         releases,
         diffForAI,
-        aiCommand
+        aiCommand,
+        {
+          maxLinesPerFile,
+        }
       );
     }
 
