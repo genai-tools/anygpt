@@ -43,10 +43,11 @@ async function createCodyOpenAIConfig(config: CodyConnectorConfig = {}): Promise
   // Try to read from Cody config file first
   const codyFileConfig = await readCodyConfig();
   
-  // Merge configs: file config < env vars < explicit config
+  // Merge configs: default < env vars < file config < explicit config
   const mergedConfig = {
-    endpoint: process.env.SRC_ENDPOINT || 'https://sourcegraph.com/',
-    accessToken: process.env.SRC_ACCESS_TOKEN,
+    endpoint: 'https://sourcegraph.com/',
+    ...(process.env['SRC_ENDPOINT'] && { endpoint: process.env['SRC_ENDPOINT'] }),
+    ...(process.env['SRC_ACCESS_TOKEN'] && { accessToken: process.env['SRC_ACCESS_TOKEN'] }),
     ...codyFileConfig,
     ...config
   };
