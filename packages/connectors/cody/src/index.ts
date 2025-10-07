@@ -4,7 +4,6 @@ import type {
   BaseConnectorConfig,
   BaseChatCompletionRequest,
   BaseChatCompletionResponse,
-  ChatMessage,
   ResponseRequest,
   ResponseResponse
 } from '@anygpt/types';

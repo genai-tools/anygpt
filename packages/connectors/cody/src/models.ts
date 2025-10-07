@@ -37,7 +37,7 @@ function getClientIdentificationHeaders(): Record<string, string> {
  */
 async function listModelsFromAPI(config: CodyConnectorConfig): Promise<ModelInfo[]> {
   const endpoint = config.endpoint || 'https://sourcegraph.com/';
-  const accessToken = config.accessToken || process.env.SRC_ACCESS_TOKEN;
+  const accessToken = config.accessToken || process.env['SRC_ACCESS_TOKEN'];
   
   if (!accessToken) {
     throw new Error('Access token is required. Set accessToken in config or SRC_ACCESS_TOKEN environment variable.');
@@ -59,11 +59,11 @@ async function listModelsFromAPI(config: CodyConnectorConfig): Promise<ModelInfo
     throw new Error(`HTTP ${response.status} ${response.statusText}: ${errorText}`);
   }
 
-  const responseData = await response.json();
+  const responseData = await response.json() as { data?: unknown[] } | unknown[];
   
   // Handle OpenAI-style response format: {object: "list", data: [...]}
-  let modelList: any[];
-  if (responseData && typeof responseData === 'object' && responseData.data && Array.isArray(responseData.data)) {
+  let modelList: unknown[];
+  if (responseData && typeof responseData === 'object' && !Array.isArray(responseData) && 'data' in responseData && Array.isArray(responseData.data)) {
     modelList = responseData.data;
   } else if (Array.isArray(responseData)) {
     modelList = responseData;
@@ -74,7 +74,7 @@ async function listModelsFromAPI(config: CodyConnectorConfig): Promise<ModelInfo
   // Convert model objects to ModelInfo objects
   const models: ModelInfo[] = modelList.map(modelObj => {
     // Handle both string IDs and model objects with id field
-    const modelId = typeof modelObj === 'string' ? modelObj : modelObj.id;
+    const modelId = typeof modelObj === 'string' ? modelObj : (modelObj as { id: string }).id;
     
     return {
       id: modelId,
