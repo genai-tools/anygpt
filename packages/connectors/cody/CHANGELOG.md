@@ -1,3 +1,13 @@
+## 0.3.3 (2025-10-07)
+
+### 🩹 Fixes
+
+- **cody:** transform system messages to user messages for API compatibility ([fad5cbf](https://github.com/genai-tools/anygpt/commit/fad5cbf))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.3.2 (2025-10-07)
 
 ### 🩹 Fixes
