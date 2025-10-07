@@ -9,6 +9,7 @@ on:
 permissions:
   contents: write
   id-token: write
+  pull-requests: write
 
 jobs:
   publish:
@@ -30,6 +31,35 @@ jobs:
         run: npx nx release publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
+
+      - name: Comment on PR with published packages
+        run: |
+          # Get the merge commit message to find PR number
+          PR_NUMBER=$(git log -1 --pretty=%B | grep -oP 'Merge pull request #\K\d+' || echo "")
+          
+          if [ -n "$PR_NUMBER" ]; then
+            # Extract published packages from git tags
+            PACKAGES=$(git tag --points-at HEAD | grep '@' | sed 's/@/ v/' | sed 's/^/- `/' | sed 's/$/'`'/' || echo "")
+            
+            if [ -n "$PACKAGES" ]; then
+              COMMENT="## 📦 Published to npm
+
+          The following packages have been successfully published:
+
+          $PACKAGES
+
+          You can install them with:
+          \`\`\`bash
+          npm install <package-name>
+          \`\`\`
+
+          View on npm: https://www.npmjs.com/search?q=%40anygpt"
+              
+              echo "$COMMENT" | gh pr comment "$PR_NUMBER" --body-file -
+            fi
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Sync main branch with production
         run: |
