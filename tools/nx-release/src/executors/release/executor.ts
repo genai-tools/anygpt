@@ -4,6 +4,7 @@ import type { ReleaseExecutorSchema } from './schema';
 import {
   getCurrentBranch,
   hasUncommittedChanges,
+  hasUnpushedCommits,
   pullLatest,
   getCurrentCommitSha,
   getTagsAtCommit,
@@ -135,8 +136,22 @@ export default async function runExecutor(
     const afterSha = await getCurrentCommitSha();
 
     if (beforeSha === afterSha) {
-      console.log('\n❌ No version changes were made');
-      console.log('ℹ️  No changes detected - nothing to release');
+      // No version bump, but check if there are other commits to push
+      const hasUnpushed = await hasUnpushedCommits(baseBranch);
+      
+      if (!hasUnpushed) {
+        console.log('\n❌ No version changes were made');
+        console.log('ℹ️  No changes detected - nothing to release');
+        return { success: true };
+      }
+      
+      // We have unpushed commits (e.g., CI fixes, docs) but no version bump
+      console.log('\n⚠️  No version changes, but found unpushed commits');
+      console.log('📤 Pushing commits to update PR...');
+      await pushWithTags(baseBranch);
+      
+      console.log('✅ PR updated with latest commits');
+      console.log('ℹ️  No package versions were bumped - PR will not publish to npm');
       return { success: true };
     }
 
