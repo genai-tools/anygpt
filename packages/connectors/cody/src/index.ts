@@ -88,8 +88,18 @@ export class CodyConnector extends BaseConnector implements IConnector {
    * Chat completion via API (using OpenAI connector)
    */
   private async chatCompletionViaAPI(request: BaseChatCompletionRequest): Promise<BaseChatCompletionResponse> {
+    // Transform system messages to user messages for Cody API compatibility
+    // Cody/Sourcegraph API returns: "system role is not supported"
+    // The API accepts multiple consecutive user messages and maintains context correctly
+    const transformedRequest = {
+      ...request,
+      messages: request.messages.map(msg => 
+        msg.role === 'system' ? { role: 'user' as const, content: msg.content } : msg
+      )
+    };
+    
     const connector = await this.getConnector();
-    return connector.chatCompletion(request);
+    return connector.chatCompletion(transformedRequest);
   }
 
   /**
