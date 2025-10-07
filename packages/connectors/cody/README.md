@@ -1,15 +1,13 @@
 # @anygpt/cody
 
-Cody API connector for AnyGPT - enables using Sourcegraph's Cody AI assistant through direct API integration.
+Sourcegraph Cody connector for AnyGPT with flexible API and CLI modes.
 
 ## Features
 
-- 🚀 **OpenAI-compatible API** - Built on proven OpenAI connector architecture
+- 🚀 **Dual-mode** - API (fast) or CLI (feature-rich) with auto-fallback
 - 🔄 **Multiple models** - Claude, GPT-4, Gemini, and more
 - 🎯 **Enterprise ready** - Works with any Sourcegraph instance
-- 🔧 **Automatic configuration** - Reads from existing Cody config files
-- 📝 **Full compatibility** - Supports both new loader and legacy connector
-- 🛡️ **Proper authentication** - Handles all required Sourcegraph headers
+- 🔧 **Auto-config** - Reads from `~/.config/Cody-nodejs/config.json`
 
 ## Installation
 
@@ -19,196 +17,134 @@ npm install @anygpt/cody
 
 **Prerequisites:**
 - Access to a Sourcegraph instance with API token
-- No CLI installation required (uses direct API calls)
+- **API mode** (default): No CLI installation required
+- **CLI mode**: Requires `@sourcegraph/cody` CLI installed
 
-## Usage
-
-### Recommended: New Loader Approach
+## Quick Start
 
 ```typescript
 import { createCodyConnector } from '@anygpt/cody';
 
-// Automatically reads from ~/.config/Cody-nodejs/config.json
+// Auto-reads from ~/.config/Cody-nodejs/config.json
 const connector = await createCodyConnector();
 
 const response = await connector.chatCompletion({
   model: 'anthropic::2024-10-22::claude-3-5-sonnet-latest',
   messages: [{ role: 'user', content: 'Hello, Cody!' }]
 });
-
-console.log(response.choices[0].message.content);
 ```
 
-### With Custom Configuration
+### With Configuration
 
 ```typescript
-import { createCodyConnector } from '@anygpt/cody';
-
 const connector = await createCodyConnector({
+  connectionMode: 'api',  // 'api' | 'cli' | 'auto'
   endpoint: 'https://sourcegraph.example.com/',
-  accessToken: 'sgp_your-access-token'
+  accessToken: process.env.SRC_ACCESS_TOKEN
 });
 ```
 
-### Legacy Compatibility
+## Connection Modes
+
+Choose between three modes:
+
+| Mode | Speed | Best For |
+|------|-------|----------|
+| **`api`** (default) | ⚡ Fast | Production, CI/CD |
+| **`cli`** | 🐢 Slower | Local dev, debugging |
+| **`auto`** | ⚡ Fast* | Resilient setups |
 
 ```typescript
-import { CodyConnector } from '@anygpt/cody';
+// API mode (default)
+const connector = await createCodyConnector({
+  connectionMode: 'api'
+});
 
-// Still works, but uses new OpenAI-based implementation internally
-const connector = new CodyConnector({
-  endpoint: 'https://sourcegraph.example.com/',
-  accessToken: 'sgp_your-access-token'
+// CLI mode (requires Cody CLI installed)
+const connector = await createCodyConnector({
+  connectionMode: 'cli',
+  showContext: true
+});
+
+// Auto mode (tries API, falls back to CLI)
+const connector = await createCodyConnector({
+  connectionMode: 'auto'
 });
 ```
 
-### Using with AnyGPT Router
+📖 **[Detailed Mode Documentation](./docs/CONNECTION_MODES.md)**
+
+## Configuration
+
+| Option | Type | Default |
+|--------|------|---------|
+| `connectionMode` | `'api' \| 'cli' \| 'auto'` | `'api'` |
+| `endpoint` | `string` | `'https://sourcegraph.com/'` |
+| `accessToken` | `string` | Auto-detected |
+| `timeout` | `number` | `60000` |
+| `model` | `string` | - |
+
+**CLI-specific** (for `cli` and `auto` modes):
+- `cliPath`, `workingDirectory`, `showContext`, `debug`
+
+💡 Auto-reads from `~/.config/Cody-nodejs/config.json`
+
+## Models
+
+Models are dynamically fetched from your Sourcegraph instance:
 
 ```typescript
-import { Router } from '@anygpt/router';
-import { CodyConnectorFactory } from '@anygpt/cody';
-
-const router = new Router();
-router.registerConnector(new CodyConnectorFactory());
-
-const response = await router.chatCompletion({
-  provider: 'cody',
-  model: 'anthropic::2024-10-22::claude-3-5-sonnet-latest',
-  messages: [
-    { role: 'user', content: 'Explain TypeScript generics' }
-  ]
-});
-```
-
-### Configuration File Example
-
-```typescript
-// anygpt.config.ts
-import { cody } from '@anygpt/cody';
-
-export default {
-  providers: {
-    cody: cody({
-      endpoint: 'https://sourcegraph.example.com/',
-      accessToken: process.env.SRC_ACCESS_TOKEN,
-      model: 'anthropic::2024-10-22::claude-3-5-sonnet-latest'
-    })
-  }
-};
-```
-
-## Configuration Options
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `endpoint` | `string` | `'https://sourcegraph.com/'` | Sourcegraph instance URL |
-| `accessToken` | `string` | - | Access token (auto-read from config or `SRC_ACCESS_TOKEN` env var) |
-| `timeout` | `number` | `60000` | Request timeout in milliseconds |
-| `maxRetries` | `number` | `3` | Maximum number of retries |
-
-**Note:** The new loader automatically reads configuration from `~/.config/Cody-nodejs/config.json`, so manual configuration is often unnecessary.
-
-## Supported Models
-
-The connector **dynamically fetches available models** from your Sourcegraph instance via API. Model availability depends on your instance configuration.
-
-```typescript
-// List models available on your instance
 const models = await connector.listModels();
-models.forEach(model => {
-  console.log(`${model.id} - ${model.display_name}`);
-});
 ```
 
-### Example Model IDs
-
-- `anthropic::2024-10-22::claude-sonnet-4-latest`
-- `anthropic::2024-10-22::claude-3-5-sonnet-latest`
-- `openai::2024-02-01::gpt-5`
-- `openai::2024-02-01::gpt-4o`
-- `google::v1::gemini-2.5-pro`
-- `fireworks::v1::deepseek-v3`
+Common models: Claude Sonnet 4, Claude 3.5 Sonnet, GPT-4o, GPT-5, Gemini 2.5 Pro, DeepSeek v3
 
 ## Authentication
 
-The connector uses direct API authentication with proper headers:
+Via environment variables:
+```bash
+export SRC_ACCESS_TOKEN="sgp_your-token"
+export SRC_ENDPOINT="https://sourcegraph.example.com/"
+```
 
-1. **Using Environment Variables:**
-   ```bash
-   export SRC_ACCESS_TOKEN="sgp_your-token"
-   export SRC_ENDPOINT="https://sourcegraph.example.com/"
-   ```
-
-2. **Using Configuration:**
-   ```typescript
-   const connector = cody({
-     accessToken: 'sgp_your-token',
-     endpoint: 'https://sourcegraph.example.com/'
-   });
-   ```
-
-## API Integration
-
-This connector makes direct HTTP calls to Sourcegraph's API endpoints with proper authentication headers:
-
-- **Endpoint:** `https://your-instance/.api/llm/models`
-- **Headers:**
-  - `Authorization: token <your-token>`
-  - `X-Requested-With: cody 5.5.21`
-  - `X-Sourcegraph-API-Client-Name: cody`
-  - `X-Sourcegraph-API-Client-Version: 5.5.21`
-
-This approach is more reliable than CLI-based integration and works with enterprise Sourcegraph instances that have strict header validation.
-
-## How It Works
-
-This connector directly calls Sourcegraph APIs instead of spawning CLI processes:
-
-- ✅ **More reliable** - No CLI process spawning
-- ✅ **Better performance** - Direct HTTP calls
-- ✅ **Enterprise ready** - Proper header validation
-- ✅ **No CLI dependency** - Works in any Node.js environment
-- ✅ **Better error handling** - Direct API error responses
-
-## Error Handling
-
-The connector provides detailed error messages for common issues:
-
-- Missing access token
-- Authentication failures
-- Network timeouts
-- Invalid API responses
-- Unsupported model requests
+Or in config:
+```typescript
+const connector = await createCodyConnector({
+  accessToken: 'sgp_your-token',
+  endpoint: 'https://sourcegraph.example.com/'
+});
+```
 
 ## Examples
 
-See the `examples/` directory for more usage examples:
-- `example.ts`: Basic usage
-- `test-example.mjs`: Simple test script
-- `test-with-auth.mjs`: Authentication example
-- `test-models-api.mjs`: Direct API model listing test
+See [`examples/connection-modes.ts`](./examples/connection-modes.ts) for working examples of all modes.
 
-## Migration from CLI-based approach
-
-If you were previously using a CLI-based Cody connector:
-
-1. **Remove CLI dependency** - No need to install `@sourcegraph/cody` CLI
-2. **Update model IDs** - Use format `provider::version::model-name`
-3. **Set authentication** - Provide `accessToken` and `endpoint` in configuration
-4. **Better reliability** - Enjoy improved performance and error handling
+Config examples: [`examples/cody.config.ts`](./examples/cody.config.ts)
 
 ## Troubleshooting
 
-### Header Validation Errors
+**CLI mode fails:**
+- Install CLI: `npm install -g @sourcegraph/cody`
+- Verify: `which cody`
+- Auth: `cody auth`
 
-If you get "Precondition Required" or "Missing required header" errors:
+**API mode fails:**
+- Check token: `curl -H "Authorization: token TOKEN" https://instance/.api/llm/models`
+- Verify endpoint ends with `/`
 
-1. Ensure your Sourcegraph instance allows the required headers
-2. Contact your IT team if using enterprise Sourcegraph
-3. The connector automatically sets all required headers for standard instances
+**Slow responses:**
+- Use API mode (fastest)
+- Check network latency
 
-### Authentication Issues
+📖 **[Detailed Troubleshooting](./docs/CONNECTION_MODES.md#troubleshooting)**
 
-1. Verify your access token is valid: `curl -H "Authorization: token YOUR_TOKEN" https://your-instance/.api/llm/models`
-2. Check endpoint URL format (should end with `/`)
-3. Ensure token has appropriate permissions
+## Documentation
+
+- **[Connection Modes](./docs/CONNECTION_MODES.md)** - Detailed mode comparison and configuration
+- **[Architecture](./docs/ARCHITECTURE.md)** - Technical implementation details
+- **[Examples](./examples/)** - Working code examples
+- **[Changelog](./CHANGELOG.md)** - Version history
+
+## License
+
+MIT

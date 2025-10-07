@@ -7,68 +7,151 @@ import type {
   ResponseRequest,
   ResponseResponse
 } from '@anygpt/types';
+import { BaseConnector } from '@anygpt/router';
 import type { OpenAIConnector } from '@anygpt/openai';
-import { createCodyConnector } from './loader.js';
+import { createCodyConnector, readCodyConfigSync } from './loader.js';
+import { executeCodyChat } from './executor.js';
 import type { CodyConnectorConfig } from './types.js';
 
 // Re-export types
-export type { CodyConnectorConfig } from './types.js';
+export type { CodyConnectorConfig, CodyConnectionMode } from './types.js';
 
 // Export the new loader functions
 export { createCodyConnector, codyConnectorFactory, codyLoader } from './loader.js';
 
-export class CodyConnector implements IConnector {
-  static readonly packageName = '@anygpt/cody';
-  private config: CodyConnectorConfig;
+export class CodyConnector extends BaseConnector implements IConnector {
+  static override readonly packageName = '@anygpt/cody';
+  private codyConfig: CodyConnectorConfig;
   private openaiConnector: OpenAIConnector | null = null;
-  public readonly providerId: string = 'cody';
 
   constructor(config: CodyConnectorConfig = {}) {
-    this.config = {
+    // Pass to BaseConnector for getUserConfig support
+    super('cody', config);
+    
+    // Load global config and merge with user config
+    const globalConfig = readCodyConfigSync();
+    
+    // Store Cody-specific config with defaults
+    // Merge: defaults < global config < user config
+    this.codyConfig = {
       endpoint: 'https://sourcegraph.com/',
       timeout: 60000, // Cody can take longer
       maxRetries: 3,
-      ...config
+      connectionMode: 'api', // Default to API mode
+      ...globalConfig,  // Apply global config
+      ...config  // User config takes precedence
     };
   }
 
   private async getConnector(): Promise<OpenAIConnector> {
     if (!this.openaiConnector) {
-      this.openaiConnector = await createCodyConnector(this.config);
+      this.openaiConnector = await createCodyConnector(this.codyConfig);
     }
     return this.openaiConnector;
   }
 
-  async chatCompletion(request: BaseChatCompletionRequest): Promise<BaseChatCompletionResponse> {
+  /**
+   * Override getUserConfig to return only user-provided config
+   * (no defaults, no global config)
+   */
+  override getUserConfig(): CodyConnectorConfig {
+    // Just return the user config from BaseConnector
+    // Don't include global config since it wasn't explicitly set by user
+    return super.getUserConfig() as CodyConnectorConfig;
+  }
+
+  /**
+   * Chat completion with mode switching support
+   */
+  override async chatCompletion(request: BaseChatCompletionRequest): Promise<BaseChatCompletionResponse> {
+    const mode = this.codyConfig.connectionMode || 'api';
+
+    switch (mode) {
+      case 'cli':
+        return this.chatCompletionViaCLI(request);
+      
+      case 'auto':
+        try {
+          return await this.chatCompletionViaAPI(request);
+        } catch (error) {
+          console.warn('API mode failed, falling back to CLI:', error instanceof Error ? error.message : String(error));
+          return this.chatCompletionViaCLI(request);
+        }
+      
+      case 'api':
+      default:
+        return this.chatCompletionViaAPI(request);
+    }
+  }
+
+  /**
+   * Chat completion via API (using OpenAI connector)
+   */
+  private async chatCompletionViaAPI(request: BaseChatCompletionRequest): Promise<BaseChatCompletionResponse> {
     const connector = await this.getConnector();
     return connector.chatCompletion(request);
   }
 
-  async response(request: ResponseRequest): Promise<ResponseResponse> {
+  /**
+   * Chat completion via CLI (using Cody CLI)
+   */
+  private async chatCompletionViaCLI(request: BaseChatCompletionRequest): Promise<BaseChatCompletionResponse> {
+    // Convert messages to a single prompt for CLI
+    const prompt = request.messages
+      .map(msg => {
+        if (msg.role === 'system') return `System: ${msg.content}`;
+        if (msg.role === 'user') return msg.content;
+        if (msg.role === 'assistant') return `Assistant: ${msg.content}`;
+        return msg.content;
+      })
+      .join('\n\n');
+
+    const cliResponse = await executeCodyChat(prompt, this.codyConfig, request.model);
+
+    // Convert CLI response to standard format
+    return {
+      id: `cody-cli-${Date.now()}`,
+      object: 'chat.completion',
+      created: Math.floor(Date.now() / 1000),
+      model: request.model || this.codyConfig.model || 'cody-default',
+      provider: this.providerId,
+      choices: [{
+        index: 0,
+        message: {
+          role: 'assistant',
+          content: cliResponse
+        },
+        finish_reason: 'stop'
+      }],
+      usage: {
+        prompt_tokens: 0,
+        completion_tokens: 0,
+        total_tokens: 0
+      }
+    };
+  }
+
+  override async response(request: ResponseRequest): Promise<ResponseResponse> {
     const connector = await this.getConnector();
     return connector.response(request);
   }
 
-  async listModels() {
+  override async listModels() {
     const connector = await this.getConnector();
     return connector.listModels();
   }
 
-  validateRequest(request: BaseChatCompletionRequest): BaseChatCompletionRequest {
+  override validateRequest(request: BaseChatCompletionRequest): BaseChatCompletionRequest {
     // Let the OpenAI connector handle validation
     return request;
   }
 
-  isInitialized(): boolean {
+  override isInitialized(): boolean {
     return true; // Always initialized since we create connector on-demand
   }
 
-  getProviderId(): string {
-    return this.providerId;
-  }
-
-  getConfig(): BaseConnectorConfig {
-    return { ...this.config };
+  override getConfig(): BaseConnectorConfig {
+    return { ...this.codyConfig };
   }
 }
 
@@ -112,5 +195,5 @@ export function cody(config: CodyConnectorConfig = {}): CodyConnector {
  */
 export const provider = {
   name: 'Sourcegraph Cody',
-  connector: new CodyConnectorFactory()
+  connector: new CodyConnector()
 };

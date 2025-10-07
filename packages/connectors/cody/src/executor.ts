@@ -5,7 +5,15 @@ import { cleanCodyOutput, buildCodyArgs } from './utils.js';
 import type { CodyConnectorConfig } from './types.js';
 
 /**
- * Execute cody chat command and return the response using pipeline approach
+ * Execute cody chat command via CLI and return the response
+ * 
+ * This function spawns the Cody CLI process and streams the output.
+ * Used when connectionMode is 'cli' or as fallback in 'auto' mode.
+ * 
+ * @param message - The message/prompt to send to Cody
+ * @param config - Cody connector configuration
+ * @param model - Optional model override
+ * @returns Promise resolving to the chat response text
  */
 export async function executeCodyChat(
   message: string,

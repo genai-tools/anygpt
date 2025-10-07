@@ -1,6 +1,10 @@
 # AnyGPT Examples
 
-This directory contains example configurations and integration guides for AnyGPT.
+This directory contains **cross-package integration examples** and guides for AnyGPT.
+
+For connector-specific examples, see the individual package directories:
+- **Cody**: [`packages/connectors/cody/examples/`](../packages/connectors/cody/examples/)
+- **Config**: [`packages/config/examples/`](../packages/config/examples/)
 
 ## Examples
 

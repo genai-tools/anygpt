@@ -142,20 +142,26 @@ export async function listModelsCommand(
     let models: any[];
     let providerId: string;
     
-    // Check if the provider looks like a package name
-    if (isPackageName(providerSpec)) {
-      console.log(`📦 Importing connector from package: ${providerSpec}`);
-      
-      // Try to import and create the connector
-      const connector = await createConnectorFromPackage(providerSpec);
-      
-      // Call listModels directly on the connector
-      models = await connector.listModels();
-      providerId = providerSpec;
-    } else {
-      // Use existing router logic for configured providers
+    // First, try to use the provider from the router (configured providers)
+    // Only fall back to package import if the provider is not configured
+    try {
       models = await context.router.listModels(providerSpec);
       providerId = providerSpec;
+    } catch (routerError) {
+      // If router fails and the provider looks like a package name, try importing it
+      if (isPackageName(providerSpec)) {
+        console.log(`📦 Importing connector from package: ${providerSpec}`);
+        
+        // Try to import and create the connector
+        const connector = await createConnectorFromPackage(providerSpec);
+        
+        // Call listModels directly on the connector
+        models = await connector.listModels();
+        providerId = providerSpec;
+      } else {
+        // Re-throw the router error if it's not a package name
+        throw routerError;
+      }
     }
     
     if (options.json) {
