@@ -1,3 +1,13 @@
+## 0.19.0 (2025-10-07)
+
+### 🚀 Features
+
+- **cli:** add max-tokens parameter to chat command ([b330605](https://github.com/genai-tools/anygpt/commit/b330605))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.18.1 (2025-10-07)
 
 ### 🧱 Updated Dependencies

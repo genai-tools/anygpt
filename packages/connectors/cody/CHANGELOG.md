@@ -1,3 +1,13 @@
+## 0.3.2 (2025-10-07)
+
+### 🩹 Fixes
+
+- **cody:** add publishConfig for public npm access ([d9ab0b4](https://github.com/genai-tools/anygpt/commit/d9ab0b4))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.3.1 (2025-10-07)
 
 ### 🩹 Fixes

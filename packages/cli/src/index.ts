@@ -35,8 +35,10 @@ program
   .option('--url <url>', 'API endpoint URL')
   .option('--token <token>', 'API token')
   .option('--model <model>', 'model name (uses default from config if not specified)')
+  .option('--max-tokens <number>', 'maximum tokens to generate', parseInt)
   .option('--usage', 'show token usage statistics')
-  .argument('<message>', 'message to send')
+  .option('--stdin', 'read message from stdin instead of argument')
+  .argument('[message]', 'message to send (optional if --stdin is used)')
   .action(withCLIContext(chatCommand));
 
 // Config inspection command
