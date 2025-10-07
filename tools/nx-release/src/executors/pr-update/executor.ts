@@ -32,9 +32,15 @@ export default async function runExecutor(
       'packages/connectors/*/CHANGELOG.md',
     ],
     aiCommand,
+    model,
     maxLinesPerFile = 150,
     diffPaths = ['packages/*/src/**', 'packages/connectors/*/src/**'],
   } = options;
+
+  // Override model in aiCommand if model parameter is provided
+  const finalAiCommand = model && aiCommand
+    ? aiCommand.replace(/--model\s+\S+/, `--model ${model}`)
+    : aiCommand;
 
   try {
     console.log('🔄 Updating release PR...\n');
@@ -64,7 +70,7 @@ export default async function runExecutor(
 
     // Get diff from target branch HEAD
     let diffForAI = '';
-    if (aiCommand) {
+    if (finalAiCommand) {
       console.log('📊 Getting diff for AI analysis...');
       const prBaseCommit = await getPRBaseCommit(existingPR, targetBranch);
       console.log(
@@ -100,13 +106,13 @@ export default async function runExecutor(
 
     // Generate AI summary if enabled
     let aiSummary = '';
-    if (aiCommand && diffForAI) {
-      console.log('🤖 Generating AI summary...');
+    if (finalAiCommand && diffForAI) {
+      console.log(`🤖 Generating AI summary${model ? ` with model: ${model}` : ''}...`);
       aiSummary = await generateAISummary(
         changelog,
         releases,
         diffForAI,
-        aiCommand,
+        finalAiCommand,
         {
           maxLinesPerFile,
         }
