@@ -14,6 +14,15 @@ export async function hasUncommittedChanges(): Promise<boolean> {
   }
 }
 
+export async function hasUnpushedCommits(branch: string): Promise<boolean> {
+  try {
+    const { stdout } = await execa('git', ['rev-list', `origin/${branch}..HEAD`, '--count']);
+    return parseInt(stdout.trim(), 10) > 0;
+  } catch {
+    return false;
+  }
+}
+
 export async function pullLatest(branch: string): Promise<void> {
   await execa('git', ['pull', '--rebase', 'origin', branch], { stdio: 'inherit' });
 }
