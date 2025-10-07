@@ -147,3 +147,16 @@ export async function getRepoName(): Promise<string> {
   ]);
   return stdout.trim();
 }
+
+export async function getPRBaseCommit(prNumber: string): Promise<string> {
+  const { stdout } = await execa('gh', [
+    'pr',
+    'view',
+    prNumber,
+    '--json',
+    'baseRefOid',
+    '-q',
+    '.baseRefOid',
+  ]);
+  return stdout.trim();
+}

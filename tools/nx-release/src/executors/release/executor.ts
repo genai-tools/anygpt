@@ -10,6 +10,7 @@ import {
   pushWithTags,
   getNewTags,
   getDiffSinceLastRelease,
+  getDiff,
 } from '../../lib/git-operations';
 import {
   extractChangelog,
@@ -26,6 +27,7 @@ import {
   openPRInBrowser,
   getRepoName,
   addChangelogComment,
+  getPRBaseCommit,
 } from '../../lib/pr-creation';
 
 export default async function runExecutor(
@@ -74,11 +76,23 @@ export default async function runExecutor(
     // Get list of existing tags before release
     const existingTags = await getTagsAtCommit(beforeSha);
 
+    // Check for existing PR to determine diff base
+    const existingPR = await getExistingPR(baseBranch, targetBranch);
+    
     // Get diff for AI summary BEFORE creating new tags
     let diffForAI = '';
     if (aiProvider !== 'none') {
       console.log('📊 Getting diff for AI analysis...');
-      diffForAI = await getDiffSinceLastRelease(diffPaths);
+      
+      if (existingPR) {
+        // For existing PR, diff from the PR's base commit (target branch at PR creation)
+        const prBaseCommit = await getPRBaseCommit(existingPR);
+        console.log(`   Using PR base commit: ${prBaseCommit.substring(0, 7)}`);
+        diffForAI = await getDiff(prBaseCommit, beforeSha, diffPaths);
+      } else {
+        // For new PR, diff from last release tag
+        diffForAI = await getDiffSinceLastRelease(diffPaths);
+      }
     }
 
     // Run nx release (version + changelog + commit + tag)
@@ -155,9 +169,7 @@ export default async function runExecutor(
     // Create PR body (without changelog)
     const prBody = buildPRBody(aiSummary, releases);
 
-    // Check for existing PR
-    const existingPR = await getExistingPR(baseBranch, targetBranch);
-
+    // Use the existingPR we already checked earlier
     if (!existingPR) {
       const prUrl = await createPR(prTitle, prBody, baseBranch, targetBranch);
       console.log(`✅ PR created: ${prUrl}`);
