@@ -7,7 +7,9 @@ interface ChatOptions {
   url?: string;
   token?: string;
   model?: string;
+  maxTokens?: number;
   usage?: boolean;
+  stdin?: boolean;
 }
 
 // Import shared model resolution from config
@@ -15,9 +17,22 @@ import { resolveModel as resolveModelShared } from '@anygpt/config';
 
 export async function chatCommand(
   context: CLIContext,
-  message: string,
+  message: string | undefined,
   options: ChatOptions
 ) {
+  // Read from stdin if --stdin flag is set
+  let actualMessage = message;
+  if (options.stdin) {
+    const chunks: Buffer[] = [];
+    for await (const chunk of process.stdin) {
+      chunks.push(chunk);
+    }
+    actualMessage = Buffer.concat(chunks).toString('utf-8').trim();
+  }
+  
+  if (!actualMessage) {
+    throw new Error('No message provided. Either pass a message argument or use --stdin.');
+  }
   // Determine which provider to use (might be overridden by alias resolution)
   let providerId = options.provider || context.defaults.provider;
   
@@ -53,7 +68,7 @@ export async function chatCommand(
   
   // Verbose mode: show request metrics
   context.logger.info(`📤 Request: provider=${providerId}, model=${modelId}`);
-  context.logger.info(`💬 Message length: ${message.length} chars`);
+  context.logger.info(`💬 Message length: ${actualMessage.length} chars`);
   context.logger.info(''); // Empty line before response
   
   try {
@@ -62,7 +77,8 @@ export async function chatCommand(
     const response = await context.router.chatCompletion({
       provider: providerId,
       model: modelId,
-      messages: [{ role: 'user', content: message }]
+      messages: [{ role: 'user', content: actualMessage }],
+      ...(options.maxTokens && { max_tokens: options.maxTokens })
     });
     
     const duration = Date.now() - startTime;
