@@ -18,6 +18,7 @@ import { getModelInfo, getChatModels, type OpenAIModelInfo } from './models.js';
 export interface OpenAIConnectorConfig extends ConnectorConfig {
   apiKey?: string;
   baseURL?: string;  // Essential for OpenAI-compatible APIs
+  defaultHeaders?: Record<string, string>;  // Custom headers for API requests
 }
 
 type ResponseInputMessage = {
@@ -52,6 +53,7 @@ export class OpenAIConnector extends BaseConnector {
       baseURL: config.baseURL,  // Support custom endpoints
       timeout: this.config.timeout,
       maxRetries: this.config.maxRetries,
+      defaultHeaders: config.defaultHeaders,  // Support custom headers
     });
   }
 
