@@ -1,3 +1,13 @@
+## 0.3.0 (2025-10-07)
+
+### 🚀 Features
+
+- **openai:** add defaultHeaders support ([0ba7f1e](https://github.com/genai-tools/anygpt/commit/0ba7f1e))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.2.0 (2025-10-06)
 
 ### 🚀 Features
