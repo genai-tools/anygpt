@@ -46,8 +46,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "@anygpt/router": "0.3.0",
-    "@anygpt/openai": "0.3.0",
+    "@anygpt/config": "0.3.2",
     "@anygpt/types": "0.1.4"
   }
 }
