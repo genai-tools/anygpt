@@ -35,13 +35,27 @@ const consoleLogger = new ConsoleLogger(
   process.env.VERBOSE === 'true' || process.argv.includes('--verbose')
 );
 
+import type { ModelAlias, FactoryProviderConfig } from '@anygpt/config';
+
 export interface CLIContext {
   router: any;
   config: any;
   configSource: string; // Path to the loaded config file
+  providers: Record<string, FactoryProviderConfig>; // Provider configs with model metadata
+  logger: Logger;
   defaults: {
     provider?: string;
     model?: string;
+    timeout?: number;
+    maxRetries?: number;
+    logging?: {
+      level?: 'debug' | 'info' | 'warn' | 'error';
+    };
+    providers?: Record<string, {
+      model?: string;
+      [key: string]: unknown;
+    }>;
+    aliases?: Record<string, ModelAlias[]>;
   };
 }
 
@@ -68,9 +82,16 @@ export async function setupCLIContext(configPath?: string): Promise<CLIContext> 
         router,
         config,
         configSource: resolvedConfigPath,
+        providers: config.providers || {},
+        logger: consoleLogger,
         defaults: {
           provider: config.defaults?.provider,
-          model: config.defaults?.model
+          model: config.defaults?.model,
+          timeout: config.defaults?.timeout,
+          maxRetries: config.defaults?.maxRetries,
+          logging: config.defaults?.logging,
+          providers: config.defaults?.providers,
+          aliases: config.defaults?.aliases
         }
       };
     } else {
@@ -81,6 +102,8 @@ export async function setupCLIContext(configPath?: string): Promise<CLIContext> 
         router,
         config,
         configSource: configPath || 'default config search',
+        providers: {}, // Standard configs don't have provider metadata
+        logger: consoleLogger,
         defaults: {
           provider: config.settings?.defaultProvider,
           model: undefined // AnyGPTConfig doesn't have a global default model
@@ -95,6 +118,8 @@ export async function setupCLIContext(configPath?: string): Promise<CLIContext> 
       router,
       config,
       configSource: configPath || 'fallback config search',
+      providers: {}, // Fallback configs don't have provider metadata
+      logger: consoleLogger,
       defaults: {
         provider: config.settings?.defaultProvider,
         model: undefined // AnyGPTConfig doesn't have a global default model

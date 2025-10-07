@@ -35,7 +35,9 @@ export {
 export { 
   config,
   type FactoryConfig,
-  type FactoryProviderConfig
+  type FactoryProviderConfig,
+  type ModelAlias,
+  type ModelMetadata
 } from './factory.js';
 
 // Configuration loader (not exported by default, used internally)

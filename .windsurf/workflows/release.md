@@ -27,7 +27,14 @@ description: Minimal release procedure
   - **Body**: Summarize the change in 1-2 sentences. Reference related issues or PRs if found in code comments (e.g., `Fixes #123`, `Related to #456`).
 - **Rule**: Produce separate commits per component and a standalone `docs:` commit for documentation-only changes. Do not batch multiple components into a single commit. Only use `git add`, `git commit`, and `git reset` if needed—no rebase/pull operations.
 
-# Step 3 · Release
+# Step 3 · Pre-flight CI checks
+// turbo
+- **Command**: `npx nx run-many -t lint test build typecheck --projects='packages/*,packages/connectors/*'`
+- **Goal**: Run all CI checks locally before releasing to catch issues early
+- **Rule**: If this fails, fix the issues before proceeding to release. Do NOT skip this step.
+- **Why**: Reduces failed CI pipelines and ensures the release PR will pass checks
+
+# Step 4 · Release
 - **Command**: `npm run release`
 - **Goal**: Execute the scripted Nx release and let it push changes.
 - **Rule**: NEVER manually run `nx release` or any other Nx commands directly. The `npm run release` command is a custom executor that handles the entire release workflow including PR creation.

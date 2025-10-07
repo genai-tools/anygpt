@@ -5,7 +5,7 @@ import type { CodyConnectorConfig } from './types.js';
 /**
  * Read Cody configuration from the standard config file
  */
-async function readCodyConfig(): Promise<Partial<CodyConnectorConfig>> {
+export async function readCodyConfig(): Promise<Partial<CodyConnectorConfig>> {
   try {
     const os = await import('os');
     const fs = await import('fs/promises');
@@ -29,9 +29,42 @@ async function readCodyConfig(): Promise<Partial<CodyConnectorConfig>> {
     }
     
     return codyConfig;
-  } catch (error) {
+  } catch {
     // If we can't read the config file, return empty config
     // User will need to provide via environment variables or config
+    return {};
+  }
+}
+
+/**
+ * Synchronous version that reads config from cache
+ */
+export function readCodyConfigSync(): Partial<CodyConnectorConfig> {
+  try {
+    const os = require('os');
+    const fs = require('fs');
+    const path = require('path');
+    
+    const configPath = path.join(os.homedir(), '.config', 'Cody-nodejs', 'config.json');
+    const configContent = fs.readFileSync(configPath, 'utf-8');
+    const config = JSON.parse(configContent);
+    
+    // Extract relevant configuration
+    const codyConfig: Partial<CodyConnectorConfig> = {};
+    
+    // Get access token
+    if (config.config?.auth?.credentials?.token) {
+      codyConfig.accessToken = config.config.auth.credentials.token;
+    }
+    
+    // Get endpoint
+    if (config.config?.auth?.serverEndpoint) {
+      codyConfig.endpoint = config.config.auth.serverEndpoint;
+    }
+    
+    return codyConfig;
+  } catch {
+    // If we can't read the config file, return empty config
     return {};
   }
 }
