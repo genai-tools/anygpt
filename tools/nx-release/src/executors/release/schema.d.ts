@@ -3,6 +3,7 @@ export interface ReleaseExecutorSchema {
   targetBranch?: string;
   changelogPatterns?: string[];
   aiCommand?: string;
+  model?: string;
   maxLinesPerFile?: number;
   autoMerge?: boolean;
   skipPublish?: boolean;
