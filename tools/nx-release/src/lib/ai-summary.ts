@@ -35,7 +35,6 @@ ${changelog}
 
 Provide a clear summary of what actually changed in the code. Keep it brief for simple changes, more detailed for complex ones.`;
 
-    console.log('🤖 Generating AI summary...');
     const [command, ...args] = aiCommand.split(' ');
     const { stdout } = await execa(command, [...args, prompt], {
       stdio: 'pipe',
