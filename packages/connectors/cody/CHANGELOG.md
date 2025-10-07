@@ -1,3 +1,13 @@
+## 0.3.0 (2025-10-07)
+
+### 🚀 Features
+
+- **cody:** improve documentation and connection modes ([0fb3871](https://github.com/genai-tools/anygpt/commit/0fb3871))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.2.1 (2025-10-07)
 
 ### 🩹 Fixes
