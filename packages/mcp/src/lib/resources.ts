@@ -10,6 +10,7 @@ import type {
   ListResourcesResult,
   ReadResourceResult,
 } from "@modelcontextprotocol/sdk/types.js";
+import type { FactoryProviderConfig } from "@anygpt/config";
 
 // Get the directory for loading docs
 const __filename = fileURLToPath(import.meta.url);
@@ -91,7 +92,7 @@ export function listResources(): ListResourcesResult {
 export function readResource(
   uri: string,
   context: {
-    configuredProviders: Record<string, { type: string }>;
+    configuredProviders: Record<string, FactoryProviderConfig>;
     defaultProvider?: string;
     defaultModel?: string;
   }
@@ -119,7 +120,7 @@ export function readResource(
 function readDocSection(
   section: string,
   context: {
-    configuredProviders: Record<string, { type: string }>;
+    configuredProviders: Record<string, FactoryProviderConfig>;
     defaultProvider?: string;
     defaultModel?: string;
   }
@@ -159,7 +160,7 @@ function readDocSection(
               {
                 configured_providers: Object.entries(context.configuredProviders).map(([id, config]) => ({
                   id,
-                  type: config.type,
+                  type: config.connector.providerId,
                   isDefault: id === context.defaultProvider,
                 })),
                 default_provider: context.defaultProvider,

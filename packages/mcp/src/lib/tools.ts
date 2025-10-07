@@ -2,8 +2,8 @@
  * MCP Tools - The actual functions that can be called
  */
 
-import type { ChatCompletionRequest, ChatMessage, ModelInfo } from "@anygpt/types";
-import { resolveModel as resolveModelShared } from "@anygpt/config";
+import type { ChatCompletionRequest, ChatMessage, ModelInfo as TypesModelInfo } from "@anygpt/types";
+import { resolveModel as resolveModelShared, type FactoryProviderConfig, type ModelAlias } from "@anygpt/config";
 
 export type ChatCompletionToolArgs = {
   messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
@@ -124,7 +124,8 @@ export async function handleChatCompletion(
     router: any;
     defaultProvider?: string;
     defaultModel?: string;
-    configuredProviders: Record<string, { type: string }>;
+    configuredProviders: Record<string, FactoryProviderConfig>;
+    aliases?: Record<string, ModelAlias[]>;
   }
 ) {
   try {
@@ -175,7 +176,7 @@ export async function handleListModels(
     router: any;
     defaultProvider?: string;
   }
-): Promise<{ provider: string; models: ModelInfo[] }> {
+): Promise<{ provider: string; models: TypesModelInfo[] }> {
   try {
     const providerId = args.provider || context.defaultProvider || 'openai';
     const models = await context.router.listModels(providerId);
@@ -192,12 +193,12 @@ export async function handleListModels(
  * Handle list providers tool call
  */
 export function handleListProviders(context: {
-  configuredProviders: Record<string, { type: string }>;
+  configuredProviders: Record<string, FactoryProviderConfig>;
   defaultProvider?: string;
 }): { providers: ProviderInfo[]; default_provider?: string } {
   const providers: ProviderInfo[] = Object.entries(context.configuredProviders).map(([id, config]) => ({
     id,
-    type: config.type,
+    type: config.connector.providerId,
     isDefault: id === context.defaultProvider,
   }));
 
@@ -211,8 +212,8 @@ export function handleListProviders(context: {
  * Get all available models across all providers for sampling
  */
 export function getAllAvailableModels(context: {
-  configuredProviders: Record<string, { type: string; models?: Record<string, { tags: string[] }> }>;
-  aliases?: Record<string, Array<{ provider: string; model?: string; tag?: string }>>;
+  configuredProviders: Record<string, FactoryProviderConfig>;
+  aliases?: Record<string, ModelAlias[]>;
 }): ModelInfo[] {
   const models: ModelInfo[] = [];
   
