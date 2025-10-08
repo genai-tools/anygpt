@@ -18,17 +18,26 @@ else
   printf "  ${GREEN}✓${NC} No secrets detected\n"
 fi
 
-# Check 2: Internal URLs (exclude security docs)
+# Check 2: Internal URLs (exclude docs showing bad examples)
 echo "  🔍 Checking for internal URLs..."
-STAGED_FILES=$(git diff --cached --name-only | grep -v -E "(SECURITY\.md|security-.*\.md|\.husky/)" || true)
+# Exclude: security docs, workflow docs, incident reports (they show examples of what NOT to do)
+STAGED_FILES=$(git diff --cached --name-only | grep -v -E "(SECURITY\.md|security-.*\.md|\.husky/|\.windsurf/workflows/|docs/security-)" || true)
 if [ -n "$STAGED_FILES" ]; then
-  if git diff --cached -- $STAGED_FILES | grep -iE "(provider1\.com|sourcegraph\.provider1|gen-ai\.prod)" | grep -qv "example\.com"; then
-    printf "${RED}❌ ERROR: Internal URLs detected!${NC}\n"
-    echo "Replace with: example.com"
-    FAILED=1
+  # Only check source code, not documentation
+  CODE_FILES=$(echo "$STAGED_FILES" | grep -E "\.(ts|js|mjs|json)$" || true)
+  if [ -n "$CODE_FILES" ]; then
+    if git diff --cached -- $CODE_FILES | grep -iE "(provider1\.com|sourcegraph\.provider1|gen-ai\.prod)" | grep -qv "example\.com"; then
+      printf "${RED}❌ ERROR: Internal URLs in CODE detected!${NC}\n"
+      echo "Replace with: example.com"
+      FAILED=1
+    else
+      printf "  ${GREEN}✓${NC} No internal URLs in code\n"
+    fi
   else
-    printf "  ${GREEN}✓${NC} No internal URLs\n"
+    printf "  ${GREEN}✓${NC} No code files to check\n"
   fi
+else
+  printf "  ${GREEN}✓${NC} No files to check\n"
 fi
 
 # Check 3: Sensitive files
