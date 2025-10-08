@@ -1,3 +1,18 @@
+## 0.4.0 (2025-10-08)
+
+### 🚀 Features
+
+- **mcp:** enhance model discovery and max_tokens handling ([535ae96](https://github.com/genai-tools/anygpt/commit/535ae96))
+
+### 🧱 Updated Dependencies
+
+- Updated config to 0.5.1
+- Updated types to 0.2.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.3.0 (2025-10-07)
 
 ### 🚀 Features
