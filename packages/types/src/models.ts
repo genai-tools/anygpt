@@ -27,4 +27,5 @@ export interface ModelInfo {
   display_name: string;
   capabilities: ModelCapabilities;
   description?: string;
+  tags?: string[];  // Common aliases for this model (e.g., ['opus', 'claude-opus'])
 }

@@ -1,16 +1,15 @@
 import type { ExecutorContext } from '@nx/devkit';
-import type { PrUpdateExecutorSchema } from './schema';
+import type { PrUpdateExecutorSchema } from './schema.js';
 import {
   getCurrentBranch,
   getCurrentCommitSha,
   getDiff,
-} from '../../lib/git-operations';
+} from '../../lib/git-operations.js';
 import {
   extractChangelog,
   extractReleasesFromTags,
-  buildPRTitle,
-} from '../../lib/changelog';
-import { generateAISummary } from '../../lib/ai-summary';
+} from '../../lib/changelog.js';
+import { generateAISummary } from '../../lib/ai-summary.js';
 import {
   getExistingPR,
   buildPRBody,
@@ -18,7 +17,7 @@ import {
   getPRBaseCommit,
   getRepoName,
   addChangelogComment,
-} from '../../lib/pr-creation';
+} from '../../lib/pr-creation.js';
 import { execa } from 'execa';
 
 export default async function runExecutor(
@@ -32,10 +31,16 @@ export default async function runExecutor(
       'packages/*/CHANGELOG.md',
       'packages/connectors/*/CHANGELOG.md',
     ],
-    aiProvider = 'anygpt',
-    aiCommand = 'npx anygpt chat',
+    aiCommand,
+    model,
+    maxLinesPerFile = 150,
     diffPaths = ['packages/*/src/**', 'packages/connectors/*/src/**'],
   } = options;
+
+  // Override model in aiCommand if model parameter is provided
+  const finalAiCommand = model && aiCommand
+    ? aiCommand.replace(/--model\s+\S+/, `--model ${model}`)
+    : aiCommand;
 
   try {
     console.log('🔄 Updating release PR...\n');
@@ -65,7 +70,7 @@ export default async function runExecutor(
 
     // Get diff from target branch HEAD
     let diffForAI = '';
-    if (aiProvider !== 'none') {
+    if (finalAiCommand) {
       console.log('📊 Getting diff for AI analysis...');
       const prBaseCommit = await getPRBaseCommit(existingPR, targetBranch);
       console.log(
@@ -99,18 +104,18 @@ export default async function runExecutor(
     console.log('📋 Extracting changelog...');
     const { changelog } = await extractChangelog(changelogPatterns);
 
-    // Build PR title from releases
-    const prTitle = buildPRTitle(releases);
-
     // Generate AI summary if enabled
     let aiSummary = '';
-    if (aiProvider !== 'none' && diffForAI) {
-      console.log('🤖 Generating AI summary...');
+    if (finalAiCommand && diffForAI) {
+      console.log(`🤖 Generating AI summary${model ? ` with model: ${model}` : ''}...`);
       aiSummary = await generateAISummary(
         changelog,
         releases,
         diffForAI,
-        aiCommand
+        finalAiCommand,
+        {
+          maxLinesPerFile,
+        }
       );
     }
 

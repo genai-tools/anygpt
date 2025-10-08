@@ -1,3 +1,29 @@
+## 0.6.0 (2025-10-08)
+
+### 🚀 Features
+
+- add list-tags command and model tag discovery functionality ([8c46b8f](https://github.com/genai-tools/anygpt/commit/8c46b8f))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
+## 0.5.1 (2025-10-08)
+
+### 🧱 Updated Dependencies
+
+- Updated types to 0.2.0
+
+## 0.5.0 (2025-10-07)
+
+### 🚀 Features
+
+- **config:** add shared model resolution utilities ([0cdcea1](https://github.com/genai-tools/anygpt/commit/0cdcea1))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.4.0 (2025-10-07)
 
 ### 🚀 Features

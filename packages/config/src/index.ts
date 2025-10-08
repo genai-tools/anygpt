@@ -43,6 +43,18 @@ export {
 // Configuration loader (not exported by default, used internally)
 export { loadConfig, validateConfig } from './loader.js';
 
+// Model resolution utilities (shared between CLI and MCP)
+export {
+  resolveModel,
+  findModelByTag,
+  listAvailableTags,
+  type ModelResolution,
+  type ModelResolutionContext,
+  type TagInfo,
+  type AliasInfo,
+  type AvailableTagsResult
+} from './model-resolver.js';
+
 // Note: Connector factory functions (like openai()) should be imported directly 
 // from their packages to keep config package connector-agnostic:
 // import { openai } from '@anygpt/openai';

@@ -1,8 +1,9 @@
 export interface PrUpdateExecutorSchema {
   baseBranch?: string;
   targetBranch?: string;
-  aiProvider?: 'anygpt' | 'none';
   aiCommand?: string;
+  model?: string;
+  maxLinesPerFile?: number;
   diffPaths?: string[];
   changelogPatterns?: string[];
 }

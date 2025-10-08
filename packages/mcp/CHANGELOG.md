@@ -1,3 +1,54 @@
+## 0.5.0 (2025-10-08)
+
+### 🚀 Features
+
+- add list-tags command and model tag discovery functionality ([8c46b8f](https://github.com/genai-tools/anygpt/commit/8c46b8f))
+
+### 🩹 Fixes
+
+- **security:** remove company name from code comments ([8f9d46b](https://github.com/genai-tools/anygpt/commit/8f9d46b))
+
+### 🧱 Updated Dependencies
+
+- Updated config to 0.6.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
+## 0.4.0 (2025-10-08)
+
+### 🚀 Features
+
+- **mcp:** enhance model discovery and max_tokens handling ([535ae96](https://github.com/genai-tools/anygpt/commit/535ae96))
+
+### 🧱 Updated Dependencies
+
+- Updated config to 0.5.1
+- Updated types to 0.2.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
+## 0.3.0 (2025-10-07)
+
+### 🚀 Features
+
+- **mcp:** refactor server architecture and add new capabilities ([de4392c](https://github.com/genai-tools/anygpt/commit/de4392c))
+
+### 🩹 Fixes
+
+- **mcp:** resolve TypeScript type errors ([bb0d19c](https://github.com/genai-tools/anygpt/commit/bb0d19c))
+
+### 🧱 Updated Dependencies
+
+- Updated config to 0.5.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.2.2 (2025-10-07)
 
 ### 🧱 Updated Dependencies

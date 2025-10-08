@@ -23,16 +23,18 @@
         "type": "string"
       }
     },
-    "aiProvider": {
-      "type": "string",
-      "description": "AI provider for generating release summaries",
-      "enum": ["anygpt", "none"],
-      "default": "anygpt"
-    },
     "aiCommand": {
       "type": "string",
-      "description": "Command to run for AI summary generation",
-      "default": "npx anygpt chat"
+      "description": "Command to run for AI summary generation (should accept prompt via stdin). Leave empty to skip AI summaries."
+    },
+    "model": {
+      "type": "string",
+      "description": "AI model to use (overrides model in aiCommand if specified). Examples: fast, gpt-4o, sonnet, etc."
+    },
+    "maxLinesPerFile": {
+      "type": "number",
+      "description": "Maximum lines per file in diff sent to AI (prevents large files from dominating)",
+      "default": 150
     },
     "autoMerge": {
       "type": "boolean",

@@ -88,8 +88,44 @@ export class CodyConnector extends BaseConnector implements IConnector {
    * Chat completion via API (using OpenAI connector)
    */
   private async chatCompletionViaAPI(request: BaseChatCompletionRequest): Promise<BaseChatCompletionResponse> {
+    // Transform system messages for Cody API compatibility
+    // Cody/Sourcegraph API returns: "system role is not supported"
+    // Strategy: Merge system messages into the first user message to avoid consecutive user messages
+    const messages = [...request.messages];
+    const transformedMessages: typeof messages = [];
+    let systemPrompts: string[] = [];
+    
+    for (const msg of messages) {
+      if (msg.role === 'system') {
+        // Collect system prompts
+        systemPrompts.push(msg.content);
+      } else if (msg.role === 'user') {
+        // Merge accumulated system prompts into this user message
+        if (systemPrompts.length > 0) {
+          const combinedContent = [...systemPrompts, msg.content].join('\n\n');
+          transformedMessages.push({ role: 'user', content: combinedContent });
+          systemPrompts = []; // Clear after merging
+        } else {
+          transformedMessages.push(msg);
+        }
+      } else {
+        // Assistant messages pass through unchanged
+        transformedMessages.push(msg);
+      }
+    }
+    
+    // If there are leftover system prompts (no user message after them), add as user message
+    if (systemPrompts.length > 0) {
+      transformedMessages.push({ role: 'user', content: systemPrompts.join('\n\n') });
+    }
+    
+    const transformedRequest = {
+      ...request,
+      messages: transformedMessages
+    };
+    
     const connector = await this.getConnector();
-    return connector.chatCompletion(request);
+    return connector.chatCompletion(transformedRequest);
   }
 
   /**

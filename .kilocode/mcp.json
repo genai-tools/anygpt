@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "anygpt": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@anygpt/mcp"
+      ],
+      "alwaysAllow": [
+        "anygpt_list_providers",
+        "anygpt_chat_completion",
+        "anygpt_list_models"
+      ]
+    }
+  }
+}

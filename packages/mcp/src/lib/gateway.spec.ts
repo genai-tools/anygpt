@@ -62,8 +62,9 @@ describe('MCP Server Integration', () => {
     
     // Check for expected tools
     const toolNames = response.result.tools.map((t: { name: string }) => t.name);
-    expect(toolNames).toContain('chat_completion');
-    expect(toolNames).toContain('list_models');
+    expect(toolNames).toContain('anygpt_chat_completion');
+    expect(toolNames).toContain('anygpt_list_models');
+    expect(toolNames).toContain('anygpt_list_providers');
   }, 10000);
 
   it('should have proper tool schemas', async () => {
@@ -103,7 +104,7 @@ describe('MCP Server Integration', () => {
     });
 
     const response = JSON.parse(result);
-    const chatTool = response.result.tools.find((t: { name: string }) => t.name === 'chat_completion');
+    const chatTool = response.result.tools.find((t: { name: string }) => t.name === 'anygpt_chat_completion');
     
     expect(chatTool).toBeDefined();
     expect(chatTool.inputSchema).toHaveProperty('properties');

@@ -78,6 +78,14 @@ Thumbs.db
 .anygpt/
 .nx/workspace-data/
 
+# Sensitive configuration files (NEVER commit these)
+**/config.json
+**/credentials.json
+**/.credentials
+**/secrets.json
+**/*.secret.*
+**/*.credentials.*
+
 # Cursor AI
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
@@ -93,3 +101,6 @@ vite.config.ts.timestamp-*
 
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
+
+# Note: package-lock.json is NOT gitignored (Nx needs it locally)
+# But it's auto-unstaged by .husky/pre-commit hook to prevent commits

@@ -1,13 +1,27 @@
 import { execa } from 'execa';
-import type { PackageRelease } from './changelog';
+import type { PackageRelease } from './changelog.js';
+import { truncateDiff, formatTruncationStats } from './diff-truncation.js';
 
 export async function generateAISummary(
   changelog: string,
   releases: PackageRelease[],
   diff: string,
-  aiCommand: string
+  command: string,
+  options: {
+    maxLinesPerFile?: number;
+  } = {}
 ): Promise<string> {
+  const {
+    maxLinesPerFile = 150,
+  } = options;
   try {
+    // Truncate diff per-file to prevent large files from dominating
+    const { diff: truncatedDiff, stats } = truncateDiff(diff, maxLinesPerFile);
+    
+    if (stats.truncatedFiles > 0) {
+      console.log(`   📊 Diff stats: ${formatTruncationStats(stats)}`);
+    }
+    
     // Identify new packages (first release = v0.1.0 or v0.2.0 with lots of new files)
     const newPackages = releases.filter(r => 
       r.version.match(/^0\.[12]\.0$/)
@@ -28,16 +42,20 @@ IMPORTANT:
 - Skip mentioning package versions unless it's critical context${newPackagesNote}
 
 Code Changes (diff):
-${diff}
+${truncatedDiff}
 
 Changelog:
 ${changelog}
 
 Provide a clear summary of what actually changed in the code. Keep it brief for simple changes, more detailed for complex ones.`;
 
-    const [command, ...args] = aiCommand.split(' ');
-    const { stdout } = await execa(command, [...args, prompt], {
-      stdio: 'pipe',
+    // Execute the command with prompt via stdin
+    // The command should be fully configured in nx.json (e.g., "npx anygpt chat --stdin --model fast --max-tokens 1000")
+    const [cmd, ...args] = command.split(' ');
+    
+    const { stdout } = await execa(cmd, args, {
+      input: prompt,
+      stdio: ['pipe', 'pipe', 'pipe'],
     });
 
     return stdout.trim();
