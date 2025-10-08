@@ -229,6 +229,11 @@ This project uses NX monorepo for managing multiple packages:
 # Install dependencies (automatically installs Husky git hooks)
 npm install
 
+# Note: package-lock.json is created locally but never committed
+# - Nx requires it for builds
+# - Husky pre-commit hook auto-unstages it
+# - You can use any npm registry (public or internal)
+
 # Build all packages (NX handles dependencies automatically)
 npx nx run-many -t build
 
