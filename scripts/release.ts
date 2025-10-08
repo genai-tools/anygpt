@@ -9,8 +9,13 @@ async function getCurrentBranch(): Promise<string> {
 
 async function hasUncommittedChanges(): Promise<boolean> {
   try {
-    await execa('git', ['diff-index', '--quiet', 'HEAD', '--']);
-    return false;
+    // Check for uncommitted changes (excluding package-lock.json)
+    const { stdout: status } = await execa('git', ['status', '--porcelain']);
+    const changes = status
+      .split('\n')
+      .filter(line => line.trim())
+      .filter(line => !line.includes('package-lock.json')); // Ignore package-lock.json
+    return changes.length > 0;
   } catch {
     return true;
   }
