@@ -71,12 +71,12 @@ export function listTools(context: { defaultModel?: string; defaultProvider?: st
             },
             model: {
               type: "string",
-              description: `The model to use. Accepts: (1) Full model IDs from specific providers (e.g., 'ml-asset:static-model/claude-sonnet-4-5' for provider1, 'anthropic::2024-10-22::claude-opus-4-latest' for cody), (2) Common aliases that work across providers (e.g., 'opus', 'sonnet', 'gpt-4'). The server searches configured providers to find a matching model. Use 'anygpt_list_models' to see exact model IDs and aliases.${context.defaultModel ? ` (default: ${context.defaultModel})` : ''}`,
+              description: `The model to use. Accepts: (1) Full model IDs from specific providers (e.g., 'ml-asset:static-model/claude-sonnet-4-5', 'anthropic::2024-10-22::claude-opus-4-latest'), (2) Common aliases that work across providers (e.g., 'opus', 'sonnet', 'gpt-4'). The server searches configured providers to find a matching model. Use 'anygpt_list_models' to see exact model IDs and aliases.${context.defaultModel ? ` (default: ${context.defaultModel})` : ''}`,
               ...modelDefault
             },
             provider: {
               type: "string",
-              description: `Optional: Explicitly specify the AI provider (e.g., 'provider1', 'cody'). If omitted, the server will auto-detect by: (1) checking the default provider first, (2) searching all configured providers for a model matching the 'model' parameter. Specifying the provider ensures you get the exact model from the intended source. Use 'anygpt_list_providers' to see available providers.${context.defaultProvider ? ` (default: ${context.defaultProvider})` : ''}`,
+              description: `Optional: Explicitly specify the AI provider (e.g., 'provider1', 'provider2'). If omitted, the server will auto-detect by: (1) checking the default provider first, (2) searching all configured providers for a model matching the 'model' parameter. Specifying the provider ensures you get the exact model from the intended source. Use 'anygpt_list_providers' to see available providers.${context.defaultProvider ? ` (default: ${context.defaultProvider})` : ''}`,
               ...providerDefault
             },
             temperature: {

@@ -114,13 +114,12 @@ export async function listTagsCommand(
   console.log('  # Use a tag directly:');
   console.log('  anygpt chat --model sonnet "Hello"');
   console.log('  anygpt chat --model opus "Hello"');
-  console.log();
   console.log('  # Specify provider explicitly:');
-  console.log('  anygpt chat --provider cody --model sonnet "Hello"');
   console.log('  anygpt chat --provider provider1 --model sonnet "Hello"');
+  console.log('  anygpt chat --provider provider2 --model sonnet "Hello"');
   console.log();
   console.log('  # Use provider:tag syntax (resolved automatically):');
-  console.log('  anygpt chat --model cody:sonnet "Hello"');
+  console.log('  anygpt chat --provider provider1 --model sonnet "Hello"');
   console.log('  anygpt chat --model provider1:opus "Hello"');
   console.log();
   
