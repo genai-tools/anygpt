@@ -52,7 +52,35 @@ Send chat completion requests to AI providers via the gateway.
 - `model` (optional): Model to use (uses default if not specified)
 - `provider` (optional): AI provider (uses default if not specified)
 - `temperature` (optional): Sampling temperature (0-2, default: 1)
-- `max_tokens` (optional): Maximum tokens to generate (default: 1000)
+- `max_tokens` (optional): Maximum tokens to generate (default: 4096)
+
+**Understanding Response Truncation:**
+
+If the response has `"finish_reason": "length"`, it means the output was **truncated** because it reached the `max_tokens` limit. To get a complete response:
+
+1. **Increase `max_tokens`** in your request
+2. **Use these guidelines:**
+   - Short answers: 100-500 tokens
+   - Medium responses: 500-2000 tokens
+   - Long/comprehensive outputs: 2000-4096+ tokens
+3. **Trade-offs:** Higher `max_tokens` values increase latency and cost but prevent truncation
+
+**Example of handling truncation:**
+```typescript
+// First attempt - might be truncated
+const response1 = await anygpt_chat_completion({
+  messages: [{ role: "user", content: "Explain quantum computing in detail" }],
+  max_tokens: 100  // Too low!
+});
+
+if (response1.choices[0].finish_reason === "length") {
+  // Response was truncated, retry with higher limit
+  const response2 = await anygpt_chat_completion({
+    messages: [{ role: "user", content: "Explain quantum computing in detail" }],
+    max_tokens: 2000  // Much better!
+  });
+}
+```
 
 ## Discovery Workflow
 
