@@ -1,0 +1,50 @@
+#!/bin/sh
+# Security pre-commit checks - BLOCKS commits with secrets/internal URLs
+
+echo "🔒 Running security checks..."
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+FAILED=0
+
+# Check 1: Hardcoded secrets
+echo "  🔍 Checking for hardcoded secrets..."
+if git diff --cached | grep -qE "(sgp_[a-zA-Z0-9]{40,}|sk-[a-zA-Z0-9]{40,}|ghp_[a-zA-Z0-9]{36,})"; then
+  printf "${RED}❌ ERROR: Hardcoded secrets detected!${NC}\n"
+  echo "Use environment variables: process.env.TOKEN_NAME"
+  FAILED=1
+else
+  printf "  ${GREEN}✓${NC} No secrets detected\n"
+fi
+
+# Check 2: Internal URLs (exclude security docs)
+echo "  🔍 Checking for internal URLs..."
+STAGED_FILES=$(git diff --cached --name-only | grep -v -E "(SECURITY\.md|security-.*\.md|\.husky/)" || true)
+if [ -n "$STAGED_FILES" ]; then
+  if git diff --cached -- $STAGED_FILES | grep -iE "(provider1\.com|sourcegraph\.provider1|gen-ai\.prod)" | grep -qv "example\.com"; then
+    printf "${RED}❌ ERROR: Internal URLs detected!${NC}\n"
+    echo "Replace with: example.com"
+    FAILED=1
+  else
+    printf "  ${GREEN}✓${NC} No internal URLs\n"
+  fi
+fi
+
+# Check 3: Sensitive files
+echo "  🔍 Checking for sensitive files..."
+if git diff --cached --name-only | grep -qE "(\.env$|\.env\.|config\.json$|credentials\.json$|\.anygpt/)"; then
+  printf "${RED}❌ ERROR: Sensitive files staged!${NC}\n"
+  FAILED=1
+else
+  printf "  ${GREEN}✓${NC} No sensitive files\n"
+fi
+
+if [ $FAILED -eq 1 ]; then
+  printf "\n${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+  printf "${RED}❌ COMMIT BLOCKED - Fix issues above${NC}\n"
+  printf "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+  exit 1
+fi
+
+printf "\n${GREEN}✅ Security checks passed${NC}\n"

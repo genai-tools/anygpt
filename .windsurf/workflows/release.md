@@ -7,15 +7,15 @@ description: Minimal release procedure
 - **Scope**: Keep execution under 60 seconds. If unexpected work appears, stop and ask the user.
 - **Security**: MUST run security checks before committing. See `.windsurf/workflows/security-check.md`
 
-# Step 0 · Security Pre-Check (AUTOMATIC)
-- **Protection**: Pre-commit hook automatically scans ALL commits
-- **Location**: `.git/hooks/pre-commit` (already installed)
+# Step 0 · Security Pre-Check (AUTOMATIC via Husky)
+- **Protection**: Husky pre-commit hook automatically scans ALL commits
+- **Location**: `.husky/pre-commit` (version-controlled, transparent)
 - **What it checks**:
   - ❌ Hardcoded secrets (sgp_, sk-, ghp_ tokens)
   - ❌ Internal company URLs (company.example, etc.)
   - ❌ Sensitive files (.env, config.json, etc.)
-  - ❌ Real credentials in example files
 - **Behavior**: **BLOCKS the commit** if issues are found
+- **Setup**: Automatic via `npm install` (no manual steps needed)
 - **Why**: Prevents secrets from ever reaching git history - damage prevention at the source
 
 # Step 1 · Review status

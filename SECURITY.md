@@ -39,34 +39,18 @@ This project handles sensitive credentials and API keys. Follow these guidelines
 
 ### 🛡️ Automated Protection
 
-#### Pre-Commit Hook (ACTIVE)
+#### Pre-Commit Hook (Husky)
 
-✅ **Already installed!** The pre-commit hook is active in this repository.
+✅ **Automatically installed with `npm install`** via Husky.
 
-It automatically scans for secrets BEFORE they reach GitHub:
+**Location**: `.husky/pre-commit` (version-controlled and transparent)
 
-```bash
-cat > .git/hooks/pre-commit << 'EOF'
-#!/bin/bash
-echo "🔒 Running security checks..."
+The hook scans for secrets BEFORE they reach GitHub:
+- Hardcoded tokens (sgp_, sk-, ghp_)
+- Internal company URLs
+- Sensitive files (.env, config.json, etc.)
 
-# Check for secrets
-if git diff --cached | grep -qE "(sgp_[a-zA-Z0-9]{40,}|sk-[a-zA-Z0-9]{40,}|ghp_[a-zA-Z0-9]{36,})"; then
-  echo "❌ ERROR: Hardcoded secrets detected!"
-  exit 1
-fi
-
-# Check for internal URLs
-if git diff --cached | grep -qiE "provider1\.com" | grep -qv "example\.com"; then
-  echo "⚠️  WARNING: Internal URLs detected!"
-  exit 1
-fi
-
-echo "✅ Security checks passed"
-EOF
-
-chmod +x .git/hooks/pre-commit
-```
+**No manual installation needed** - Husky sets it up automatically!
 
 #### Why No GitHub Actions?
 
