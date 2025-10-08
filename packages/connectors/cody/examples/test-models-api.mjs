@@ -7,7 +7,7 @@ async function testCodyModelsAPI() {
   
   const connector = new CodyConnector({
     endpoint: 'https://sourcegraph.example.com/',
-    accessToken: 'REDACTED_TOKEN'
+    accessToken: process.env.SRC_ACCESS_TOKEN || 'sgp_your-token-here'
   });
 
   try {
