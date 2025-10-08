@@ -17,6 +17,7 @@ import {
   handleChatCompletion,
   handleListModels,
   handleListProviders,
+  handleListTags,
   type ChatCompletionToolArgs,
   type ListModelsToolArgs,
 } from "./lib/tools.js";
@@ -109,6 +110,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         break;
       case "anygpt_list_providers":
         result = handleListProviders(context);
+        break;
+      case "anygpt_list_tags":
+        result = handleListTags((args ?? {}) as { provider?: string }, context);
         break;
       default:
         throw new Error(`Unknown tool: ${name}`);
