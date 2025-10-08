@@ -1,12 +1,13 @@
 # AnyGPT Ecosystem
 
-A comprehensive TypeScript ecosystem for building AI-powered applications with support for multiple providers, MCP protocol, and 
+A comprehensive TypeScript ecosystem for building AI-powered applications with support for multiple providers, MCP protocol, and
 flexible configuration management.
 
 ## Why?
 
 **Problem**: Building AI applications requires dealing with different provider APIs, complex configuration management, and protocol translations for MCP clients.
 **Solution**: This monorepo provides a modular ecosystem with clean separation of concerns:
+
 - **Type System**: Pure type definitions with zero runtime overhead
 - **Router Layer**: Provider abstraction and routing with connector pattern
 - **Configuration**: Dynamic connector loading and flexible configuration management
@@ -23,20 +24,20 @@ CLI Tool → @anygpt/config → @anygpt/connectors → Provider SDKs
 
 ### Core Packages
 
-| Package | Purpose | Dependencies |
-|---------|---------|--------------|
-| **[@anygpt/types](./packages/types/)** | Pure type definitions | None (0 runtime deps) |
-| **[@anygpt/config](./packages/config/)** | Configuration management | @anygpt/types |
-| **[@anygpt/router](./packages/router/)** | Core routing and connector registry | None |
-| **[@anygpt/cli](./packages/cli/)** | Command-line interface | @anygpt/config, @anygpt/mock |
-| **[@anygpt/mcp](./packages/mcp/)** | MCP server implementation | @anygpt/router, @anygpt/openai |
+| Package                                  | Purpose                             | Dependencies                   |
+| ---------------------------------------- | ----------------------------------- | ------------------------------ |
+| **[@anygpt/types](./packages/types/)**   | Pure type definitions               | None (0 runtime deps)          |
+| **[@anygpt/config](./packages/config/)** | Configuration management            | @anygpt/types                  |
+| **[@anygpt/router](./packages/router/)** | Core routing and connector registry | None                           |
+| **[@anygpt/cli](./packages/cli/)**       | Command-line interface              | @anygpt/config, @anygpt/mock   |
+| **[@anygpt/mcp](./packages/mcp/)**       | MCP server implementation           | @anygpt/router, @anygpt/openai |
 
 ### Connector Packages
 
-| Package | Provider | Dependencies |
-|---------|----------|--------------|
+| Package                                             | Provider                 | Dependencies           |
+| --------------------------------------------------- | ------------------------ | ---------------------- |
 | **[@anygpt/openai](./packages/connectors/openai/)** | OpenAI & compatible APIs | @anygpt/router, openai |
-| **[@anygpt/mock](./packages/connectors/mock/)** | Testing & development | @anygpt/types |
+| **[@anygpt/mock](./packages/connectors/mock/)**     | Testing & development    | @anygpt/types          |
 
 ### Supported Providers
 
@@ -82,23 +83,26 @@ anygpt-mcp
 anygpt list-tags
 
 # Quick chat with tags (stateless)
-anygpt chat --model sonnet "Explain TypeScript generics"
-anygpt chat --model opus "Write a complex algorithm"
+anygpt chat --tag sonnet "Explain TypeScript generics"
+anygpt chat --tag opus "Write a complex algorithm"
 
-# Use provider:tag syntax
-anygpt chat --model cody:sonnet "Hello"
-anygpt chat --model provider1:opus "Hello"
+# Specify provider explicitly
+anygpt chat --provider cody --tag sonnet "Hello"
+anygpt chat --provider provider1 --tag gemini "Hello"
+
+# Use direct model name (no tag resolution)
+anygpt chat --model "ml-asset:static-model/claude-sonnet-4-5" "Hello"
 
 # Start a conversation (stateful)
-anygpt conversation start --model sonnet --name "coding-session"
+anygpt conversation start --tag sonnet --name "coding-session"
 anygpt conversation message "How do I implement a binary tree in TypeScript?"
 anygpt conversation message "Show me the insertion method"
 
 # List conversations
 anygpt conversation list
 
-# Fork a conversation with different model
-anygpt conversation fork --model opus --name "binary-tree-v2"
+# Fork a conversation with different tag
+anygpt conversation fork --tag opus --name "binary-tree-v2"
 ```
 
 ### 2. Router as Library
@@ -114,13 +118,13 @@ router.registerConnector(new OpenAIConnectorFactory());
 // Create connector instance
 const connector = router.createConnector('openai', {
   apiKey: process.env.OPENAI_API_KEY,
-  baseURL: 'https://api.openai.com/v1'
+  baseURL: 'https://api.openai.com/v1',
 });
 
 // Make requests
 const response = await connector.chatCompletion({
   model: 'gpt-4o',
-  messages: [{ role: 'user', content: 'Hello!' }]
+  messages: [{ role: 'user', content: 'Hello!' }],
 });
 ```
 
@@ -136,7 +140,7 @@ const { router, config } = await setupRouter();
 const response = await router.chatCompletion({
   provider: 'openai-main',
   model: 'gpt-4o',
-  messages: [{ role: 'user', content: 'Hello!' }]
+  messages: [{ role: 'user', content: 'Hello!' }],
 });
 ```
 
@@ -148,23 +152,23 @@ import { config, openai } from '@anygpt/config';
 export default config({
   defaults: {
     provider: 'openai-main',
-    model: 'gpt-4o'
+    model: 'gpt-4o',
   },
   providers: {
     'openai-main': {
       name: 'OpenAI GPT Models',
       connector: openai({
         apiKey: process.env.OPENAI_API_KEY,
-        baseURL: 'https://api.openai.com/v1'
-      })
+        baseURL: 'https://api.openai.com/v1',
+      }),
     },
     'ollama-local': {
       name: 'Local Ollama',
       connector: openai({
-        baseURL: 'http://localhost:11434/v1'
-      })
-    }
-  }
+        baseURL: 'http://localhost:11434/v1',
+      }),
+    },
+  },
 });
 ```
 
@@ -182,15 +186,15 @@ const config: AnyGPTConfig = {
         connector: '@anygpt/openai',
         config: {
           apiKey: process.env.OPENAI_API_KEY,
-          baseURL: 'https://api.openai.com/v1'
-        }
-      }
-    }
+          baseURL: 'https://api.openai.com/v1',
+        },
+      },
+    },
   },
   settings: {
     defaultProvider: 'openai-main',
-    timeout: 30000
-  }
+    timeout: 30000,
+  },
 };
 
 export default config;
@@ -265,26 +269,31 @@ npx nx run-many -t lint
 ## Key Features
 
 ### 🎯 **Modular Architecture**
+
 - **Clean separation**: Each package has a single responsibility
 - **Zero runtime overhead**: Type-only packages with `import type`
 - **Dependency inversion**: Connectors depend on router, not vice versa
 
 ### 🔧 **Dynamic Configuration**
+
 - **Runtime connector loading**: No hardcoded dependencies
 - **Multiple config sources**: TypeScript, JavaScript, JSON files
 - **Environment support**: User home, system-wide, project-local configs
 
 ### 🚀 **Developer Experience**
+
 - **Full TypeScript support**: Complete type safety across all packages
 - **Comprehensive CLI**: Stateful conversations, forking, summarization
 - **Testing utilities**: Mock connector for development and testing
 
 ### 🔌 **Extensible Design**
+
 - **Connector pattern**: Easy to add new AI providers
 - **Plugin architecture**: Extensible command system
 - **MCP compliance**: Full protocol implementation
 
 ### ✅ **Comprehensive Testing**
+
 - **30 E2E tests**: Complete CLI workflow validation with 0 skipped tests
 - **Mock connector**: Deterministic responses for reliable testing
 - **Full coverage**: Chat, conversations, config management, and error handling
@@ -293,15 +302,18 @@ npx nx run-many -t lint
 ## Documentation
 
 ### Getting Started
+
 - **[CLI Documentation](./packages/cli/docs/README.md)** - Complete command-line interface guide
 - **[Configuration Guide](./docs/configuration.md)** - Complete configuration setup and examples
 - **[Troubleshooting Guide](./docs/troubleshooting.md)** - Common issues, recent fixes, and debugging
 
 ### Integration Examples
+
 - **[LiteLLM Integration](./examples/litellm-integration.md)** - Use AnyGPT with LiteLLM Proxy for 100+ providers and enterprise features
 - **[Example Configurations](./examples/)** - Ready-to-use config examples for various setups
 
 ### Development Guidelines
+
 - **[Testing Guide](./docs/guidelines/testing.md)** - Comprehensive testing strategy, patterns, and coverage goals
 - **[E2E Testing Guide](./e2e/README.md)** - End-to-end test suite documentation and patterns
 - **[Release Workflow](./docs/release-workflow.md)** - Automated Release PR workflow documentation
@@ -309,11 +321,13 @@ npx nx run-many -t lint
 - **[Release Setup](./docs/release-setup.md)** - Release infrastructure documentation
 
 ### CLI Commands
+
 - **[Chat Command](./packages/cli/docs/chat.md)** - Stateless AI interactions
 - **[Conversation Command](./packages/cli/docs/conversation.md)** - Stateful conversations with advanced features
 - **[Config Command](./packages/cli/docs/config.md)** - Configuration management and TypeScript benefits
 
 ### Package Documentation
+
 - **[@anygpt/types](./packages/types/README.md)** - Pure type definitions
 - **[@anygpt/config](./packages/config/README.md)** - Configuration management
 - **[@anygpt/router](./packages/router/README.md)** - Core router and connector system
@@ -323,16 +337,27 @@ npx nx run-many -t lint
 - **[@anygpt/mcp](./packages/mcp/README.md)** - MCP server implementation
 
 ### Architecture Documentation
+
 - **[Router API Reference](./packages/router/docs/API.md)** - Complete API documentation
 - **[Router Architecture](./packages/router/docs/ARCHITECTURE.md)** - System design patterns
 - **[Configuration Guide](./packages/router/docs/CONFIG.md)** - Provider configuration
 - **[Connector Usage](./packages/router/docs/CONNECTOR_USAGE.md)** - Provider-specific usage
+
+### CLI Documentation
+
+- **[CLI Overview](./packages/cli/docs/README.md)** - Complete CLI documentation
+- **[Tag Resolution Guide](./packages/cli/docs/tag-resolution.md)** - How to use tags and model discovery
+- **[Chat Command](./packages/cli/docs/chat.md)** - Stateless chat usage
+- **[Conversation Command](./packages/cli/docs/conversation.md)** - Stateful conversations
+- **[Config Command](./packages/cli/docs/config.md)** - Configuration management
+- **[Benchmark Command](./packages/cli/docs/benchmark.md)** - Model performance testing
 
 ## Security
 
 ⚠️ **Important**: This project handles sensitive credentials. Please review [SECURITY.md](./SECURITY.md) before contributing.
 
 **Key security practices:**
+
 - Never commit API keys or tokens
 - Use environment variables for credentials
 - Run security checks before committing (see `.windsurf/workflows/security-check.md`)
