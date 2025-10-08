@@ -226,11 +226,8 @@ npx @modelcontextprotocol/inspector anygpt-mcp
 This project uses NX monorepo for managing multiple packages:
 
 ```bash
-# Install dependencies
+# Install dependencies (automatically installs Husky git hooks)
 npm install
-
-# Install security git hooks (IMPORTANT!)
-./scripts/install-git-hooks.sh
 
 # Build all packages (NX handles dependencies automatically)
 npx nx run-many -t build
