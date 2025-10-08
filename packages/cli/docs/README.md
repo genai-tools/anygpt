@@ -4,37 +4,45 @@ Complete documentation for the AnyGPT command-line interface, covering all comma
 
 ## Quick Navigation
 
-| Command | Purpose | Documentation |
-|---------|---------|---------------|
-| **[chat](./chat.md)** | Stateless AI interactions | [📖 Chat Guide](./chat.md) |
-| **[conversation](./conversation.md)** | Stateful AI conversations | [📖 Conversation Guide](./conversation.md) |
-| **[config](./config.md)** | Configuration management | [📖 Config Guide](./config.md) |
+| Command                               | Purpose                   | Documentation                                  |
+| ------------------------------------- | ------------------------- | ---------------------------------------------- |
+| **[chat](./chat.md)**                 | Stateless AI interactions | [📖 Chat Guide](./chat.md)                     |
+| **[conversation](./conversation.md)** | Stateful AI conversations | [📖 Conversation Guide](./conversation.md)     |
+| **[config](./config.md)**             | Configuration management  | [📖 Config Guide](./config.md)                 |
+| **[list-tags](./tag-resolution.md)**  | Tag & model discovery     | [📖 Tag Resolution Guide](./tag-resolution.md) |
+| **[benchmark](./benchmark.md)**       | Model performance testing | [📖 Benchmark Guide](./benchmark.md)           |
 
 ## Command Overview
 
 ### Chat Command - Simple & Fast
+
 ```bash
 npx anygpt chat "What is TypeScript?"
 ```
+
 - **Stateless**: No memory between messages
 - **Fast**: Single request/response
 - **Simple**: Perfect for quick questions
 - **Use cases**: Factual queries, code snippets, translations
 
 ### Conversation Command - Contextual & Powerful
+
 ```bash
 npx anygpt conversation message "Help me design a REST API"
 npx anygpt conversation message "Add authentication to that design"
 ```
+
 - **Stateful**: Maintains conversation history
 - **Contextual**: AI remembers previous messages
 - **Advanced**: Fork, condense, summarize capabilities
 - **Use cases**: Code reviews, architecture discussions, learning
 
 ### Config Command - Setup & Management
+
 ```bash
 npx anygpt config
 ```
+
 - **Inspection**: View current configuration
 - **Validation**: Verify setup correctness
 - **Export**: Share configuration templates
@@ -44,13 +52,13 @@ npx anygpt config
 
 ### Stateless vs Stateful
 
-| Aspect | Chat (Stateless) | Conversation (Stateful) |
-|--------|------------------|-------------------------|
-| **Memory** | None | Full history |
-| **Context** | Single message | Cumulative |
-| **Use Case** | Quick queries | Extended discussions |
-| **Performance** | Fast | Contextual |
-| **Storage** | None | Persistent |
+| Aspect          | Chat (Stateless) | Conversation (Stateful) |
+| --------------- | ---------------- | ----------------------- |
+| **Memory**      | None             | Full history            |
+| **Context**     | Single message   | Cumulative              |
+| **Use Case**    | Quick queries    | Extended discussions    |
+| **Performance** | Fast             | Contextual              |
+| **Storage**     | None             | Persistent              |
 
 ### Configuration Hierarchy
 
@@ -80,16 +88,16 @@ import { config, openai } from '@anygpt/config';
 export default config({
   defaults: {
     provider: 'openai',
-    model: 'gpt-4o'
+    model: 'gpt-4o',
   },
   providers: {
     openai: {
       name: 'OpenAI',
       connector: openai({
-        apiKey: process.env.OPENAI_API_KEY
-      })
-    }
-  }
+        apiKey: process.env.OPENAI_API_KEY,
+      }),
+    },
+  },
 });
 ```
 
@@ -167,6 +175,7 @@ npx anygpt chat "Generate a regex for email validation"
 ### Conversation Management
 
 #### Forking - Explore Alternatives
+
 ```bash
 # Original conversation about caching
 npx anygpt conversation message "How should I implement caching?"
@@ -175,12 +184,13 @@ npx anygpt conversation message "How should I implement caching?"
 npx anygpt conversation fork --name "Redis Implementation"
 npx anygpt conversation message "Show Redis caching details"
 
-# Fork to explore Memcached  
+# Fork to explore Memcached
 npx anygpt conversation fork --name "Memcached Implementation"
 npx anygpt conversation message "Show Memcached implementation"
 ```
 
 #### Condensing - Optimize Context
+
 ```bash
 # Check conversation size
 npx anygpt conversation context
@@ -190,6 +200,7 @@ npx anygpt conversation condense --keep-recent 5
 ```
 
 #### Summarizing - Create Overviews
+
 ```bash
 # Long technical discussion
 # ... many messages ...
@@ -201,6 +212,7 @@ npx anygpt conversation summarize --name "Architecture Summary"
 ### Configuration Management
 
 #### Environment-Specific Configs
+
 ```typescript
 // .anygpt/anygpt.config.ts
 const env = process.env.NODE_ENV || 'development';
@@ -220,6 +232,7 @@ export default config(configs[env]);
 ```
 
 #### Dynamic Configuration
+
 ```typescript
 // .anygpt/anygpt.config.ts
 import { config, openai } from '@anygpt/config';
@@ -227,16 +240,16 @@ import { config, openai } from '@anygpt/config';
 export default config({
   defaults: {
     provider: 'openai',
-    model: process.env.NODE_ENV === 'production' ? 'gpt-4o' : 'gpt-3.5-turbo'
+    model: process.env.NODE_ENV === 'production' ? 'gpt-4o' : 'gpt-3.5-turbo',
   },
   providers: {
     openai: {
       connector: openai({
         apiKey: process.env.OPENAI_API_KEY,
-        timeout: parseInt(process.env.TIMEOUT || '30000')
-      })
-    }
-  }
+        timeout: parseInt(process.env.TIMEOUT || '30000'),
+      }),
+    },
+  },
 });
 ```
 
@@ -245,6 +258,7 @@ export default config({
 ### When to Use Each Command
 
 #### Chat Command ✅
+
 - **Quick factual questions**: "What's the capital of France?"
 - **Code snippets**: "Write a function to reverse a string"
 - **Translations**: "Translate 'Hello' to Spanish"
@@ -252,6 +266,7 @@ export default config({
 - **Automation**: Scripting and batch processing
 
 #### Conversation Command ✅
+
 - **Code reviews**: Multi-file, contextual feedback
 - **Architecture discussions**: Complex system design
 - **Learning sessions**: Progressive, building knowledge
@@ -259,6 +274,7 @@ export default config({
 - **Iterative development**: Refining solutions over time
 
 #### Config Command ✅
+
 - **Setup verification**: Ensure configuration is correct
 - **Debugging**: Troubleshoot connection issues
 - **Template sharing**: Export configurations for teams
@@ -269,6 +285,7 @@ export default config({
 ### Common Issues
 
 #### Configuration Problems
+
 ```bash
 # Check current config
 npx anygpt config
@@ -281,18 +298,23 @@ npx anygpt chat "test"
 ```
 
 #### Provider Issues
+
 ```bash
 Error: Provider 'xyz' not configured
 ```
+
 **Solution**: Check provider names in config, use `npx anygpt config` to verify.
 
 #### Conversation State Issues
+
 ```bash
 Error: No active conversation
 ```
+
 **Solution**: Auto-start feature handles this automatically, or use `npx anygpt conversation start`.
 
 #### Token/Context Issues
+
 ```bash
 # Monitor conversation size
 npx anygpt conversation context
@@ -318,24 +340,28 @@ npx anygpt conversation condense --help
 ## Best Practices
 
 ### 1. Configuration Management
+
 - Use `.anygpt/` directory for private configs
 - Leverage TypeScript for type safety
 - Use environment variables for secrets
 - Document configuration choices
 
 ### 2. Conversation Organization
+
 - Use descriptive conversation names
 - Monitor context size with `context` command
 - Use `fork` to explore alternatives
 - Create summaries for important discussions
 
 ### 3. Efficient Usage
+
 - Use `chat` for quick, independent tasks
 - Use `conversation` for contextual, multi-step work
 - Condense long conversations to manage context
 - Fork conversations before major direction changes
 
 ### 4. Development Integration
+
 - Create project-specific configurations
 - Use conversations for code reviews
 - Fork conversations to explore different approaches
@@ -344,6 +370,7 @@ npx anygpt conversation condense --help
 ## Integration Examples
 
 ### CI/CD Integration
+
 ```bash
 # Code review automation
 npx anygpt chat "Review this commit: $(git show --name-only)"
@@ -353,6 +380,7 @@ npx anygpt chat "Generate README for: $(ls -la)"
 ```
 
 ### Development Scripts
+
 ```bash
 #!/bin/bash
 # dev-helper.sh
@@ -372,6 +400,7 @@ esac
 ```
 
 ### Team Workflows
+
 ```bash
 # Architecture discussion
 npx anygpt conversation start --name "Architecture: Microservices Design"
