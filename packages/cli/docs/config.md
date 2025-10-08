@@ -25,11 +25,11 @@ npx anygpt config
 📁 Source: ./.anygpt/anygpt.config.ts
 
 ├─ defaults:
-│  ├─ provider: provider1
-│  ├─ model: ml-asset:static-model/gemini-2_5-flash-lite
+│  ├─ provider: openai
+│  ├─ model: gpt-4o
 ├─ providers:
-│  ├─ provider1:
-│  │  ├─ name: Company GenAI Gateway
+│  ├─ openai:
+│  │  ├─ name: OpenAI
 │  │  ├─ connector:
 │  │  │  ├─ type: @anygpt/openai
 │  │  │  ├─ options:
@@ -45,12 +45,12 @@ npx anygpt config --json
 # Output:
 {
   "defaults": {
-    "provider": "provider1",
-    "model": "ml-asset:static-model/gemini-2_5-flash-lite"
+    "provider": "openai",
+    "model": "gpt-4o"
   },
   "providers": {
-    "provider1": {
-      "name": "Company GenAI Gateway",
+    "openai": {
+      "name": "OpenAI",
       "connector": {
         "type": "@anygpt/openai",
         "options": {
