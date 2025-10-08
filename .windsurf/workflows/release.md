@@ -12,7 +12,7 @@ description: Minimal release procedure
 - **Location**: `.husky/pre-commit` (version-controlled, transparent)
 - **What it checks**:
   - ❌ Hardcoded secrets (sgp_, sk-, ghp_ tokens)
-  - ❌ Internal company URLs (company.example, etc.)
+  - ❌ Internal company URLs
   - ❌ Sensitive files (.env, config.json, etc.)
 - **Behavior**: **BLOCKS the commit** if issues are found
 - **Setup**: Automatic via `npm install` (no manual steps needed)
