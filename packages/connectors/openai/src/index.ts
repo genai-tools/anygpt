@@ -97,6 +97,16 @@ export class OpenAIConnector extends BaseConnector {
         },
       };
     } catch (error) {
+      // Log detailed error information for debugging
+      this.logger.error(`Chat completion error for model ${validatedRequest.model}:`, error);
+      
+      // If it's an OpenAI API error, extract more details
+      if (error && typeof error === 'object' && 'status' in error) {
+        const apiError = error as { status?: number; message?: string; error?: unknown };
+        this.logger.error(`API Status: ${apiError.status}`);
+        this.logger.error(`API Error Details:`, apiError.error);
+      }
+      
       this.handleError(error, 'chat completion');
     }
   }
@@ -347,7 +357,7 @@ export function openai(config: OpenAIConnectorConfig | string = {}, providerId?:
     
   const connector = new OpenAIConnector(finalConfig);
   
-  // Override provider ID if specified (for custom gateways like Booking)
+  // Override provider ID if specified (for custom gateways)
   if (providerId) {
     // Note: providerId is readonly, so we need to use Object.defineProperty
     Object.defineProperty(connector, 'providerId', {

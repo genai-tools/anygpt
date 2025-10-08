@@ -2,8 +2,9 @@ export interface ReleaseExecutorSchema {
   baseBranch?: string;
   targetBranch?: string;
   changelogPatterns?: string[];
-  aiProvider?: 'anygpt' | 'none';
   aiCommand?: string;
+  model?: string;
+  maxLinesPerFile?: number;
   autoMerge?: boolean;
   skipPublish?: boolean;
   diffPaths?: string[];

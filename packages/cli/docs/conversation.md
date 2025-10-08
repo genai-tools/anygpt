@@ -49,9 +49,9 @@ npx anygpt conversation message "Help me design a REST API"
 
 # Output:
 🚀 No active conversation found. Starting a new one...
-🎯 Started new conversation: provider1/gpt-4o - 10/3/2025, 4:41:12 PM
+🎯 Started new conversation: openai/gpt-4o - 10/3/2025, 4:41:12 PM
 📝 Conversation ID: conv_1759502472315_qqx8eocbt
-🔄 provider1/gpt-4o - 10/3/2025, 4:41:12 PM
+🔄 openai/gpt-4o - 10/3/2025, 4:41:12 PM
 👤 Help me design a REST API
 🤖 I'd be happy to help you design a REST API! Let's start with the basics...
 📊 Current: 8 input + 45 output = 53 tokens
@@ -273,9 +273,9 @@ npx anygpt conversation context [options]
 
 **Sample Output:**
 ```bash
-📊 Context Statistics for: provider1/gpt-4o - 10/3/2025, 4:41:12 PM
+📊 Context Statistics for: openai/gpt-4o - 10/3/2025, 4:41:12 PM
 🆔 ID: conv_1759502472315_qqx8eocbt
-🤖 Provider: provider1/gpt-4o
+🤖 Provider: openai/gpt-4o
 
 💬 Messages:
    Total: 12

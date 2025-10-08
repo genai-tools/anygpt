@@ -7,6 +7,7 @@ A powerful command-line interface for interacting with AI providers through the 
 The AnyGPT CLI provides:
 - **💬 Stateless Chat** - Quick one-off interactions with AI models
 - **🗣️ Conversation Management** - Persistent, stateful conversations
+- **🔬 Model Benchmarking** - Compare performance across providers with detailed metrics
 - **🔧 Flexible Configuration** - Support for multiple providers and models
 - **📊 Context Management** - Smart conversation context handling
 - **🔀 Advanced Features** - Fork, summarize, and condense conversations
@@ -32,6 +33,74 @@ anygpt conversation message "Tell me about TypeScript"
 ```
 
 ## 📋 **Commands**
+
+### **Benchmark Command**
+Compare model performance across providers with detailed metrics.
+
+```bash
+anygpt benchmark [options]
+```
+
+**Options:**
+- `--provider <name>` - Benchmark all models from this provider
+- `--model <model>` - Specific model to benchmark (requires --provider)
+- `--models <list>` - Comma-separated list of provider:model pairs
+- `--prompt <text>` - Prompt to use for benchmarking (default: "What is 2+2? Answer in one sentence.")
+- `--max-tokens <number>` - Maximum tokens to generate (default: 100)
+- `--iterations <number>` - Number of iterations per model for averaging (default: 1)
+- `--output <directory>` - Directory to save response files and summary JSON
+- `--json` - Output results as JSON
+
+**Examples:**
+```bash
+# Benchmark all models from a provider
+anygpt benchmark --provider openai --prompt "Hello" --output ./results
+
+# Compare specific models
+anygpt benchmark --models "openai:gpt-4o,openai:gpt-4o-mini,anthropic:claude-3-5-sonnet" --prompt "Explain AI"
+
+# Multiple iterations for averaging
+anygpt benchmark --provider cody --iterations 3 --output ./results
+
+# Test with system role (automatically transformed for Cody)
+anygpt benchmark --models "cody:opus,cody:sonnet" \
+  --prompt "you can only speak spanish. what is your name" \
+  --output ./spanish-test
+```
+
+**Output:**
+- Console table with status, response time, size, and token usage
+- Individual response files (`.txt`) for each model/iteration
+- Summary JSON file with complete benchmark data for analysis
+
+**Example Output:**
+```
+📊 Benchmark Results:
+┌─────────────────────────────────────────────────────────────┐
+│ Provider:Model              │ Status │ Time   │ Size │ Tokens │
+├─────────────────────────────────────────────────────────────┤
+│ openai:gpt-4o-mini          │ ✅ OK  │ 214ms  │ 9ch  │ 14     │
+│ openai:gpt-4o               │ ✅ OK  │ 433ms  │ 13ch │ 15     │
+│ anthropic:claude-3-5-sonnet │ ✅ OK  │ 461ms  │ 15ch │ 22     │
+│ anthropic:claude-3-opus     │ ✅ OK  │ 1124ms │ 7ch  │ 25     │
+└─────────────────────────────────────────────────────────────┘
+
+📈 Summary:
+  Total: 4 models
+  Successful: 4
+  Failed: 0
+  Fastest: 214ms
+  Slowest: 1124ms
+  Average: 558ms
+```
+
+**Use Cases:**
+- **Model Selection**: Find the fastest/most efficient model for your use case
+- **Quality Testing**: Compare response quality across models
+- **Cost Analysis**: Analyze token usage patterns for cost estimation
+- **Debugging**: Test which models support specific prompts (e.g., system roles)
+- **Performance Monitoring**: Track model performance over time
+- **CI/CD Integration**: Automated model testing in pipelines
 
 ### **Chat Command (Stateless)**
 Send a single message without maintaining conversation state.
@@ -331,8 +400,3 @@ MIT - See [LICENSE](LICENSE) for details.
 ---
 
 **Built with ❤️ for developers** | Part of the AnyGPT ecosystem
-// dummy change
-// dummy change
-// dummy change
-// dummy change
-// dummy change

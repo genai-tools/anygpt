@@ -1,6 +1,6 @@
 import { execa } from 'execa';
 import type { ExecutorContext } from '@nx/devkit';
-import type { ReleaseExecutorSchema } from './schema';
+import type { ReleaseExecutorSchema } from './schema.js';
 import {
   getCurrentBranch,
   hasUncommittedChanges,
@@ -12,13 +12,13 @@ import {
   getNewTags,
   getDiffSinceLastRelease,
   getDiff,
-} from '../../lib/git-operations';
+} from '../../lib/git-operations.js';
 import {
   extractChangelog,
   extractReleasesFromTags,
   buildPRTitle,
-} from '../../lib/changelog';
-import { generateAISummary } from '../../lib/ai-summary';
+} from '../../lib/changelog.js';
+import { generateAISummary } from '../../lib/ai-summary.js';
 import {
   getExistingPR,
   buildPRBody,
@@ -29,7 +29,7 @@ import {
   getRepoName,
   addChangelogComment,
   getPRBaseCommit,
-} from '../../lib/pr-creation';
+} from '../../lib/pr-creation.js';
 
 export default async function runExecutor(
   options: ReleaseExecutorSchema,
@@ -42,12 +42,18 @@ export default async function runExecutor(
       'packages/*/CHANGELOG.md',
       'packages/connectors/*/CHANGELOG.md',
     ],
-    aiProvider = 'anygpt',
-    aiCommand = 'npx anygpt chat',
+    aiCommand,
+    model,
+    maxLinesPerFile = 150,
     autoMerge = true,
     skipPublish = true,
     diffPaths = ['packages/*/src/**', 'packages/connectors/*/src/**'],
   } = options;
+
+  // Override model in aiCommand if model parameter is provided
+  const finalAiCommand = model && aiCommand
+    ? aiCommand.replace(/--model\s+\S+/, `--model ${model}`)
+    : aiCommand;
 
   try {
     console.log('🚀 Starting release process...\n');
@@ -82,7 +88,7 @@ export default async function runExecutor(
     
     // Get diff for AI summary BEFORE creating new tags
     let diffForAI = '';
-    if (aiProvider !== 'none') {
+    if (finalAiCommand) {
       console.log('📊 Getting diff for AI analysis...');
       
       if (existingPR) {
@@ -176,9 +182,11 @@ export default async function runExecutor(
 
     // Generate AI summary if enabled (using pre-captured diff)
     let aiSummary = '';
-    if (aiProvider !== 'none' && diffForAI) {
-      console.log('🤖 Generating AI summary...');
-      aiSummary = await generateAISummary(changelog, releases, diffForAI, aiCommand);
+    if (finalAiCommand && diffForAI) {
+      console.log(`🤖 Generating AI summary${model ? ` with model: ${model}` : ''}...`);
+      aiSummary = await generateAISummary(changelog, releases, diffForAI, finalAiCommand, {
+        maxLinesPerFile,
+      });
     }
 
     // Create PR body (without changelog)
