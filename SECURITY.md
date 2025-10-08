@@ -39,9 +39,11 @@ This project handles sensitive credentials and API keys. Follow these guidelines
 
 ### 🛡️ Automated Protection
 
-#### Pre-Commit Hook
+#### Pre-Commit Hook (ACTIVE)
 
-Install the git hook to automatically scan for secrets:
+✅ **Already installed!** The pre-commit hook is active in this repository.
+
+It automatically scans for secrets BEFORE they reach GitHub:
 
 ```bash
 cat > .git/hooks/pre-commit << 'EOF'
@@ -66,12 +68,15 @@ EOF
 chmod +x .git/hooks/pre-commit
 ```
 
-#### CI/CD Protection
+#### Why No GitHub Actions?
 
-GitHub Actions automatically scans for:
-- Hardcoded secrets (via Gitleaks)
-- Internal company URLs
-- Real credentials in examples
+**We deliberately don't use GitHub Actions for security scanning** because:
+- ❌ Damage is already done once code reaches GitHub
+- ❌ Secrets are exposed in git history
+- ❌ PRs contain the sensitive data
+- ✅ Pre-commit hooks catch issues BEFORE they leave your machine
+
+**Prevention at the source is the only real protection.**
 
 ### 🚨 If You Accidentally Commit Secrets
 

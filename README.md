@@ -229,6 +229,9 @@ This project uses NX monorepo for managing multiple packages:
 # Install dependencies
 npm install
 
+# Install security git hooks (IMPORTANT!)
+./scripts/install-git-hooks.sh
+
 # Build all packages (NX handles dependencies automatically)
 npx nx run-many -t build
 

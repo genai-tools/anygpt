@@ -7,18 +7,16 @@ description: Minimal release procedure
 - **Scope**: Keep execution under 60 seconds. If unexpected work appears, stop and ask the user.
 - **Security**: MUST run security checks before committing. See `.windsurf/workflows/security-check.md`
 
-# Step 0 · Security Pre-Check (MANDATORY)
-// turbo
-- **Command**: Run security scan on staged changes
-  ```bash
-  # Scan for hardcoded secrets (tokens, API keys)
-  git diff --cached | grep -E "(sgp_[a-zA-Z0-9]{40,}|sk-[a-zA-Z0-9]{40,}|ghp_[a-zA-Z0-9]{36,}|Bearer [a-zA-Z0-9]{20,})" && echo "❌ SECRETS FOUND - STOP!" || echo "✅ No secrets detected"
-  
-  # Scan for internal company URLs
-  git diff --cached | grep -iE "(provider1\.com|sourcegraph\.provider1|gen-ai\.prod)" | grep -v "example\.com" && echo "❌ INTERNAL URLS FOUND - STOP!" || echo "✅ No internal URLs"
-  ```
-- **Rule**: If ANY secrets or internal URLs are found, STOP immediately and remove them before proceeding.
-- **Why**: Prevents accidental exposure of credentials and internal infrastructure details.
+# Step 0 · Security Pre-Check (AUTOMATIC)
+- **Protection**: Pre-commit hook automatically scans ALL commits
+- **Location**: `.git/hooks/pre-commit` (already installed)
+- **What it checks**:
+  - ❌ Hardcoded secrets (sgp_, sk-, ghp_ tokens)
+  - ❌ Internal company URLs (company.example, etc.)
+  - ❌ Sensitive files (.env, config.json, etc.)
+  - ❌ Real credentials in example files
+- **Behavior**: **BLOCKS the commit** if issues are found
+- **Why**: Prevents secrets from ever reaching git history - damage prevention at the source
 
 # Step 1 · Review status
 - **Command**: `git status -sb`
