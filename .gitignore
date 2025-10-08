@@ -78,6 +78,14 @@ Thumbs.db
 .anygpt/
 .nx/workspace-data/
 
+# Sensitive configuration files (NEVER commit these)
+**/config.json
+**/credentials.json
+**/.credentials
+**/secrets.json
+**/*.secret.*
+**/*.credentials.*
+
 # Cursor AI
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md

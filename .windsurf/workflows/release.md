@@ -5,6 +5,20 @@ description: Minimal release procedure
 # Preconditions
 - **Focus**: Perform only the commands listed below. Do not trigger other tasks, inspections, or interactive tools.
 - **Scope**: Keep execution under 60 seconds. If unexpected work appears, stop and ask the user.
+- **Security**: MUST run security checks before committing. See `.windsurf/workflows/security-check.md`
+
+# Step 0 · Security Pre-Check (MANDATORY)
+// turbo
+- **Command**: Run security scan on staged changes
+  ```bash
+  # Scan for hardcoded secrets (tokens, API keys)
+  git diff --cached | grep -E "(sgp_[a-zA-Z0-9]{40,}|sk-[a-zA-Z0-9]{40,}|ghp_[a-zA-Z0-9]{36,}|Bearer [a-zA-Z0-9]{20,})" && echo "❌ SECRETS FOUND - STOP!" || echo "✅ No secrets detected"
+  
+  # Scan for internal company URLs
+  git diff --cached | grep -iE "(provider1\.com|sourcegraph\.provider1|gen-ai\.prod)" | grep -v "example\.com" && echo "❌ INTERNAL URLS FOUND - STOP!" || echo "✅ No internal URLs"
+  ```
+- **Rule**: If ANY secrets or internal URLs are found, STOP immediately and remove them before proceeding.
+- **Why**: Prevents accidental exposure of credentials and internal infrastructure details.
 
 # Step 1 · Review status
 - **Command**: `git status -sb`
