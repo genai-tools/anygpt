@@ -101,3 +101,5 @@ vite.config.ts.timestamp-*
 
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
+
+package-lock.json
