@@ -40,7 +40,7 @@ export function listTools(context: { defaultModel?: string; defaultProvider?: st
     tools: [
       {
         name: "anygpt_chat_completion",
-        description: "Send a chat completion request to AI providers via the gateway. Supports smart model resolution: you can specify just the model name (e.g., 'opus', 'gpt-4') and the server will find the right provider automatically.",
+        description: "Send a chat completion request to AI providers via the gateway. Supports flexible model specification: use full model IDs (e.g., 'ml-asset:static-model/claude-sonnet-4-5', 'anthropic::2024-10-22::claude-opus-4-latest') or common aliases (e.g., 'opus', 'sonnet', 'gpt-4'). The server will automatically detect the provider based on the model name if the 'provider' parameter is omitted. Use 'anygpt_list_models' to see available models and their aliases for each provider.\n\nIMPORTANT: If the response has 'finish_reason: length', it means the output was truncated due to reaching the max_tokens limit. Increase max_tokens to get a complete response.",
         inputSchema: {
           type: "object",
           properties: {
@@ -65,12 +65,12 @@ export function listTools(context: { defaultModel?: string; defaultProvider?: st
             },
             model: {
               type: "string",
-              description: `The model to use. Can be a full model name (e.g., 'gpt-4', 'claude-opus-4') or a shorthand (e.g., 'opus', 'gpt'). Server will auto-detect the provider.${context.defaultModel ? ` (default: ${context.defaultModel})` : ''}`,
+              description: `The model to use. Accepts: (1) Full model IDs from specific providers (e.g., 'ml-asset:static-model/claude-sonnet-4-5' for provider1, 'anthropic::2024-10-22::claude-opus-4-latest' for cody), (2) Common aliases that work across providers (e.g., 'opus', 'sonnet', 'gpt-4'). The server searches configured providers to find a matching model. Use 'anygpt_list_models' to see exact model IDs and aliases.${context.defaultModel ? ` (default: ${context.defaultModel})` : ''}`,
               ...modelDefault
             },
             provider: {
               type: "string",
-              description: `Optional: Explicitly specify the AI provider. If omitted, server will auto-detect based on model name.${context.defaultProvider ? ` (default: ${context.defaultProvider})` : ''}`,
+              description: `Optional: Explicitly specify the AI provider (e.g., 'provider1', 'cody'). If omitted, the server will auto-detect by: (1) checking the default provider first, (2) searching all configured providers for a model matching the 'model' parameter. Specifying the provider ensures you get the exact model from the intended source. Use 'anygpt_list_providers' to see available providers.${context.defaultProvider ? ` (default: ${context.defaultProvider})` : ''}`,
               ...providerDefault
             },
             temperature: {
@@ -81,8 +81,9 @@ export function listTools(context: { defaultModel?: string; defaultProvider?: st
             },
             max_tokens: {
               type: "number",
-              description: "Maximum number of tokens to generate",
-              minimum: 1
+              description: "Maximum number of tokens to generate. Default: 4096. If the response is truncated (finish_reason='length'), increase this value. Guidelines: Short answers (100-500), Medium responses (500-2000), Long/comprehensive outputs (2000-4096+). Higher values increase latency and cost but prevent truncation.",
+              minimum: 1,
+              default: 4096
             }
           },
           required: ["messages"]
@@ -90,7 +91,7 @@ export function listTools(context: { defaultModel?: string; defaultProvider?: st
       },
       {
         name: "anygpt_list_models",
-        description: "List available models from AI providers",
+        description: "List available models from AI providers. Returns model IDs, display names, and common aliases (tags) for each model. Use this to discover which models are available and what aliases you can use in 'anygpt_chat_completion'. If no provider is specified, lists models from the default provider.",
         inputSchema: {
           type: "object",
           properties: {
@@ -156,7 +157,7 @@ export async function handleChatCompletion(
       messages,
       model: resolvedModel,
       temperature: args.temperature,
-      max_tokens: args.max_tokens,
+      max_tokens: args.max_tokens || 4096, // Default to 4096 tokens if not specified
       provider: providerId,
     };
 
@@ -175,13 +176,28 @@ export async function handleListModels(
   context: {
     router: any;
     defaultProvider?: string;
+    configuredProviders: Record<string, FactoryProviderConfig>;
   }
 ): Promise<{ provider: string; models: TypesModelInfo[] }> {
   try {
     const providerId = args.provider || context.defaultProvider || 'openai';
     const models = await context.router.listModels(providerId);
+    
+    // Enrich models with tags/aliases from configuration
+    const providerConfig = context.configuredProviders[providerId];
+    const enrichedModels = models.map((model: TypesModelInfo) => {
+      const modelConfig = providerConfig?.models?.[model.id];
+      if (modelConfig?.tags) {
+        return {
+          ...model,
+          tags: modelConfig.tags
+        };
+      }
+      return model;
+    });
+    
     return {
-      models,
+      models: enrichedModels,
       provider: providerId,
     };
   } catch (error) {
