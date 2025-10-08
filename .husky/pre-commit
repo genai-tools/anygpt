@@ -1,5 +1,2 @@
-#!/bin/sh
-
-# Auto-unstage package-lock.json (keep local, never commit)
-git reset HEAD package-lock.json 2>/dev/null || true
-
+nx format:write --uncommitted
+git update-index --again
