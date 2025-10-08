@@ -47,8 +47,12 @@ export { loadConfig, validateConfig } from './loader.js';
 export {
   resolveModel,
   findModelByTag,
+  listAvailableTags,
   type ModelResolution,
-  type ModelResolutionContext
+  type ModelResolutionContext,
+  type TagInfo,
+  type AliasInfo,
+  type AvailableTagsResult
 } from './model-resolver.js';
 
 // Note: Connector factory functions (like openai()) should be imported directly 

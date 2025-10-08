@@ -78,19 +78,27 @@ anygpt-mcp
 ### 1. CLI Usage
 
 ```bash
-# Quick chat (stateless)
-anygpt chat --model gpt-4o --token $OPENAI_API_KEY "Explain TypeScript generics"
+# Discover available models and tags
+anygpt list-tags
+
+# Quick chat with tags (stateless)
+anygpt chat --model sonnet "Explain TypeScript generics"
+anygpt chat --model opus "Write a complex algorithm"
+
+# Use provider:tag syntax
+anygpt chat --model cody:sonnet "Hello"
+anygpt chat --model provider1:opus "Hello"
 
 # Start a conversation (stateful)
-anygpt conversation start --model gpt-4o --name "coding-session"
+anygpt conversation start --model sonnet --name "coding-session"
 anygpt conversation message "How do I implement a binary tree in TypeScript?"
 anygpt conversation message "Show me the insertion method"
 
 # List conversations
 anygpt conversation list
 
-# Fork a conversation for different approach
-anygpt conversation fork --name "binary-tree-v2"
+# Fork a conversation with different model
+anygpt conversation fork --model opus --name "binary-tree-v2"
 ```
 
 ### 2. Router as Library

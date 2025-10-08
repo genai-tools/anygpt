@@ -3,7 +3,13 @@
  */
 
 import type { ChatCompletionRequest, ChatMessage, ModelInfo as TypesModelInfo } from "@anygpt/types";
-import { resolveModel as resolveModelShared, type FactoryProviderConfig, type ModelAlias } from "@anygpt/config";
+import { 
+  resolveModel as resolveModelShared, 
+  listAvailableTags,
+  type FactoryProviderConfig, 
+  type ModelAlias,
+  type AvailableTagsResult
+} from "@anygpt/config";
 
 export type ChatCompletionToolArgs = {
   messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
@@ -109,6 +115,19 @@ export function listTools(context: { defaultModel?: string; defaultProvider?: st
         inputSchema: {
           type: "object",
           properties: {}
+        }
+      },
+      {
+        name: "anygpt_list_tags",
+        description: "List all available tags and their model mappings from configuration. This shows how tags like 'opus', 'sonnet', 'gpt5' resolve to specific models across providers. Use this to discover available tags without making API calls. Returns tags grouped by provider, showing which models each tag maps to. This is essential for understanding model resolution and choosing the right model/tag for your needs.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            provider: {
+              type: "string",
+              description: "Optional: Filter results to show only tags from a specific provider"
+            }
+          }
         }
       }
     ],
@@ -222,6 +241,35 @@ export function handleListProviders(context: {
     providers,
     default_provider: context.defaultProvider,
   };
+}
+
+/**
+ * Handle list tags tool call
+ */
+export function handleListTags(
+  args: { provider?: string },
+  context: {
+    configuredProviders: Record<string, FactoryProviderConfig>;
+    aliases?: Record<string, ModelAlias[]>;
+    defaultProvider?: string;
+  }
+): AvailableTagsResult {
+  const result = listAvailableTags({
+    providers: context.configuredProviders,
+    aliases: context.aliases,
+    defaultProvider: context.defaultProvider
+  });
+  
+  // Filter by provider if specified
+  if (args.provider) {
+    return {
+      providers: result.providers.filter(p => p.id === args.provider),
+      tags: result.tags.filter(t => t.provider === args.provider),
+      aliases: result.aliases.filter(a => a.provider === args.provider)
+    };
+  }
+  
+  return result;
 }
 
 /**

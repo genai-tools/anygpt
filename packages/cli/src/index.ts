@@ -13,6 +13,7 @@ import { conversationDeleteCommand } from './commands/conversation/delete.js';
 import { chatCommand } from './commands/chat.js';
 import { configCommand } from './commands/config.js';
 import { listModelsCommand } from './commands/list-models.js';
+import { listTagsCommand } from './commands/list-tags.js';
 import { benchmarkCommand } from './commands/benchmark.js';
 import { withCLIContext } from './utils/cli-context.js';
 
@@ -56,6 +57,14 @@ program
   .option('--provider <name>', 'provider name from config (uses default from config if not specified)')
   .option('--json', 'output as JSON')
   .action(withCLIContext(listModelsCommand));
+
+// List tags command
+program
+  .command('list-tags')
+  .description('List all available tags and their model mappings')
+  .option('--provider <name>', 'filter by provider name')
+  .option('--json', 'output as JSON')
+  .action(withCLIContext(listTagsCommand));
 
 // Benchmark command
 program

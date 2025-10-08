@@ -98,3 +98,92 @@ export function resolveModel(
   // Step 3: Not found - return null (caller should treat as direct model name)
   return null;
 }
+
+export interface TagInfo {
+  tag: string;
+  provider: string;
+  providerName?: string;
+  model: string;
+  isDefault?: boolean;
+}
+
+export interface AliasInfo {
+  alias: string;
+  provider: string;
+  providerName?: string;
+  model?: string;
+  tag?: string;
+  resolvedModel?: string;
+}
+
+export interface AvailableTagsResult {
+  tags: TagInfo[];
+  aliases: AliasInfo[];
+  providers: Array<{ id: string; name?: string; isDefault: boolean }>;
+}
+
+/**
+ * List all available tags, aliases, and their model mappings from configuration
+ * This makes tag resolution discoverable for users and external agents
+ */
+export function listAvailableTags(
+  context: ModelResolutionContext
+): AvailableTagsResult {
+  const tags: TagInfo[] = [];
+  const aliases: AliasInfo[] = [];
+  const providers: Array<{ id: string; name?: string; isDefault: boolean }> = [];
+  
+  // Collect provider information
+  for (const [providerId, providerConfig] of Object.entries(context.providers)) {
+    providers.push({
+      id: providerId,
+      name: providerConfig.name,
+      isDefault: providerId === context.defaultProvider
+    });
+  }
+  
+  // Collect all tags from provider models
+  for (const [providerId, providerConfig] of Object.entries(context.providers)) {
+    if (!providerConfig.models) continue;
+    
+    for (const [modelName, metadata] of Object.entries(providerConfig.models)) {
+      for (const tag of metadata.tags) {
+        tags.push({
+          tag,
+          provider: providerId,
+          providerName: providerConfig.name,
+          model: modelName,
+          isDefault: providerId === context.defaultProvider && 
+                     modelName === providerConfig.settings?.defaultModel
+        });
+      }
+    }
+  }
+  
+  // Collect all aliases
+  if (context.aliases) {
+    for (const [aliasName, aliasList] of Object.entries(context.aliases)) {
+      for (const alias of aliasList) {
+        const aliasInfo: AliasInfo = {
+          alias: aliasName,
+          provider: alias.provider,
+          providerName: context.providers[alias.provider]?.name,
+          model: alias.model,
+          tag: alias.tag
+        };
+        
+        // Resolve the alias to get the actual model
+        if (alias.tag) {
+          const resolution = findModelByTag(alias.tag, context.providers, alias.provider);
+          if (resolution) {
+            aliasInfo.resolvedModel = resolution.model;
+          }
+        }
+        
+        aliases.push(aliasInfo);
+      }
+    }
+  }
+  
+  return { tags, aliases, providers };
+}
