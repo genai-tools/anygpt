@@ -29,7 +29,7 @@ This project handles sensitive credentials and API keys. Follow these guidelines
    endpoint: 'https://sourcegraph.example.com/'
    
    // ❌ BAD
-   endpoint: 'https://sourcegraph.company.example/'
+   endpoint: 'https://sourcegraph.internal-company.com/'
    ```
 
 3. **Check Before Committing**

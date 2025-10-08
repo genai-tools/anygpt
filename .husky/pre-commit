@@ -26,7 +26,7 @@ if [ -n "$STAGED_FILES" ]; then
   # Only check source code, not documentation
   CODE_FILES=$(echo "$STAGED_FILES" | grep -E "\.(ts|js|mjs|json)$" || true)
   if [ -n "$CODE_FILES" ]; then
-    if git diff --cached -- $CODE_FILES | grep -iE "(provider1\.com|sourcegraph\.provider1|gen-ai\.prod)" | grep -qv "example\.com"; then
+    if git diff --cached -- $CODE_FILES | grep -iE "(provider1\.com|internal-company\.com)" | grep -qv "example\.com"; then
       printf "${RED}❌ ERROR: Internal URLs in CODE detected!${NC}\n"
       echo "Replace with: example.com"
       FAILED=1

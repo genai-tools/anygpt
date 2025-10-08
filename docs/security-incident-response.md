@@ -6,7 +6,7 @@
 ## What Happened
 
 1. **Hardcoded Token**: A Sourcegraph access token (`sgp_981819e57d6acf39_...`) was committed in `packages/connectors/cody/examples/test-models-api.mjs`
-2. **Internal URLs**: Multiple references to `sourcegraph.company.example` and `gen-ai.prod.company.example` were committed in documentation and examples
+2. **Internal URLs**: Multiple references to internal company URLs were committed in documentation and examples
 3. **Git History**: Sensitive data persisted in commit history even after fixing current files
 4. **PR Exposure**: Pull requests contained the sensitive data, requiring repository deletion
 
@@ -101,7 +101,7 @@
 
 ### 2. Use Generic Examples
 - ✅ `sourcegraph.example.com`
-- ❌ `sourcegraph.company.example`
+- ❌ `sourcegraph.internal-company.com`
 
 ### 3. Automate Security Checks
 - Pre-commit hooks
