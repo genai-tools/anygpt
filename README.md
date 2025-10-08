@@ -323,6 +323,16 @@ npx nx run-many -t lint
 - **[Configuration Guide](./packages/router/docs/CONFIG.md)** - Provider configuration
 - **[Connector Usage](./packages/router/docs/CONNECTOR_USAGE.md)** - Provider-specific usage
 
+## Security
+
+⚠️ **Important**: This project handles sensitive credentials. Please review [SECURITY.md](./SECURITY.md) before contributing.
+
+**Key security practices:**
+- Never commit API keys or tokens
+- Use environment variables for credentials
+- Run security checks before committing (see `.windsurf/workflows/security-check.md`)
+- Use generic examples (e.g., `example.com`) instead of internal URLs
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
