@@ -357,7 +357,7 @@ export function openai(config: OpenAIConnectorConfig | string = {}, providerId?:
     
   const connector = new OpenAIConnector(finalConfig);
   
-  // Override provider ID if specified (for custom gateways like Booking)
+  // Override provider ID if specified (for custom gateways)
   if (providerId) {
     // Note: providerId is readonly, so we need to use Object.defineProperty
     Object.defineProperty(connector, 'providerId', {
