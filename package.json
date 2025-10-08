@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "release": "npm run build && npx nx run root:release",
+    "pr:create": "npm run release",
+    "pr:update": "npm run build && npx nx run root:pr-update",
     "build": "npx tsdown --cwd tools/nx-tsdown && npx tsdown --cwd tools/nx-tsgo && npx tsdown --cwd tools/nx-vitest && npx tsdown --cwd tools/nx-release",
     "prepare": "husky"
   },
