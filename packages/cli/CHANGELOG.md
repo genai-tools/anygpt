@@ -1,3 +1,13 @@
+## 0.22.0 (2025-10-08)
+
+### 🚀 Features
+
+- **cli:** add tag-based model selection to feature list ([f3fc9ab](https://github.com/genai-tools/anygpt/commit/f3fc9ab))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.21.0 (2025-10-08)
 
 ### 🚀 Features
