@@ -17,9 +17,7 @@ import { listTagsCommand } from './commands/list-tags.js';
 import { benchmarkCommand } from './commands/benchmark.js';
 import { withCLIContext } from './utils/cli-context.js';
 
-
 const program = new Command();
-
 
 program
   .name('anygpt')
@@ -36,7 +34,14 @@ program
   .option('--type <type>', 'provider type (openai, anthropic, google)')
   .option('--url <url>', 'API endpoint URL')
   .option('--token <token>', 'API token')
-  .option('--model <model>', 'model name (uses default from config if not specified)')
+  .option(
+    '--model <model>',
+    'direct model name (no tag resolution, passed as-is to provider)'
+  )
+  .option(
+    '--tag <tag>',
+    'tag name for model resolution (e.g., "sonnet", "booking:gemini", "cody:opus")'
+  )
   .option('--max-tokens <number>', 'maximum tokens to generate', parseInt)
   .option('--usage', 'show token usage statistics')
   .option('--stdin', 'read message from stdin instead of argument')
@@ -54,7 +59,10 @@ program
 program
   .command('list-models')
   .description('List available models from a provider')
-  .option('--provider <name>', 'provider name from config (uses default from config if not specified)')
+  .option(
+    '--provider <name>',
+    'provider name from config (uses default from config if not specified)'
+  )
   .option('--json', 'output as JSON')
   .action(withCLIContext(listModelsCommand));
 
@@ -71,11 +79,31 @@ program
   .command('benchmark')
   .description('Benchmark models across providers')
   .option('--provider <name>', 'benchmark all models from this provider')
-  .option('--model <model>', 'specific model to benchmark (requires --provider)')
-  .option('--models <list>', 'comma-separated list of provider:model pairs (e.g., "openai:gpt-4o,anthropic:claude-3-5-sonnet")')
-  .option('--prompt <text>', 'prompt to use for benchmarking', 'What is 2+2? Answer in one sentence.')
-  .option('--max-tokens <number>', 'maximum tokens to generate', (val) => parseInt(val, 10), 100)
-  .option('--iterations <number>', 'number of iterations per model', (val) => parseInt(val, 10), 1)
+  .option(
+    '--model <model>',
+    'specific model to benchmark (requires --provider)'
+  )
+  .option(
+    '--models <list>',
+    'comma-separated list of provider:model pairs (e.g., "openai:gpt-4o,anthropic:claude-3-5-sonnet")'
+  )
+  .option(
+    '--prompt <text>',
+    'prompt to use for benchmarking',
+    'What is 2+2? Answer in one sentence.'
+  )
+  .option(
+    '--max-tokens <number>',
+    'maximum tokens to generate',
+    (val) => parseInt(val, 10),
+    100
+  )
+  .option(
+    '--iterations <number>',
+    'number of iterations per model',
+    (val) => parseInt(val, 10),
+    1
+  )
   .option('--output <directory>', 'directory to save response files')
   .option('--json', 'output as JSON')
   .action(withCLIContext(benchmarkCommand));
@@ -88,12 +116,18 @@ const conversation = program
 conversation
   .command('start')
   .description('Start a new conversation')
-  .option('--provider <name>', 'provider name from config (uses default from config if not specified)')
-  .option('--model <model>', 'model name (uses default from config if not specified)')
+  .option(
+    '--provider <name>',
+    'provider name from config (uses default from config if not specified)'
+  )
+  .option(
+    '--model <model>',
+    'model name (uses default from config if not specified)'
+  )
   .option('--name <name>', 'conversation name')
   .action(async (options: any, command: any) => {
     const globalOpts = command.parent.parent.opts();
-    
+
     try {
       await conversationStartCommand(options, globalOpts.config);
     } catch (error) {
@@ -156,7 +190,7 @@ conversation
   .option('--conversation <id>', 'conversation ID to send message to')
   .action(async (message: string, options: any, command: any) => {
     const globalOpts = command.parent.parent.opts();
-    
+
     try {
       await conversationMessageCommand(message, options, globalOpts.config);
     } catch (error) {
@@ -188,7 +222,7 @@ conversation
     try {
       const condenseOptions = {
         ...options,
-        keepRecent: parseInt(options.keepRecent) || 3
+        keepRecent: parseInt(options.keepRecent) || 3,
       };
       await conversationCondenseCommand(condenseOptions);
     } catch (error) {
@@ -221,12 +255,15 @@ conversation
   .option('--model <model>', 'model for the new conversation')
   .option('--provider <provider>', 'provider for the new conversation')
   .option('--name <name>', 'name for the new conversation')
-  .option('--dry-run', 'show what would be summarized without creating new conversation')
+  .option(
+    '--dry-run',
+    'show what would be summarized without creating new conversation'
+  )
   .action(async (options: any) => {
     try {
       const summarizeOptions = {
         ...options,
-        keepRecent: parseInt(options.keepRecent) || 3
+        keepRecent: parseInt(options.keepRecent) || 3,
       };
       await conversationSummarizeCommand(summarizeOptions);
     } catch (error) {
@@ -239,13 +276,16 @@ conversation
   .command('show')
   .description('Show full conversation history')
   .option('--conversation <id>', 'conversation ID to show')
-  .option('--limit <number>', 'limit number of messages to show (shows last N messages)')
+  .option(
+    '--limit <number>',
+    'limit number of messages to show (shows last N messages)'
+  )
   .option('--format <format>', 'output format: full, compact, or json', 'full')
   .action(async (options: any) => {
     try {
       const showOptions = {
         ...options,
-        limit: options.limit ? parseInt(options.limit) : undefined
+        limit: options.limit ? parseInt(options.limit) : undefined,
       };
       await conversationShowCommand(showOptions);
     } catch (error) {
