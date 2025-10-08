@@ -36,7 +36,9 @@ export function buildPRBody(
 
   return `## 🚀 Release PR
 
-${releasesList ? `### 📦 Packages to Publish\n\n${releasesList}\n\n` : ''}${aiSummary ? `### 💡 What Changed\n\n${aiSummary}\n\n` : ''}### ⚡ Auto-Merge Enabled
+${releasesList ? `### 📦 Packages to Publish\n\n${releasesList}\n\n` : ''}${
+    aiSummary ? `### 💡 What Changed\n\n${aiSummary}\n\n` : ''
+  }### ⚡ Auto-Merge Enabled
 
 This PR will **automatically merge** once all CI checks pass ✅
 
@@ -58,13 +60,7 @@ ${changelog}
 ---
 *This changelog was automatically generated from conventional commits.*`;
 
-  await execa('gh', [
-    'pr',
-    'comment',
-    prNumber,
-    '--body',
-    commentBody,
-  ]);
+  await execa('gh', ['pr', 'comment', prNumber, '--body', commentBody]);
 }
 
 export async function createPR(
@@ -93,10 +89,7 @@ export async function createPR(
   return prUrl.trim();
 }
 
-export async function updatePR(
-  prNumber: string,
-  body: string
-): Promise<void> {
+export async function updatePR(prNumber: string, body: string): Promise<void> {
   const prBodyPath = '/tmp/release-pr.md';
   await writeFile(prBodyPath, body, 'utf-8');
 
@@ -107,18 +100,28 @@ export async function updatePR(
 export async function enableAutoMerge(prNumber: string): Promise<void> {
   console.log('🔄 Enabling auto-merge...');
   try {
-    await execa('gh', ['pr', 'merge', '--auto', '--merge', prNumber]);
+    await execa('gh', ['pr', 'merge', '--auto', '--rebase', prNumber]);
     console.log('✅ Auto-merge enabled - PR will merge when CI passes');
   } catch (error: unknown) {
     if (error instanceof Error) {
       if (error.message?.includes('is in clean status')) {
         console.log('ℹ️  PR is already mergeable - auto-merge not needed');
-      } else if (error.message?.includes('Protected branch rules not configured')) {
-        console.log('⚠️  Auto-merge requires branch protection rules on production branch');
-        console.log('   You can merge manually or enable branch protection in repo settings');
-      } else if (error.message?.includes('Auto merge is not allowed for this repository')) {
+      } else if (
+        error.message?.includes('Protected branch rules not configured')
+      ) {
+        console.log(
+          '⚠️  Auto-merge requires branch protection rules on production branch'
+        );
+        console.log(
+          '   You can merge manually or enable branch protection in repo settings'
+        );
+      } else if (
+        error.message?.includes('Auto merge is not allowed for this repository')
+      ) {
         console.log('⚠️  Auto-merge is not enabled for this repository');
-        console.log('   Enable it in Settings → General → Pull Requests → Allow auto-merge');
+        console.log(
+          '   Enable it in Settings → General → Pull Requests → Allow auto-merge'
+        );
       } else {
         throw error;
       }
@@ -148,7 +151,10 @@ export async function getRepoName(): Promise<string> {
   return stdout.trim();
 }
 
-export async function getPRBaseCommit(prNumber: string, targetBranch: string): Promise<string> {
+export async function getPRBaseCommit(
+  prNumber: string,
+  targetBranch: string
+): Promise<string> {
   // Get the current HEAD of the target branch (e.g., production)
   // This represents where the PR will merge into
   const { stdout } = await execa('git', [
