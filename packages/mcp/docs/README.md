@@ -8,6 +8,10 @@ This directory contains documentation that is exposed as MCP Resources for AI ag
 - **workflow.md** - Step-by-step discovery workflow (`anygpt://docs/workflow`)
 - **basic-chat-example.md** - Complete usage example (`anygpt://examples/basic-chat`)
 
+## Related Documentation
+
+- **[Tag Resolution Guide](../../cli/docs/tag-resolution.md)** - How tags work and how to use them (shared with CLI)
+
 ## Dynamic Resources
 
 The following resources are generated dynamically based on the current configuration:
