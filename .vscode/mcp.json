@@ -1,0 +1,12 @@
+{
+	"servers": {
+		"anygpt": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"@anygpt/mcp"
+			]
+		}
+	},
+	"inputs": []
+}

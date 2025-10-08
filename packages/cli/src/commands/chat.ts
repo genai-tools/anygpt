@@ -1,5 +1,4 @@
 import type { CLIContext } from '../utils/cli-context.js';
-import type { FactoryProviderConfig } from '@anygpt/config';
 
 interface ChatOptions {
   provider?: string;
@@ -7,156 +6,149 @@ interface ChatOptions {
   url?: string;
   token?: string;
   model?: string;
+  tag?: string;
+  maxTokens?: number;
   usage?: boolean;
+  stdin?: boolean;
 }
 
-/**
- * Search for a model by tag in provider configs
- * Returns { provider, model } or null if not found
- */
-function findModelByTag(
-  tag: string,
-  providers: Record<string, FactoryProviderConfig>,
-  preferredProvider?: string
-): { provider: string; model: string } | null {
-  // First, try the preferred provider if specified
-  if (preferredProvider && providers[preferredProvider]?.models) {
-    const providerModels = providers[preferredProvider].models!;
-    for (const [modelName, metadata] of Object.entries(providerModels)) {
-      if (metadata.tags.includes(tag)) {
-        return { provider: preferredProvider, model: modelName };
-      }
-    }
-  }
-  
-  // Search all providers
-  for (const [providerId, providerConfig] of Object.entries(providers)) {
-    if (!providerConfig.models) continue;
-    
-    for (const [modelName, metadata] of Object.entries(providerConfig.models)) {
-      if (metadata.tags.includes(tag)) {
-        return { provider: providerId, model: modelName };
-      }
-    }
-  }
-  
-  return null;
-}
-
-/**
- * Resolve a model name using hybrid approach:
- * 1. Check central aliases (can reference tags or direct models)
- * 2. Search per-provider tags
- * 3. Return null if not found (treat as direct model name)
- */
-function resolveModel(
-  modelName: string,
-  context: CLIContext,
-  preferredProvider?: string
-): { provider: string; model: string } | null {
-  // Step 1: Check central aliases
-  if (context.defaults.aliases?.[modelName]) {
-    const aliasList = context.defaults.aliases[modelName];
-    
-    // Try preferred provider first
-    if (preferredProvider) {
-      const match = aliasList.find(a => a.provider === preferredProvider);
-      if (match) {
-        // If alias references a tag, resolve it
-        if (match.tag) {
-          const tagResult = findModelByTag(match.tag, context.providers, match.provider);
-          if (tagResult) return tagResult;
-        }
-        // Otherwise use direct model
-        if (match.model) {
-          return { provider: match.provider, model: match.model };
-        }
-      }
-    }
-    
-    // Use first alias
-    const firstAlias = aliasList[0];
-    if (firstAlias.tag) {
-      const tagResult = findModelByTag(firstAlias.tag, context.providers, firstAlias.provider);
-      if (tagResult) return tagResult;
-    }
-    if (firstAlias.model) {
-      return { provider: firstAlias.provider, model: firstAlias.model };
-    }
-  }
-  
-  // Step 2: Search per-provider tags
-  const tagResult = findModelByTag(modelName, context.providers, preferredProvider);
-  if (tagResult) return tagResult;
-  
-  // Step 3: Not found - treat as direct model name
-  return null;
-}
+// Import shared model resolution from config
+import { resolveModel as resolveModelShared } from '@anygpt/config';
 
 export async function chatCommand(
   context: CLIContext,
-  message: string,
+  message: string | undefined,
   options: ChatOptions
 ) {
-  // Determine which provider to use (might be overridden by alias resolution)
+  // Read from stdin if --stdin flag is set
+  let actualMessage = message;
+  if (options.stdin) {
+    const chunks: Buffer[] = [];
+    for await (const chunk of process.stdin) {
+      chunks.push(chunk);
+    }
+    actualMessage = Buffer.concat(chunks).toString('utf-8').trim();
+  }
+
+  if (!actualMessage) {
+    throw new Error(
+      'No message provided. Either pass a message argument or use --stdin.'
+    );
+  }
+  // Validate that only one of --model or --tag is specified
+  if (options.model && options.tag) {
+    throw new Error(
+      'Cannot specify both --model and --tag. Use --model for direct model names or --tag for tag resolution.'
+    );
+  }
+
+  // Determine which provider to use
   let providerId = options.provider || context.defaults.provider;
-  
+
   if (!providerId) {
-    throw new Error('No provider specified. Use --provider or configure a default provider.');
+    throw new Error(
+      'No provider specified. Use --provider or configure a default provider.'
+    );
   }
-  
-  // Get model with priority: CLI option > per-provider default > global default
-  let modelId = options.model 
-    || context.defaults.providers?.[providerId]?.model 
-    || context.defaults.model;
-  
-  if (!modelId) {
-    throw new Error(`No model specified. Use --model or configure a default model for provider '${providerId}'.`);
-  }
-  
-  // Check if the model is an alias/tag and resolve it
-  const resolution = resolveModel(modelId, context, providerId);
-  if (resolution) {
-    // Use the resolved provider and model
+
+  let modelId: string;
+
+  if (options.tag) {
+    // --tag: Resolve tag to model (explicit tag resolution)
+    // Support provider:tag syntax (e.g., "booking:gemini", "cody:sonnet")
+    let tagToResolve = options.tag;
+    let explicitProvider: string | undefined;
+
+    if (options.tag.includes(':')) {
+      const parts = options.tag.split(':', 2);
+      explicitProvider = parts[0];
+      tagToResolve = parts[1];
+
+      // Override providerId if provider:tag syntax is used
+      if (explicitProvider) {
+        providerId = explicitProvider;
+      }
+    }
+
+    const resolution = resolveModelShared(
+      tagToResolve,
+      {
+        providers: context.providers,
+        aliases: context.defaults.aliases,
+        defaultProvider: context.defaults.provider,
+      },
+      providerId
+    );
+
+    if (!resolution) {
+      throw new Error(
+        `Tag '${tagToResolve}' not found in provider '${providerId}'. ` +
+          `Run 'anygpt list-tags --provider ${providerId}' to see available tags.`
+      );
+    }
+
     providerId = resolution.provider;
     modelId = resolution.model;
-    
-    if (options.model) {
-      // Log resolution info (only shown with --verbose)
-      context.logger.info(`🔗 Resolved '${options.model}' → ${providerId}/${modelId}`);
+
+    if (explicitProvider) {
+      context.logger.info(`🔗 Resolved tag '${options.tag}' → ${modelId}`);
+    } else {
+      context.logger.info(
+        `🔗 Resolved tag '${tagToResolve}' → ${providerId}:${modelId}`
+      );
     }
+  } else if (options.model) {
+    // --model: Use model name directly (no resolution)
+    modelId = options.model;
+    context.logger.info(`📌 Using direct model: ${providerId}:${modelId}`);
+  } else {
+    // No --model or --tag: Use defaults
+    modelId =
+      context.defaults.providers?.[providerId]?.model || context.defaults.model;
+
+    if (!modelId) {
+      throw new Error(
+        `No model specified. Use --model <model-name>, --tag <tag>, or configure a default model.\n` +
+          `Run 'anygpt list-tags' to see available tags.`
+      );
+    }
+
+    context.logger.info(`📌 Using default model: ${providerId}:${modelId}`);
   }
-  
+
   // Verbose mode: show request metrics
   context.logger.info(`📤 Request: provider=${providerId}, model=${modelId}`);
-  context.logger.info(`💬 Message length: ${message.length} chars`);
+  context.logger.info(`💬 Message length: ${actualMessage.length} chars`);
   context.logger.info(''); // Empty line before response
-  
+
   try {
     const startTime = Date.now();
-    
+
     const response = await context.router.chatCompletion({
       provider: providerId,
       model: modelId,
-      messages: [{ role: 'user', content: message }]
+      messages: [{ role: 'user', content: actualMessage }],
+      ...(options.maxTokens && { max_tokens: options.maxTokens }),
     });
-    
+
     const duration = Date.now() - startTime;
-    
+
     const reply = response.choices[0]?.message?.content;
-    
+
     // Print the actual response (clearly visible)
     if (reply) {
       console.log(reply);
     } else {
       console.log('No response received');
     }
-    
+
     // Verbose mode: show response metrics after the response
     context.logger.info(''); // Empty line after response
     context.logger.info(`⏱️  Response time: ${duration}ms`);
     if (response.usage) {
-      context.logger.info(`📊 Tokens: ${response.usage.prompt_tokens} input + ${response.usage.completion_tokens} output = ${response.usage.total_tokens} total`);
+      context.logger.info(
+        `📊 Tokens: ${response.usage.prompt_tokens} input + ${response.usage.completion_tokens} output = ${response.usage.total_tokens} total`
+      );
     }
     if (response.model) {
       context.logger.info(`🤖 Model used: ${response.model}`);
@@ -164,14 +156,37 @@ export async function chatCommand(
     if (reply) {
       context.logger.info(`📝 Response length: ${reply.length} chars`);
     }
-    
+
     // Show usage info only if --usage flag is provided (for non-verbose mode)
     if (options.usage && response.usage && !context.logger.info) {
       console.log('');
-      console.log(`📊 Usage: ${response.usage.prompt_tokens} input + ${response.usage.completion_tokens} output = ${response.usage.total_tokens} tokens`);
+      console.log(
+        `📊 Usage: ${response.usage.prompt_tokens} input + ${response.usage.completion_tokens} output = ${response.usage.total_tokens} tokens`
+      );
     }
-    
   } catch (error) {
-    throw new Error(`Chat request failed: ${error instanceof Error ? error.message : error}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // Enhanced error messages for common issues
+    if (errorMessage.includes('422')) {
+      throw new Error(
+        `Model '${modelId}' not found or not supported by provider '${providerId}'.\n` +
+          `\nTroubleshooting:\n` +
+          `  1. Run 'anygpt list-tags --provider ${providerId}' to see available tags\n` +
+          `  2. Run 'anygpt list-models --provider ${providerId}' to see available models\n` +
+          `  3. Use --tag instead of --model if you want tag resolution\n` +
+          `\nOriginal error: ${errorMessage}`
+      );
+    }
+
+    if (errorMessage.includes('401') || errorMessage.includes('403')) {
+      throw new Error(
+        `Authentication failed for provider '${providerId}'.\n` +
+          `Check your API credentials in the configuration.\n` +
+          `\nOriginal error: ${errorMessage}`
+      );
+    }
+
+    throw new Error(`Chat request failed: ${errorMessage}`);
   }
 }
