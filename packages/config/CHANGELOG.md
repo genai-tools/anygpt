@@ -1,3 +1,13 @@
+## 0.6.0 (2025-10-08)
+
+### 🚀 Features
+
+- add list-tags command and model tag discovery functionality ([8c46b8f](https://github.com/genai-tools/anygpt/commit/8c46b8f))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.5.1 (2025-10-08)
 
 ### 🧱 Updated Dependencies

@@ -1,3 +1,22 @@
+## 0.21.0 (2025-10-08)
+
+### 🚀 Features
+
+- **cli:** add --tag option and improve tag resolution ([a33ebe8](https://github.com/genai-tools/anygpt/commit/a33ebe8))
+- add list-tags command and model tag discovery functionality ([8c46b8f](https://github.com/genai-tools/anygpt/commit/8c46b8f))
+
+### 🩹 Fixes
+
+- **security:** remove company name from code comments ([8f9d46b](https://github.com/genai-tools/anygpt/commit/8f9d46b))
+
+### 🧱 Updated Dependencies
+
+- Updated config to 0.6.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.20.0 (2025-10-08)
 
 ### 🚀 Features
