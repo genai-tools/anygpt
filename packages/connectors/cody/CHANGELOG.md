@@ -1,3 +1,18 @@
+## 0.3.4 (2025-10-08)
+
+### 🩹 Fixes
+
+- **cody:** improve system message transformation to avoid consecutive user messages ([028a11b](https://github.com/genai-tools/anygpt/commit/028a11b))
+
+### 🧱 Updated Dependencies
+
+- Updated types to 0.2.0
+- Updated openai to 0.3.1
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.3.3 (2025-10-07)
 
 ### 🩹 Fixes

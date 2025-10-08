@@ -7,9 +7,9 @@
         "@anygpt/mcp"
       ],
       "alwaysAllow": [
-        "anygpt_list_models",
         "anygpt_list_providers",
-        "anygpt_chat_completion"
+        "anygpt_chat_completion",
+        "anygpt_list_models"
       ]
     }
   }

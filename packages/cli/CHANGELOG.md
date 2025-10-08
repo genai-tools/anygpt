@@ -1,3 +1,18 @@
+## 0.20.0 (2025-10-08)
+
+### 🚀 Features
+
+- **cli:** add benchmark command for model performance testing ([b9d373a](https://github.com/genai-tools/anygpt/commit/b9d373a))
+
+### 🧱 Updated Dependencies
+
+- Updated config to 0.5.1
+- Updated types to 0.2.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.19.0 (2025-10-07)
 
 ### 🚀 Features

@@ -13,6 +13,7 @@ import { conversationDeleteCommand } from './commands/conversation/delete.js';
 import { chatCommand } from './commands/chat.js';
 import { configCommand } from './commands/config.js';
 import { listModelsCommand } from './commands/list-models.js';
+import { benchmarkCommand } from './commands/benchmark.js';
 import { withCLIContext } from './utils/cli-context.js';
 
 
@@ -55,6 +56,20 @@ program
   .option('--provider <name>', 'provider name from config (uses default from config if not specified)')
   .option('--json', 'output as JSON')
   .action(withCLIContext(listModelsCommand));
+
+// Benchmark command
+program
+  .command('benchmark')
+  .description('Benchmark models across providers')
+  .option('--provider <name>', 'benchmark all models from this provider')
+  .option('--model <model>', 'specific model to benchmark (requires --provider)')
+  .option('--models <list>', 'comma-separated list of provider:model pairs (e.g., "openai:gpt-4o,anthropic:claude-3-5-sonnet")')
+  .option('--prompt <text>', 'prompt to use for benchmarking', 'What is 2+2? Answer in one sentence.')
+  .option('--max-tokens <number>', 'maximum tokens to generate', (val) => parseInt(val, 10), 100)
+  .option('--iterations <number>', 'number of iterations per model', (val) => parseInt(val, 10), 1)
+  .option('--output <directory>', 'directory to save response files')
+  .option('--json', 'output as JSON')
+  .action(withCLIContext(benchmarkCommand));
 
 // Conversation commands
 const conversation = program
@@ -231,19 +246,3 @@ conversation
   });
 
 program.parse();
-// test
-// test
-// new feature
-// new feature
-// new feature
-// new feature
-// new feature
-// new feature
-// new feature
-// new feature
-// new feature
-// new feature
-// new feature
-// new feature
-// another feature
-// another feature
