@@ -1,3 +1,13 @@
+## 0.3.2 (2025-10-08)
+
+### 🩹 Fixes
+
+- **security:** remove company name from code comments ([8f9d46b](https://github.com/genai-tools/anygpt/commit/8f9d46b))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.3.1 (2025-10-08)
 
 ### 🩹 Fixes

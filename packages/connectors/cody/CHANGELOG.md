@@ -1,3 +1,17 @@
+## 0.3.5 (2025-10-08)
+
+### 🩹 Fixes
+
+- **cody:** improve example security - use environment variables for tokens ([cabefed](https://github.com/genai-tools/anygpt/commit/cabefed))
+
+### 🧱 Updated Dependencies
+
+- Updated openai to 0.3.2
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.3.4 (2025-10-08)
 
 ### 🩹 Fixes
