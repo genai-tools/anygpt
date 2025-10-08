@@ -97,6 +97,16 @@ export class OpenAIConnector extends BaseConnector {
         },
       };
     } catch (error) {
+      // Log detailed error information for debugging
+      this.logger.error(`Chat completion error for model ${validatedRequest.model}:`, error);
+      
+      // If it's an OpenAI API error, extract more details
+      if (error && typeof error === 'object' && 'status' in error) {
+        const apiError = error as { status?: number; message?: string; error?: unknown };
+        this.logger.error(`API Status: ${apiError.status}`);
+        this.logger.error(`API Error Details:`, apiError.error);
+      }
+      
       this.handleError(error, 'chat completion');
     }
   }
