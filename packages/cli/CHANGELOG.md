@@ -1,3 +1,13 @@
+## 1.0.4 (2025-10-09)
+
+### 🩹 Fixes
+
+- **cli:** improve example clarity in README ([98b7ec7](https://github.com/genai-tools/anygpt/commit/98b7ec7))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.0.3 (2025-10-09)
 
 ### 🩹 Fixes
