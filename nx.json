@@ -33,7 +33,7 @@
     "release": {
       "executor": "./tools/nx-release:release",
       "options": {
-        "aiCommand": "npx anygpt chat --stdin --tag fast --max-tokens 1000",
+        "aiCommand": "npx anygpt chat --stdin --model ml-asset:static-model/gemini-2_5-flash-lite --max-tokens 1000",
         "maxLinesPerFile": 150,
         "diffPaths": [
           "packages/**/src/**",
