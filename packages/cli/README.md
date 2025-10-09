@@ -33,7 +33,7 @@ anygpt chat --model gpt-4o --token $OPENAI_API_KEY "Hello, world!"
 # Start a conversation (stateful)
 anygpt conversation start --model gpt-4o
 anygpt conversation message "Hello, how are you?"
-anygpt conversation message "Tell me about TypeScript"
+anygpt conversation message "Tell me more about TypeScript"
 ```
 
 ## 📋 **Commands**
