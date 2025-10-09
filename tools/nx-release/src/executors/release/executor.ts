@@ -296,8 +296,8 @@ export default async function runExecutor(
       // EXISTING PR: Mark as ready if it was a draft, then update
       prNumber = existingPR;
 
-      // Convert draft PR to ready (if it was a draft placeholder)
-      await markPRReady(prNumber);
+      // Convert draft PR to ready and update title (if it was a draft placeholder)
+      await markPRReady(prNumber, prTitle);
 
       const prBodyWithoutAI = buildPRBody('', releases);
       await updatePR(existingPR, prBodyWithoutAI);

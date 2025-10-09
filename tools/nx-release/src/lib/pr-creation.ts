@@ -183,11 +183,20 @@ export async function getPRDiff(
   return stdout;
 }
 
-export async function markPRReady(prNumber: string): Promise<void> {
+export async function markPRReady(
+  prNumber: string,
+  newTitle?: string
+): Promise<void> {
   console.log('📝 Converting draft PR to ready...');
   try {
     await execa('gh', ['pr', 'ready', prNumber]);
     console.log('✅ PR marked as ready for review');
+
+    // Update title if provided
+    if (newTitle) {
+      await execa('gh', ['pr', 'edit', prNumber, '--title', newTitle]);
+      console.log(`✅ PR title updated to: "${newTitle}"`);
+    }
   } catch (error) {
     // Ignore error if PR is already ready
     console.log('ℹ️  PR is already ready (not a draft)');
