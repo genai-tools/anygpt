@@ -1,5 +1,6 @@
 {
-    "typescript.tsdk": "node_modules/typescript/lib",
-    "git.rebaseWhenSync": true,
-    "git.followTagsWhenSync": true
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "git.rebaseWhenSync": true,
+  "git.followTagsWhenSync": true,
+  "vitest.disableWorkspaceWarning": true
 }
