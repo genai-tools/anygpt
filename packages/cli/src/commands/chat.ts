@@ -7,6 +7,7 @@ interface ChatOptions {
   url?: string;
   token?: string;
   model?: string;
+  tag?: string;
   maxTokens?: number;
   usage?: boolean;
   stdin?: boolean;
@@ -51,7 +52,7 @@ export async function chatCommand(
   let modelId: string;
 
   if (options.tag) {
-    // --tag: Resolve tag to model (explicit tag resolution)
+    // --tag: Resolve tag to model using tag registry
     // Support provider:tag syntax (e.g., "openai:gemini", "cody:sonnet")
     let tagToResolve = options.tag;
     let explicitProvider: string | undefined;
@@ -67,25 +68,41 @@ export async function chatCommand(
       }
     }
 
-    const resolution = resolveModel(
-      tagToResolve,
-      {
-        providers: context.providers,
-        aliases: context.defaults.aliases,
-        defaultProvider: context.defaults.provider,
-      },
-      providerId
-    );
+    // Use tag registry if available (fast lookup)
+    if (context.tagRegistry) {
+      const resolution = context.tagRegistry.resolve(tagToResolve, providerId);
 
-    if (!resolution) {
-      throw new Error(
-        `Tag '${tagToResolve}' not found in provider '${providerId}'. ` +
-          `Run 'anygpt list-tags --provider ${providerId}' to see available tags.`
+      if (!resolution) {
+        throw new Error(
+          `Tag '${tagToResolve}' not found in provider '${providerId}'. ` +
+            `Run 'anygpt list-tags --provider ${providerId}' to see available tags.`
+        );
+      }
+
+      providerId = resolution.provider;
+      modelId = resolution.model;
+    } else {
+      // Fallback to old resolution method (for non-factory configs)
+      const resolution = resolveModel(
+        tagToResolve,
+        {
+          providers: context.providers,
+          aliases: context.defaults.aliases,
+          defaultProvider: context.defaults.provider,
+        },
+        providerId
       );
-    }
 
-    providerId = resolution.provider;
-    modelId = resolution.model;
+      if (!resolution) {
+        throw new Error(
+          `Tag '${tagToResolve}' not found in provider '${providerId}'. ` +
+            `Run 'anygpt list-tags --provider ${providerId}' to see available tags.`
+        );
+      }
+
+      providerId = resolution.provider;
+      modelId = resolution.model;
+    }
 
     if (explicitProvider) {
       context.logger.info(`🔗 Resolved tag '${options.tag}' → ${modelId}`);

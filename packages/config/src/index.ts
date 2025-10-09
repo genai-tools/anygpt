@@ -47,7 +47,7 @@ export {
 // Configuration loader (not exported by default, used internally)
 export { loadConfig, validateConfig } from './loader.js';
 
-// Model resolution utilities (shared between CLI and MCP)
+// Model resolution (tags, aliases, direct models)
 export {
   resolveModel,
   findModelByTag,
@@ -58,6 +58,13 @@ export {
   type AliasInfo,
   type AvailableTagsResult,
 } from './model-resolver.js';
+
+// Tag registry (pre-computed tag mappings)
+export {
+  buildTagRegistry,
+  type TagRegistry,
+  type TagMapping,
+} from './tag-registry.js';
 
 // Glob pattern matching for model filtering
 export { matchesGlobPatterns } from './glob-matcher.js';
