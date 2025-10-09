@@ -32,7 +32,7 @@ export async function chatCommand(
 
   if (!actualMessage) {
     throw new Error(
-      'No message provided. Either pass a message argument or use --stdin.'
+      'No message provided. Either pass a message argument or use --stdin flag to read from stdin.'
     );
   }
   // Validate that only one of --model or --tag is specified
