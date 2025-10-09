@@ -98,12 +98,23 @@ export async function createPR(
   return prUrl.trim();
 }
 
-export async function updatePR(prNumber: string, body: string): Promise<void> {
+export async function updatePR(
+  prNumber: string,
+  body: string,
+  title?: string
+): Promise<void> {
   const prBodyPath = '/tmp/release-pr.md';
   await writeFile(prBodyPath, body, 'utf-8');
 
   console.log(`\n📝 Updating existing PR #${prNumber}...`);
-  await execa('gh', ['pr', 'edit', prNumber, '--body-file', prBodyPath]);
+  const args = ['pr', 'edit', prNumber, '--body-file', prBodyPath];
+
+  if (title) {
+    args.push('--title', title);
+    console.log(`   Title: "${title}"`);
+  }
+
+  await execa('gh', args);
 }
 
 export async function enableAutoMerge(prNumber: string): Promise<void> {
@@ -177,28 +188,18 @@ export async function getPRDiff(
   prNumber: string,
   paths?: string[]
 ): Promise<string> {
-  // Get the full PR diff from GitHub
   // Note: gh pr diff doesn't support path filtering, so we get the full diff
   const { stdout } = await execa('gh', ['pr', 'diff', prNumber]);
   return stdout;
 }
 
-export async function markPRReady(
-  prNumber: string,
-  newTitle?: string
-): Promise<void> {
-  console.log('📝 Converting draft PR to ready...');
+export async function markPRReady(prNumber: string): Promise<void> {
+  console.log('Converting draft PR to ready...');
   try {
     await execa('gh', ['pr', 'ready', prNumber]);
-    console.log('✅ PR marked as ready for review');
-
-    // Update title if provided
-    if (newTitle) {
-      await execa('gh', ['pr', 'edit', prNumber, '--title', newTitle]);
-      console.log(`✅ PR title updated to: "${newTitle}"`);
-    }
+    console.log('PR marked as ready for review');
   } catch (error) {
     // Ignore error if PR is already ready
-    console.log('ℹ️  PR is already ready (not a draft)');
+    console.log('PR is already ready (not a draft)');
   }
 }

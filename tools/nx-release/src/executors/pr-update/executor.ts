@@ -137,13 +137,13 @@ export default async function runExecutor(
     // Build PR title from releases
     const prTitle = buildPRTitle(releases);
 
-    // Convert draft PR to ready and update title (if it was a draft placeholder)
-    await markPRReady(existingPR, prTitle);
+    // Convert draft PR to ready (if it was a draft placeholder)
+    await markPRReady(existingPR);
 
-    // Update PR first (without AI summary)
+    // Update PR with new title and body (without AI summary initially)
     console.log(`\n📝 Updating PR #${existingPR}...`);
     const prBodyWithoutAI = buildPRBody('', releases);
-    await updatePR(existingPR, prBodyWithoutAI);
+    await updatePR(existingPR, prBodyWithoutAI, prTitle);
 
     // Generate AI summary from actual PR diff if enabled
     if (finalAiCommand) {
