@@ -1,3 +1,13 @@
+## 1.0.2 (2025-10-09)
+
+### 📖 Documentation
+
+- **cli:** clarify conversation management feature ([e05ca61](https://github.com/genai-tools/anygpt/commit/e05ca61))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.0.1 (2025-10-09)
 
 ### 📖 Documentation
