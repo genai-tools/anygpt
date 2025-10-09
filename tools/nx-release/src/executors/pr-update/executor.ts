@@ -1,10 +1,6 @@
 import type { ExecutorContext } from '@nx/devkit';
 import type { PrUpdateExecutorSchema } from './schema.js';
-import {
-  getCurrentBranch,
-  getCurrentCommitSha,
-  getDiff,
-} from '../../lib/git-operations.js';
+import { getCurrentBranch } from '../../lib/git-operations.js';
 import {
   extractChangelog,
   extractReleasesFromTags,
@@ -14,7 +10,7 @@ import {
   getExistingPR,
   buildPRBody,
   updatePR,
-  getPRBaseCommit,
+  getPRDiff,
   getRepoName,
   addChangelogComment,
 } from '../../lib/pr-creation.js';
@@ -38,9 +34,10 @@ export default async function runExecutor(
   } = options;
 
   // Override model in aiCommand if model parameter is provided
-  const finalAiCommand = model && aiCommand
-    ? aiCommand.replace(/--model\s+\S+/, `--model ${model}`)
-    : aiCommand;
+  const finalAiCommand =
+    model && aiCommand
+      ? aiCommand.replace(/--model\s+\S+/, `--model ${model}`)
+      : aiCommand;
 
   try {
     console.log('🔄 Updating release PR...\n');
@@ -65,20 +62,6 @@ export default async function runExecutor(
 
     console.log(`📋 Found PR #${existingPR}`);
 
-    // Get current commit SHA
-    const currentSha = await getCurrentCommitSha();
-
-    // Get diff from target branch HEAD
-    let diffForAI = '';
-    if (finalAiCommand) {
-      console.log('📊 Getting diff for AI analysis...');
-      const prBaseCommit = await getPRBaseCommit(existingPR, targetBranch);
-      console.log(
-        `   Using ${targetBranch} branch HEAD: ${prBaseCommit.substring(0, 7)}`
-      );
-      diffForAI = await getDiff(prBaseCommit, currentSha, diffPaths);
-    }
-
     // Get all tags that exist in main but not in target branch
     const { stdout: mainTags } = await execa('git', [
       'tag',
@@ -93,7 +76,9 @@ export default async function runExecutor(
 
     const mainTagSet = new Set(mainTags.split('\n').filter(Boolean));
     const targetTagSet = new Set(targetTags.split('\n').filter(Boolean));
-    const newTags = Array.from(mainTagSet).filter((tag) => !targetTagSet.has(tag));
+    const newTags = Array.from(mainTagSet).filter(
+      (tag) => !targetTagSet.has(tag)
+    );
 
     console.log(`📦 Found ${newTags.length} new release(s)`);
 
@@ -104,27 +89,39 @@ export default async function runExecutor(
     console.log('📋 Extracting changelog...');
     const { changelog } = await extractChangelog(changelogPatterns);
 
-    // Generate AI summary if enabled
-    let aiSummary = '';
-    if (finalAiCommand && diffForAI) {
-      console.log(`🤖 Generating AI summary${model ? ` with model: ${model}` : ''}...`);
-      aiSummary = await generateAISummary(
-        changelog,
-        releases,
-        diffForAI,
-        finalAiCommand,
-        {
-          maxLinesPerFile,
-        }
-      );
-    }
-
-    // Create PR body
-    const prBody = buildPRBody(aiSummary, releases);
-
-    // Update PR
+    // Update PR first (without AI summary)
     console.log(`\n📝 Updating PR #${existingPR}...`);
-    await updatePR(existingPR, prBody);
+    const prBodyWithoutAI = buildPRBody('', releases);
+    await updatePR(existingPR, prBodyWithoutAI);
+
+    // Generate AI summary from actual PR diff if enabled
+    if (finalAiCommand) {
+      console.log(
+        `\n🤖 Generating AI summary from PR diff${
+          model ? ` with model: ${model}` : ''
+        }...`
+      );
+      try {
+        const prDiff = await getPRDiff(existingPR);
+        const aiSummary = await generateAISummary(
+          changelog,
+          releases,
+          prDiff,
+          finalAiCommand,
+          {
+            maxLinesPerFile,
+          }
+        );
+
+        // Update PR with AI summary
+        const prBodyWithAI = buildPRBody(aiSummary, releases);
+        await updatePR(existingPR, prBodyWithAI);
+        console.log('✅ PR description updated with AI summary');
+      } catch (error) {
+        console.warn('⚠️  Failed to generate AI summary:', error);
+        console.log('   PR updated without AI summary');
+      }
+    }
 
     // Update changelog comment
     console.log('📋 Adding changelog comment...');
