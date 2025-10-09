@@ -1,3 +1,11 @@
+## 0.22.1 (2025-10-09)
+
+### 🧱 Updated Dependencies
+
+- Updated config to 0.6.1
+- Updated router to 0.3.1
+- Updated types to 0.2.1
+
 # 1.0.0 (2025-10-09)
 
 ### 🧱 Updated Dependencies

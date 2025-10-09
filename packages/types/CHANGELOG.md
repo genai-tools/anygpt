@@ -1,3 +1,7 @@
+## 0.2.1 (2025-10-09)
+
+This was a version bump only for types to align it with other projects, there were no code changes.
+
 # 1.0.0 (2025-10-09)
 
 This was a version bump only for types to align it with other projects, there were no code changes.
