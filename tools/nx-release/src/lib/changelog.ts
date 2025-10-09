@@ -55,7 +55,7 @@ export async function extractChangelog(
 }
 
 export function extractReleasesFromTags(tags: string[]): PackageRelease[] {
-  return tags
+  const releases = tags
     .map((tag) => {
       const match = tag.match(/^(.+)@([\d.]+)$/);
       if (match) {
@@ -64,13 +64,40 @@ export function extractReleasesFromTags(tags: string[]): PackageRelease[] {
       return null;
     })
     .filter((r): r is PackageRelease => r !== null);
+
+  // Keep only the latest version of each package
+  const latestVersions = new Map<string, PackageRelease>();
+  for (const release of releases) {
+    const existing = latestVersions.get(release.name);
+    if (!existing || compareVersions(release.version, existing.version) > 0) {
+      latestVersions.set(release.name, release);
+    }
+  }
+
+  return Array.from(latestVersions.values());
+}
+
+function compareVersions(a: string, b: string): number {
+  const aParts = a.split('.').map(Number);
+  const bParts = b.split('.').map(Number);
+
+  for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+    const aPart = aParts[i] || 0;
+    const bPart = bParts[i] || 0;
+    if (aPart > bPart) return 1;
+    if (aPart < bPart) return -1;
+  }
+
+  return 0;
 }
 
 export function buildPRTitle(releases: PackageRelease[]): string {
   if (releases.length === 1) {
     return `Release ${releases[0].name} v${releases[0].version}`;
   } else if (releases.length > 1) {
-    return `Release: ${releases.map((r) => `${r.name}@${r.version}`).join(', ')}`;
+    return `Release: ${releases
+      .map((r) => `${r.name}@${r.version}`)
+      .join(', ')}`;
   } else {
     return `Release: ${new Date().toISOString().split('T')[0]}`;
   }
