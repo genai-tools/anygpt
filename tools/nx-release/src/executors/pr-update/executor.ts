@@ -1,13 +1,16 @@
 import type { ExecutorContext } from '@nx/devkit';
 import type { PrUpdateExecutorSchema } from './schema.js';
 import { getCurrentBranch } from '../../lib/git-operations.js';
-import { extractChangelog, type PackageRelease } from '../../lib/changelog.js';
+import {
+  extractChangelog,
+  buildPRTitle,
+  type PackageRelease,
+} from '../../lib/changelog.js';
 import { generateAISummary } from '../../lib/ai-summary.js';
 import { execa } from 'execa';
 import {
   getExistingPR,
   buildPRBody,
-  updatePR,
   getPRDiff,
   getRepoName,
   addChangelogComment,
@@ -131,8 +134,11 @@ export default async function runExecutor(
     console.log('📋 Extracting changelog...');
     const { changelog } = await extractChangelog(changelogPatterns);
 
-    // Convert draft PR to ready (if it was a draft placeholder)
-    await markPRReady(existingPR);
+    // Build PR title from releases
+    const prTitle = buildPRTitle(releases);
+
+    // Convert draft PR to ready and update title (if it was a draft placeholder)
+    await markPRReady(existingPR, prTitle);
 
     // Update PR first (without AI summary)
     console.log(`\n📝 Updating PR #${existingPR}...`);
