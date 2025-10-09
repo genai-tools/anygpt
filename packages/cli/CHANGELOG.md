@@ -1,3 +1,13 @@
+## 1.0.3 (2025-10-09)
+
+### 🩹 Fixes
+
+- **cli:** improve error message clarity for stdin usage ([f0d7478](https://github.com/genai-tools/anygpt/commit/f0d7478))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.0.2 (2025-10-09)
 
 ### 📖 Documentation
