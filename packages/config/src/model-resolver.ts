@@ -24,29 +24,62 @@ export interface ModelResolution {
 /**
  * Search for a model by tag in provider configs
  * Returns { provider, model } or null if not found
+ * Searches both explicit models and modelRules
  */
 export function findModelByTag(
   tag: string,
   providers: Record<string, FactoryProviderConfig>,
-  preferredProvider?: string
+  preferredProvider?: string,
+  globalModelRules?: ModelRule[]
 ): ModelResolution | null {
   // First, try the preferred provider if specified
-  if (preferredProvider && providers[preferredProvider]?.models) {
-    const providerModels = providers[preferredProvider].models!;
-    for (const [modelName, metadata] of Object.entries(providerModels)) {
-      if (metadata.tags?.includes(tag)) {
-        return { provider: preferredProvider, model: modelName };
+  if (preferredProvider) {
+    const providerConfig = providers[preferredProvider];
+
+    // Check explicit models
+    if (providerConfig?.models) {
+      for (const [modelName, metadata] of Object.entries(
+        providerConfig.models
+      )) {
+        if (metadata.tags?.includes(tag)) {
+          return { provider: preferredProvider, model: modelName };
+        }
+      }
+    }
+
+    // Check provider-level modelRules
+    if (providerConfig?.modelRules) {
+      for (const rule of providerConfig.modelRules) {
+        if (rule.tags?.includes(tag)) {
+          // Tag found in rule - but we can't return a specific model yet
+          // This indicates the tag exists but needs actual model resolution
+          // For now, return null to indicate "tag exists but needs model list"
+          // TODO: This needs to be handled by the caller with actual model list
+          return null;
+        }
+      }
+    }
+
+    // Check global modelRules
+    if (globalModelRules) {
+      for (const rule of globalModelRules) {
+        if (rule.tags?.includes(tag)) {
+          return null; // Same as above
+        }
       }
     }
   }
 
   // Search all providers
   for (const [providerId, providerConfig] of Object.entries(providers)) {
-    if (!providerConfig.models) continue;
-
-    for (const [modelName, metadata] of Object.entries(providerConfig.models)) {
-      if (metadata.tags?.includes(tag)) {
-        return { provider: providerId, model: modelName };
+    // Check explicit models
+    if (providerConfig.models) {
+      for (const [modelName, metadata] of Object.entries(
+        providerConfig.models
+      )) {
+        if (metadata.tags?.includes(tag)) {
+          return { provider: providerId, model: modelName };
+        }
       }
     }
   }

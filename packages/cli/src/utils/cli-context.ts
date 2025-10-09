@@ -49,12 +49,14 @@ import type {
   FactoryProviderConfig,
   ModelRule,
 } from '@anygpt/config';
+import { buildTagRegistry, type TagRegistry } from '@anygpt/config';
 
 export interface CLIContext {
   router: any;
   config: any;
   configSource: string; // Path to the loaded config file
   providers: Record<string, FactoryProviderConfig>; // Provider configs with model metadata
+  tagRegistry?: TagRegistry; // Pre-computed tag mappings
   logger: Logger;
   defaults: {
     provider?: string;
@@ -125,11 +127,22 @@ export async function setupCLIContext(
         }
       }
 
+      // Build tag registry (async, fetches models from providers)
+      consoleLogger.debug('Building tag registry...');
+      const tagRegistry = await buildTagRegistry(
+        config.providers || {},
+        config.defaults?.modelRules
+      );
+      consoleLogger.debug(
+        `Tag registry built with ${tagRegistry.tags.size} tags`
+      );
+
       return {
         router,
         config,
         configSource: resolvedConfigPath,
         providers: config.providers || {},
+        tagRegistry,
         logger: consoleLogger,
         defaults: {
           provider: config.defaults?.provider,
