@@ -1,4 +1,5 @@
 import type { CLIContext } from '../utils/cli-context.js';
+import { resolveModel, resolveModelConfig } from '@anygpt/config';
 
 interface ChatOptions {
   provider?: string;
@@ -6,14 +7,10 @@ interface ChatOptions {
   url?: string;
   token?: string;
   model?: string;
-  tag?: string;
   maxTokens?: number;
   usage?: boolean;
   stdin?: boolean;
 }
-
-// Import shared model resolution from config
-import { resolveModel as resolveModelShared } from '@anygpt/config';
 
 export async function chatCommand(
   context: CLIContext,
@@ -55,7 +52,7 @@ export async function chatCommand(
 
   if (options.tag) {
     // --tag: Resolve tag to model (explicit tag resolution)
-    // Support provider:tag syntax (e.g., "booking:gemini", "cody:sonnet")
+    // Support provider:tag syntax (e.g., "openai:gemini", "cody:sonnet")
     let tagToResolve = options.tag;
     let explicitProvider: string | undefined;
 
@@ -70,7 +67,7 @@ export async function chatCommand(
       }
     }
 
-    const resolution = resolveModelShared(
+    const resolution = resolveModel(
       tagToResolve,
       {
         providers: context.providers,
@@ -124,11 +121,34 @@ export async function chatCommand(
   try {
     const startTime = Date.now();
 
+    // Resolve model configuration using rule matching
+    const providers = context.config?.providers || {};
+    const providerConfig = providers[providerId];
+    const globalRules = context.defaults?.modelRules;
+    const modelConfig = resolveModelConfig(
+      modelId,
+      providerId,
+      providerConfig,
+      globalRules
+    );
+
+    context.logger.debug('Model config:', {
+      model: modelId,
+      provider: providerId,
+      max_tokens: modelConfig.max_tokens,
+      extra_body: modelConfig.extra_body,
+    });
+
     const response = await context.router.chatCompletion({
       provider: providerId,
       model: modelId,
       messages: [{ role: 'user', content: actualMessage }],
-      ...(options.maxTokens && { max_tokens: options.maxTokens }),
+      // CLI flag takes precedence over model config
+      ...((options.maxTokens || modelConfig.max_tokens) && {
+        max_tokens: options.maxTokens || modelConfig.max_tokens,
+      }),
+      ...(modelConfig.reasoning && { reasoning: modelConfig.reasoning }),
+      ...(modelConfig.extra_body && { extra_body: modelConfig.extra_body }),
     });
 
     const duration = Date.now() - startTime;

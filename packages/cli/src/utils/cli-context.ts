@@ -9,14 +9,23 @@ import type { Logger } from '@anygpt/types';
 class ConsoleLogger implements Logger {
   constructor(private verbose = false) {}
 
+  // Check verbose flag dynamically
+  private isVerbose(): boolean {
+    return (
+      this.verbose ||
+      process.argv.includes('--verbose') ||
+      process.argv.includes('-v')
+    );
+  }
+
   debug(message: string, ...args: any[]): void {
-    if (this.verbose) {
-      console.debug(message, ...args);
+    if (this.isVerbose()) {
+      console.log('[DEBUG]', message, ...args);
     }
   }
 
   info(message: string, ...args: any[]): void {
-    if (this.verbose) {
+    if (this.isVerbose()) {
       console.log(message, ...args);
     }
   }
@@ -35,7 +44,11 @@ const consoleLogger = new ConsoleLogger(
   process.env.VERBOSE === 'true' || process.argv.includes('--verbose')
 );
 
-import type { ModelAlias, FactoryProviderConfig, ModelRule } from '@anygpt/config';
+import type {
+  ModelAlias,
+  FactoryProviderConfig,
+  ModelRule,
+} from '@anygpt/config';
 
 export interface CLIContext {
   router: any;
@@ -51,10 +64,13 @@ export interface CLIContext {
     logging?: {
       level?: 'debug' | 'info' | 'warn' | 'error';
     };
-    providers?: Record<string, {
-      model?: string;
-      [key: string]: unknown;
-    }>;
+    providers?: Record<
+      string,
+      {
+        model?: string;
+        [key: string]: unknown;
+      }
+    >;
     aliases?: Record<string, ModelAlias[]>;
     modelRules?: ModelRule[];
   };
@@ -63,22 +79,52 @@ export interface CLIContext {
 /**
  * Global config and router setup - shared by all commands
  */
-export async function setupCLIContext(configPath?: string): Promise<CLIContext> {
+export async function setupCLIContext(
+  configPath?: string
+): Promise<CLIContext> {
   try {
     // Try to import the config directly (for factory configs)
     // Resolve path relative to current working directory, not the CLI dist folder
     const resolvedConfigPath = configPath || './.anygpt/anygpt.config.ts';
-    const absoluteConfigPath = new URL(resolvedConfigPath, `file://${process.cwd()}/`).href;
+    const absoluteConfigPath = new URL(
+      resolvedConfigPath,
+      `file://${process.cwd()}/`
+    ).href;
     const module = await import(absoluteConfigPath);
     const loadedConfig = module.default;
-    
+
     // Check if it's a factory config (has providers with connector instances)
-    const hasConnectorInstances = loadedConfig.providers && Object.values(loadedConfig.providers).some((p: any) => p.connector && typeof p.connector === 'object');
-    
+    const hasConnectorInstances =
+      loadedConfig.providers &&
+      Object.values(loadedConfig.providers).some(
+        (p: any) => p.connector && typeof p.connector === 'object'
+      );
+
     if (hasConnectorInstances) {
       // It's a factory config - use setupRouterFromFactory
       const { router, config } = await setupRouterFromFactory(loadedConfig);
-      
+
+      // Inject the CLI logger into all connectors
+      if (config.providers) {
+        for (const providerConfig of Object.values(config.providers)) {
+          if (
+            (providerConfig as any).connector &&
+            typeof (providerConfig as any).connector === 'object'
+          ) {
+            const connector = (providerConfig as any).connector;
+            // Inject logger by setting the protected logger property
+            if (connector.logger) {
+              Object.defineProperty(connector, 'logger', {
+                value: consoleLogger,
+                writable: true,
+                enumerable: false,
+                configurable: true,
+              });
+            }
+          }
+        }
+      }
+
       return {
         router,
         config,
@@ -93,13 +139,16 @@ export async function setupCLIContext(configPath?: string): Promise<CLIContext> 
           logging: config.defaults?.logging,
           providers: config.defaults?.providers,
           aliases: config.defaults?.aliases,
-          modelRules: config.defaults?.modelRules
-        }
+          modelRules: config.defaults?.modelRules,
+        },
       };
     } else {
       // It's a standard config - use setupRouter
-      const { router, config } = await setupRouter({ configPath }, consoleLogger);
-      
+      const { router, config } = await setupRouter(
+        { configPath },
+        consoleLogger
+      );
+
       return {
         router,
         config,
@@ -108,14 +157,14 @@ export async function setupCLIContext(configPath?: string): Promise<CLIContext> 
         logger: consoleLogger,
         defaults: {
           provider: config.settings?.defaultProvider,
-          model: undefined // AnyGPTConfig doesn't have a global default model
-        }
+          model: undefined, // AnyGPTConfig doesn't have a global default model
+        },
       };
     }
   } catch {
     // Fall back to standard config loading
     const { router, config } = await setupRouter({ configPath }, consoleLogger);
-    
+
     return {
       router,
       config,
@@ -124,8 +173,8 @@ export async function setupCLIContext(configPath?: string): Promise<CLIContext> 
       logger: consoleLogger,
       defaults: {
         provider: config.settings?.defaultProvider,
-        model: undefined // AnyGPTConfig doesn't have a global default model
-      }
+        model: undefined, // AnyGPTConfig doesn't have a global default model
+      },
     };
   }
 }
@@ -140,7 +189,7 @@ export function withCLIContext<T extends any[]>(
     // Extract global options from commander
     const command = args[args.length - 1] as any;
     const globalOpts = command.parent?.opts() || {};
-    
+
     try {
       const context = await setupCLIContext(globalOpts.config);
       await commandFn(context, ...args);
