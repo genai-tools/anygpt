@@ -62,19 +62,27 @@ export class OpenAIConnector extends BaseConnector {
     // Allow any model name - let the API endpoint validate
     const validatedRequest = this.validateRequest(request);
 
-    try {
-      const model = validatedRequest.model ?? 'gpt-3.5-turbo';
+    if (!validatedRequest.model) {
+      throw new Error('Model is required for chat completion');
+    }
 
-      // Use the new Responses API pattern
-      const response = await this.client.chat.completions.create({
-        model,
+    try {
+      // Build request parameters using proper OpenAI SDK types
+      // max_completion_tokens is the newer parameter that should work for all models
+      const requestParams: OpenAI.Chat.ChatCompletionCreateParams = {
+        model: validatedRequest.model,
         messages: validatedRequest.messages,
         temperature: validatedRequest.temperature,
-        max_tokens: validatedRequest.max_tokens,
+        max_completion_tokens: validatedRequest.max_tokens,
         top_p: validatedRequest.top_p,
         presence_penalty: validatedRequest.presence_penalty,
         stream: false, // For now, we'll handle streaming separately
-      });
+        // Add reasoning_effort if provided (for o1/o3 models)
+        reasoning_effort: validatedRequest.reasoning?.effort,
+      };
+
+      // Use the new Responses API pattern
+      const response = await this.client.chat.completions.create(requestParams);
 
       return {
       id: response.id,
@@ -97,14 +105,60 @@ export class OpenAIConnector extends BaseConnector {
         },
       };
     } catch (error) {
+      // Check for 500/400 errors which may indicate reasoning parameter mismatch
+      if (error && typeof error === 'object' && 'status' in error) {
+        const errorStatus = (error as { status?: number }).status;
+        if (errorStatus === 500 || errorStatus === 400) {
+          const hasReasoning = validatedRequest.reasoning?.effort;
+          const hint = hasReasoning
+            ? `This model may not support reasoning parameters. Try removing reasoning config.`
+            : `This model may require reasoning configuration. Try adding reasoning: { effort: 'medium' } to your model config.`;
+          
+          // Check if we have a message already
+          const errorMessage = (error as { message?: string }).message;
+          if (errorMessage && !errorMessage.includes('no body')) {
+            // We have a real error message, don't add hint
+            throw new Error(`${this.providerId} chat completion failed: ${errorMessage}`);
+          }
+          
+          throw new Error(
+            `${this.providerId} chat completion failed: ${errorStatus} status code (no body). ${hint}`
+          );
+        }
+      }
+      
       // Log detailed error information for debugging
       this.logger.error(`Chat completion error for model ${validatedRequest.model}:`, error);
       
-      // If it's an OpenAI API error, extract more details
-      if (error && typeof error === 'object' && 'status' in error) {
-        const apiError = error as { status?: number; message?: string; error?: unknown };
-        this.logger.error(`API Status: ${apiError.status}`);
-        this.logger.error(`API Error Details:`, apiError.error);
+      // Try to extract error details from various error formats
+      if (error instanceof OpenAI.APIError) {
+        // OpenAI SDK error
+        const errorMessage = error.message || `${error.status} status code`;
+        
+        // Log for debugging
+        this.logger.error(`API Status: ${error.status}`);
+        this.logger.error(`API Message: ${error.message}`);
+        this.logger.error(`API Error:`, error.error);
+        
+        throw new Error(`${this.providerId} chat completion failed: ${errorMessage}`);
+      } else if (error && typeof error === 'object' && 'status' in error) {
+        // Generic error with status
+        const genericError = error as { status?: number; message?: string; body?: unknown };
+        let errorMessage = genericError.message || `${genericError.status} status code`;
+        
+        // Try to extract from body
+        if (genericError.body) {
+          try {
+            const bodyStr = typeof genericError.body === 'string' 
+              ? genericError.body 
+              : JSON.stringify(genericError.body);
+            errorMessage += ` - ${bodyStr}`;
+          } catch {
+            // Ignore JSON stringify errors
+          }
+        }
+        
+        throw new Error(`${this.providerId} chat completion failed: ${errorMessage}`);
       }
       
       this.handleError(error, 'chat completion');
