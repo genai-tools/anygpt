@@ -55,7 +55,6 @@ Respond with ONLY bullet points describing the changes. Example format:
 - Fixed bug in router configuration`;
 
     // Execute the command with prompt via stdin
-    // The command should be fully configured in nx.json (e.g., "npx anygpt chat --stdin --model fast --max-tokens 1000")
     const [cmd, ...args] = command.split(' ');
 
     const { stdout } = await execa(cmd, args, {
