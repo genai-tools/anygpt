@@ -3,8 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "type": "module",
-  "scripts": {
-    "release": "npx nx push",
+  "scripts": {    
     "build": "npx tsdown --cwd tools/nx-tsdown && npx tsdown --cwd tools/nx-tsgo && npx tsdown --cwd tools/nx-vitest && npx tsdown --cwd tools/nx-release",
     "prepare": "husky"
   },
@@ -60,7 +59,7 @@
           "storage": "tmp/local-registry/storage"
         }
       },
-      "push": {
+      "publish": {
         "executor": "./tools/nx-release:release",
         "options": {
           "baseBranch": "main",
