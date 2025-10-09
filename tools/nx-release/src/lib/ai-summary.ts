@@ -78,21 +78,30 @@ SUMMARY:
     const output = stdout.trim();
 
     // Parse the structured output
-    const titleMatch = output.match(/TITLE:\s*(.+?)(?:\n|$)/i);
-    const summaryMatch = output.match(/SUMMARY:\s*([\s\S]+?)$/i);
+    const titleMatch = output.match(/^TITLE:\s*(.+?)$/im);
+    const summaryMatch = output.match(/^SUMMARY:\s*([\s\S]+?)$/im);
 
     if (!titleMatch || !summaryMatch) {
       // Fallback: use first line as title, rest as summary
-      const lines = output.split('\n');
+      const lines = output.split('\n').filter((l) => l.trim());
       return {
-        title: lines[0].trim(),
-        summary: lines.slice(1).join('\n').trim() || output,
+        title: lines[0]?.replace(/^TITLE:\s*/i, '').trim() || 'Release',
+        summary: lines.slice(1).join('\n').trim() || '',
       };
     }
 
+    let title = titleMatch[1].trim();
+    let summary = summaryMatch[1].trim();
+
+    // Remove any remaining "TITLE:" prefix (in case AI included it in the captured group)
+    title = title.replace(/^TITLE:\s*/i, '');
+
+    // Remove any "SUMMARY:" prefix from summary
+    summary = summary.replace(/^SUMMARY:\s*/i, '');
+
     return {
-      title: titleMatch[1].trim(),
-      summary: summaryMatch[1].trim(),
+      title,
+      summary,
     };
   } catch (error) {
     console.log('⚠️  AI generation failed, using fallback');
