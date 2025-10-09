@@ -30,6 +30,13 @@ anygpt chat --model gpt-4o "Hello from LiteLLM!"
 
 ## Configuration Examples
 
+### [`configs/reasoning-shorthand.config.ts`](./configs/reasoning-shorthand.config.ts)
+Demonstrates the `reasoning: true` shorthand for enabling reasoning models. Shows:
+- Simple shorthand: `reasoning: true` (uses 'medium' effort by default)
+- Explicit effort levels: `reasoning: { effort: 'high' }`
+- Disabling reasoning: `reasoning: false`
+- Pattern-based model matching for reasoning-capable models
+
 ### [`configs/litellm.config.ts`](./configs/litellm.config.ts)
 AnyGPT configuration for LiteLLM integration. Shows how to:
 - Point AnyGPT at LiteLLM proxy
