@@ -14,7 +14,7 @@ import {
   updatePR,
   getPRDiff,
   getRepoName,
-  addChangelogComment,
+  addUpdateComment,
   markPRReady,
 } from '../../lib/pr-creation.js';
 
@@ -181,9 +181,9 @@ export default async function runExecutor(
       }
     }
 
-    // Update changelog comment
-    console.log('📋 Adding changelog comment...');
-    await addChangelogComment(existingPR, changelog);
+    // Add tracking comment
+    console.log('📋 Adding update tracking comment...');
+    await addUpdateComment(existingPR, 'pr-update');
 
     const repoName = await getRepoName();
     console.log(

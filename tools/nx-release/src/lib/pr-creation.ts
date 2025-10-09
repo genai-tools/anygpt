@@ -49,63 +49,27 @@ If checks fail, review the errors and push fixes to this branch.
 `;
 }
 
-export async function addChangelogComment(
+export async function addUpdateComment(
   prNumber: string,
-  changelog: string
+  source: 'publish' | 'pr-update'
 ): Promise<void> {
-  if (!changelog || changelog.trim().length === 0) {
-    console.log('   No changelog entries to add');
-    return;
-  }
+  const timestamp = new Date().toISOString();
+  const sourceLabel =
+    source === 'publish'
+      ? '🚀 Auto-updated from `npx nx publish`'
+      : '🔄 Manually updated via `npx nx pr-update`';
 
-  const commentBody = `## 📋 Changelog
+  const commentBody = `${sourceLabel}
 
-${changelog}
+*Updated at ${timestamp}*`;
 
----
-*This changelog was automatically generated from conventional commits.*`;
-
-  // Check if a changelog comment already exists
-  try {
-    const { stdout } = await execa('gh', [
-      'pr',
-      'view',
-      prNumber,
-      '--json',
-      'comments',
-      '--jq',
-      '.comments[] | select(.body | startswith("## 📋 Changelog")) | .id',
-    ]);
-
-    const existingCommentId = stdout.trim();
-
-    if (existingCommentId) {
-      // Update existing comment
-      await execa('gh', [
-        'api',
-        '-X',
-        'PATCH',
-        `/repos/:owner/:repo/issues/comments/${existingCommentId}`,
-        '-f',
-        `body=${commentBody}`,
-      ]);
-      console.log('   Updated existing changelog comment');
-    } else {
-      // Create new comment
-      await execa('gh', ['pr', 'comment', prNumber, '--body', commentBody]);
-      console.log('   Added new changelog comment');
-    }
-  } catch (error) {
-    // Fallback: create new comment if checking fails
-    await execa('gh', ['pr', 'comment', prNumber, '--body', commentBody]);
-    console.log('   Added changelog comment');
-  }
+  await execa('gh', ['pr', 'comment', prNumber, '--body', commentBody]);
+  console.log(`   Added ${source} tracking comment`);
 }
 
 export async function createPR(
   title: string,
   body: string,
-  headBranch: string,
   baseBranch: string,
   options: { draft?: boolean } = {}
 ): Promise<string> {
