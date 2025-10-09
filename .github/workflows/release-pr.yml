@@ -27,6 +27,27 @@ jobs:
       - run: npm install --no-package-lock
       - run: npm run build
 
+      - name: Generate Changelog Summary
+        run: |
+          echo "## 📋 Release Changelog" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Extract changelogs for packages being released
+          for changelog in packages/*/CHANGELOG.md packages/connectors/*/CHANGELOG.md; do
+            if [ -f "$changelog" ]; then
+              pkg_name=$(echo "$changelog" | sed 's|.*/\([^/]*\)/CHANGELOG.md|\1|')
+              
+              # Extract first entry (between first two ## headers)
+              first_entry=$(awk '/^## / {if (++count == 2) exit} count == 1' "$changelog")
+              
+              if [ -n "$first_entry" ]; then
+                echo "### 📦 $pkg_name" >> $GITHUB_STEP_SUMMARY
+                echo "$first_entry" >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          done
+
       - name: Publish to npm
         run: npx nx release publish
         env:
@@ -36,7 +57,7 @@ jobs:
         run: |
           # Get the merge commit message to find PR number
           PR_NUMBER=$(git log -1 --pretty=%B | grep -oP 'Merge pull request #\K\d+' || echo "")
-          
+
           if [ -n "$PR_NUMBER" ]; then
             # Extract published packages from git tags and format them
             PACKAGES=$(git tag --points-at HEAD | grep '@' | while read tag; do
