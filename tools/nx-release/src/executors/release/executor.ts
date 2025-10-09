@@ -10,6 +10,7 @@ import {
   getTagsAtCommit,
   pushWithTags,
   getNewTags,
+  getDiff,
 } from '../../lib/git-operations.js';
 import {
   extractChangelog,
@@ -215,12 +216,69 @@ export default async function runExecutor(
     // Build PR title from releases
     const prTitle = buildPRTitle(releases);
 
-    // Create PR body without AI summary initially
-    const prBodyWithoutAI = buildPRBody('', releases);
-
-    // Create or update PR first
     let prNumber: string;
-    if (!existingPR) {
+
+    // For NEW PR: Generate AI summary from local diff before creating PR
+    if (!existingPR && finalAiCommand) {
+      console.log(
+        `\n🤖 Generating AI summary from local changes${
+          model ? ` with model: ${model}` : ''
+        }...`
+      );
+      try {
+        // Use local diff since PR doesn't exist yet
+        const localDiff = await getDiff(
+          `origin/${targetBranch}`,
+          afterSha,
+          diffPaths
+        );
+        const aiSummary = await generateAISummary(
+          changelog,
+          releases,
+          localDiff,
+          finalAiCommand,
+          {
+            maxLinesPerFile,
+          }
+        );
+
+        // Create PR with AI summary included
+        const prBodyWithAI = buildPRBody(aiSummary, releases);
+        const prUrl = await createPR(
+          prTitle,
+          prBodyWithAI,
+          baseBranch,
+          targetBranch
+        );
+        console.log(`✅ PR created with AI summary: ${prUrl}`);
+        prNumber = prUrl.split('/').pop() || '';
+
+        // Enable auto-merge if requested
+        if (autoMerge) {
+          await enableAutoMerge(prNumber);
+        }
+      } catch (error) {
+        console.warn('⚠️  Failed to generate AI summary:', error);
+        console.log('   Creating PR without AI summary');
+
+        // Fallback: Create PR without AI summary
+        const prBodyWithoutAI = buildPRBody('', releases);
+        const prUrl = await createPR(
+          prTitle,
+          prBodyWithoutAI,
+          baseBranch,
+          targetBranch
+        );
+        console.log(`✅ PR created: ${prUrl}`);
+        prNumber = prUrl.split('/').pop() || '';
+
+        if (autoMerge) {
+          await enableAutoMerge(prNumber);
+        }
+      }
+    } else if (!existingPR) {
+      // No AI command configured, create PR without AI summary
+      const prBodyWithoutAI = buildPRBody('', releases);
       const prUrl = await createPR(
         prTitle,
         prBodyWithoutAI,
@@ -230,12 +288,13 @@ export default async function runExecutor(
       console.log(`✅ PR created: ${prUrl}`);
       prNumber = prUrl.split('/').pop() || '';
 
-      // Enable auto-merge if requested
       if (autoMerge) {
         await enableAutoMerge(prNumber);
       }
     } else {
+      // EXISTING PR: Update first, then generate AI summary from actual PR diff
       prNumber = existingPR;
+      const prBodyWithoutAI = buildPRBody('', releases);
       await updatePR(existingPR, prBodyWithoutAI);
       console.log(
         'ℹ️  Auto-merge not enabled for existing PR - enable manually if needed'
@@ -244,40 +303,40 @@ export default async function runExecutor(
       console.log(
         `✅ PR updated: https://github.com/${repoName}/pull/${existingPR}`
       );
+
+      // For existing PR, generate AI summary from actual PR diff
+      if (finalAiCommand) {
+        console.log(
+          `\n🤖 Generating AI summary from PR diff${
+            model ? ` with model: ${model}` : ''
+          }...`
+        );
+        try {
+          const prDiff = await getPRDiff(prNumber);
+          const aiSummary = await generateAISummary(
+            changelog,
+            releases,
+            prDiff,
+            finalAiCommand,
+            {
+              maxLinesPerFile,
+            }
+          );
+
+          // Update PR with AI summary
+          const prBodyWithAI = buildPRBody(aiSummary, releases);
+          await updatePR(prNumber, prBodyWithAI);
+          console.log('✅ PR description updated with AI summary');
+        } catch (error) {
+          console.warn('⚠️  Failed to generate AI summary:', error);
+          console.log('   PR updated without AI summary');
+        }
+      }
     }
 
     // Add changelog as a comment
     console.log('📋 Adding changelog comment...');
     await addChangelogComment(prNumber, changelog);
-
-    // Now get the actual PR diff and generate AI summary
-    if (finalAiCommand) {
-      console.log(
-        `\n🤖 Generating AI summary from PR diff${
-          model ? ` with model: ${model}` : ''
-        }...`
-      );
-      try {
-        const prDiff = await getPRDiff(prNumber, diffPaths);
-        const aiSummary = await generateAISummary(
-          changelog,
-          releases,
-          prDiff,
-          finalAiCommand,
-          {
-            maxLinesPerFile,
-          }
-        );
-
-        // Update PR with AI summary
-        const prBodyWithAI = buildPRBody(aiSummary, releases);
-        await updatePR(prNumber, prBodyWithAI);
-        console.log('✅ PR description updated with AI summary');
-      } catch (error) {
-        console.warn('⚠️  Failed to generate AI summary:', error);
-        console.log('   PR created without AI summary');
-      }
-    }
 
     // Open in browser
     await openPRInBrowser(prNumber);
