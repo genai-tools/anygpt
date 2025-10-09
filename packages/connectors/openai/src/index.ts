@@ -13,7 +13,7 @@ import {
   type ResponseAnnotation,
 } from '@anygpt/router';
 import type { ConnectorFactory } from '@anygpt/router';
-import { getChatModels } from './models.js';
+import { getChatModels, getModelInfo, type OpenAIModelInfo } from './models.js';
 
 export interface OpenAIConnectorConfig extends ConnectorConfig {
   apiKey?: string;
@@ -56,7 +56,7 @@ export class OpenAIConnector extends BaseConnector {
       timeout: this.config.timeout,
       maxRetries: this.config.maxRetries,
       defaultHeaders: config.defaultHeaders, // Support custom headers
-      fetch: async (url: RequestInfo | URL, init?: RequestInit) => {
+      fetch: async (url: string | Request | URL, init?: RequestInit) => {
         const response = await fetch(url, init);
 
         // Capture error response body for better error messages
