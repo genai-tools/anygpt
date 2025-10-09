@@ -1,3 +1,13 @@
+## 1.0.1 (2025-10-09)
+
+### 📖 Documentation
+
+- **cli:** add contributing section to README ([9ddb1b2](https://github.com/genai-tools/anygpt/commit/9ddb1b2))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.22.1 (2025-10-09)
 
 ### 🧱 Updated Dependencies
