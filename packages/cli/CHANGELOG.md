@@ -1,3 +1,13 @@
+## 1.0.5 (2025-10-09)
+
+### 🩹 Fixes
+
+- **cli:** add installation comment for clarity ([550f7a3](https://github.com/genai-tools/anygpt/commit/550f7a3))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.0.4 (2025-10-09)
 
 ### 🩹 Fixes
