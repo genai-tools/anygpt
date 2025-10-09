@@ -238,38 +238,34 @@ export default async function runExecutor(
           }
         );
 
-        // Step 2: Create PR with summary first
+        // Step 2: Build PR body with summary
         const prBodyWithAI = buildPRBody(aiSummary, releases);
-        const prUrl = await createPR(prTitle, prBodyWithAI, targetBranch, {
+
+        // Step 3: Generate title from summary
+        console.log('🎯 Generating AI title from summary...');
+        const { generateAITitle } = await import('../../lib/ai-summary.js');
+        const aiTitle = await generateAITitle(
+          aiSummary,
+          changelog,
+          releases,
+          finalAiCommand
+        );
+
+        // Step 4: Create PR with AI-generated title and summary
+        const finalTitle = aiTitle || prTitle;
+        const prUrl = await createPR(finalTitle, prBodyWithAI, targetBranch, {
           headBranch: baseBranch,
         });
-        console.log(`✅ PR created with AI summary: ${prUrl}`);
+        console.log(`✅ PR created with AI title and summary: "${finalTitle}"`);
         prNumber = prUrl.split('/').pop() || '';
-
-        // Step 3: Generate title from summary and update PR
-        if (aiSummary) {
-          console.log('🎯 Generating AI title from summary...');
-          const { generateAITitle } = await import('../../lib/ai-summary.js');
-          const aiTitle = await generateAITitle(
-            aiSummary,
-            changelog,
-            releases,
-            finalAiCommand
-          );
-
-          if (aiTitle) {
-            await updatePR(prNumber, prBodyWithAI, aiTitle);
-            console.log(`✅ PR title updated: "${aiTitle}"`);
-          }
-        }
 
         // Enable auto-merge if requested
         if (autoMerge) {
           await enableAutoMerge(prNumber);
         }
       } catch (error) {
-        console.warn('⚠️  Failed to generate AI summary:', error);
-        console.log('   Creating PR without AI summary');
+        console.warn('⚠️  Failed to generate AI content:', error);
+        console.log('   Creating PR without AI enhancements');
 
         // Fallback: Create PR without AI summary
         const prBodyWithoutAI = buildPRBody('', releases);
