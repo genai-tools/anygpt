@@ -5,7 +5,7 @@ import type {
   BaseChatCompletionRequest,
   BaseChatCompletionResponse,
   ResponseRequest,
-  ResponseResponse
+  ResponseResponse,
 } from '@anygpt/types';
 import { BaseConnector } from '@anygpt/router';
 import type { OpenAIConnector } from '@anygpt/openai';
@@ -17,7 +17,11 @@ import type { CodyConnectorConfig } from './types.js';
 export type { CodyConnectorConfig, CodyConnectionMode } from './types.js';
 
 // Export the new loader functions
-export { createCodyConnector, codyConnectorFactory, codyLoader } from './loader.js';
+export {
+  createCodyConnector,
+  codyConnectorFactory,
+  codyLoader,
+} from './loader.js';
 
 export class CodyConnector extends BaseConnector implements IConnector {
   static override readonly packageName = '@anygpt/cody';
@@ -27,10 +31,10 @@ export class CodyConnector extends BaseConnector implements IConnector {
   constructor(config: CodyConnectorConfig = {}) {
     // Pass to BaseConnector for getUserConfig support
     super('cody', config);
-    
+
     // Load global config and merge with user config
     const globalConfig = readCodyConfigSync();
-    
+
     // Store Cody-specific config with defaults
     // Merge: defaults < global config < user config
     this.codyConfig = {
@@ -38,14 +42,20 @@ export class CodyConnector extends BaseConnector implements IConnector {
       timeout: 60000, // Cody can take longer
       maxRetries: 3,
       connectionMode: 'api', // Default to API mode
-      ...globalConfig,  // Apply global config
-      ...config  // User config takes precedence
+      ...globalConfig, // Apply global config
+      ...config, // User config takes precedence
     };
   }
 
   private async getConnector(): Promise<OpenAIConnector> {
     if (!this.openaiConnector) {
-      this.openaiConnector = await createCodyConnector(this.codyConfig);
+      // Pass the logger to the OpenAI connector
+      const configWithLogger = {
+        ...this.codyConfig,
+        logger: this.logger,
+      };
+      // Logger is passed to OpenAI connector
+      this.openaiConnector = await createCodyConnector(configWithLogger);
     }
     return this.openaiConnector;
   }
@@ -63,21 +73,30 @@ export class CodyConnector extends BaseConnector implements IConnector {
   /**
    * Chat completion with mode switching support
    */
-  override async chatCompletion(request: BaseChatCompletionRequest): Promise<BaseChatCompletionResponse> {
+  override async chatCompletion(
+    request: BaseChatCompletionRequest
+  ): Promise<BaseChatCompletionResponse> {
     const mode = this.codyConfig.connectionMode || 'api';
+
+    this.logger.debug(`[Cody] Chat completion mode: ${mode}`, {
+      model: request.model,
+    });
 
     switch (mode) {
       case 'cli':
         return this.chatCompletionViaCLI(request);
-      
+
       case 'auto':
         try {
           return await this.chatCompletionViaAPI(request);
         } catch (error) {
-          console.warn('API mode failed, falling back to CLI:', error instanceof Error ? error.message : String(error));
+          this.logger.warn(
+            'API mode failed, falling back to CLI:',
+            error instanceof Error ? error.message : String(error)
+          );
           return this.chatCompletionViaCLI(request);
         }
-      
+
       case 'api':
       default:
         return this.chatCompletionViaAPI(request);
@@ -87,14 +106,16 @@ export class CodyConnector extends BaseConnector implements IConnector {
   /**
    * Chat completion via API (using OpenAI connector)
    */
-  private async chatCompletionViaAPI(request: BaseChatCompletionRequest): Promise<BaseChatCompletionResponse> {
+  private async chatCompletionViaAPI(
+    request: BaseChatCompletionRequest
+  ): Promise<BaseChatCompletionResponse> {
     // Transform system messages for Cody API compatibility
     // Cody/Sourcegraph API returns: "system role is not supported"
     // Strategy: Merge system messages into the first user message to avoid consecutive user messages
     const messages = [...request.messages];
     const transformedMessages: typeof messages = [];
     let systemPrompts: string[] = [];
-    
+
     for (const msg of messages) {
       if (msg.role === 'system') {
         // Collect system prompts
@@ -113,17 +134,22 @@ export class CodyConnector extends BaseConnector implements IConnector {
         transformedMessages.push(msg);
       }
     }
-    
+
     // If there are leftover system prompts (no user message after them), add as user message
     if (systemPrompts.length > 0) {
-      transformedMessages.push({ role: 'user', content: systemPrompts.join('\n\n') });
+      transformedMessages.push({
+        role: 'user',
+        content: systemPrompts.join('\n\n'),
+      });
     }
-    
+
     const transformedRequest = {
       ...request,
-      messages: transformedMessages
+      messages: transformedMessages,
     };
-    
+
+    // Request will be logged by OpenAI connector
+
     const connector = await this.getConnector();
     return connector.chatCompletion(transformedRequest);
   }
@@ -131,10 +157,12 @@ export class CodyConnector extends BaseConnector implements IConnector {
   /**
    * Chat completion via CLI (using Cody CLI)
    */
-  private async chatCompletionViaCLI(request: BaseChatCompletionRequest): Promise<BaseChatCompletionResponse> {
+  private async chatCompletionViaCLI(
+    request: BaseChatCompletionRequest
+  ): Promise<BaseChatCompletionResponse> {
     // Convert messages to a single prompt for CLI
     const prompt = request.messages
-      .map(msg => {
+      .map((msg) => {
         if (msg.role === 'system') return `System: ${msg.content}`;
         if (msg.role === 'user') return msg.content;
         if (msg.role === 'assistant') return `Assistant: ${msg.content}`;
@@ -142,7 +170,11 @@ export class CodyConnector extends BaseConnector implements IConnector {
       })
       .join('\n\n');
 
-    const cliResponse = await executeCodyChat(prompt, this.codyConfig, request.model);
+    const cliResponse = await executeCodyChat(
+      prompt,
+      this.codyConfig,
+      request.model
+    );
 
     // Convert CLI response to standard format
     return {
@@ -151,19 +183,21 @@ export class CodyConnector extends BaseConnector implements IConnector {
       created: Math.floor(Date.now() / 1000),
       model: request.model || this.codyConfig.model || 'cody-default',
       provider: this.providerId,
-      choices: [{
-        index: 0,
-        message: {
-          role: 'assistant',
-          content: cliResponse
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: 'assistant',
+            content: cliResponse,
+          },
+          finish_reason: 'stop',
         },
-        finish_reason: 'stop'
-      }],
+      ],
       usage: {
         prompt_tokens: 0,
         completion_tokens: 0,
-        total_tokens: 0
-      }
+        total_tokens: 0,
+      },
     };
   }
 
@@ -177,7 +211,9 @@ export class CodyConnector extends BaseConnector implements IConnector {
     return connector.listModels();
   }
 
-  override validateRequest(request: BaseChatCompletionRequest): BaseChatCompletionRequest {
+  override validateRequest(
+    request: BaseChatCompletionRequest
+  ): BaseChatCompletionRequest {
     // Let the OpenAI connector handle validation
     return request;
   }
@@ -231,5 +267,5 @@ export function cody(config: CodyConnectorConfig = {}): CodyConnector {
  */
 export const provider = {
   name: 'Sourcegraph Cody',
-  connector: new CodyConnector()
+  connector: new CodyConnector(),
 };
