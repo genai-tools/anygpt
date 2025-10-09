@@ -439,3 +439,7 @@ MIT - See [LICENSE](LICENSE) for details.
 ---
 
 **Built with ❤️ for developers** | Part of the AnyGPT ecosystem
+
+## 🤝 **Contributing**
+
+Contributions are welcome! Please feel free to submit a Pull Request.
