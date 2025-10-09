@@ -182,3 +182,14 @@ export async function getPRDiff(
   const { stdout } = await execa('gh', ['pr', 'diff', prNumber]);
   return stdout;
 }
+
+export async function markPRReady(prNumber: string): Promise<void> {
+  console.log('📝 Converting draft PR to ready...');
+  try {
+    await execa('gh', ['pr', 'ready', prNumber]);
+    console.log('✅ PR marked as ready for review');
+  } catch (error) {
+    // Ignore error if PR is already ready
+    console.log('ℹ️  PR is already ready (not a draft)');
+  }
+}
