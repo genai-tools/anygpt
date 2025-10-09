@@ -7,7 +7,7 @@ A powerful command-line interface for interacting with AI providers through the 
 The AnyGPT CLI provides:
 
 - **💬 Stateless Chat** - Quick one-off interactions with AI models
-- **🗣️ Conversation Management** - Persistent, stateful conversations
+- **🗣️ Conversation Management** - Persistent, stateful conversations with full history
 - **🔬 Model Benchmarking** - Compare performance across providers with detailed metrics
 - **🏷️ Tag-based Model Selection** - Use semantic tags for model discovery
 - **🔧 Flexible Configuration** - Support for multiple providers and models
@@ -39,6 +39,7 @@ anygpt conversation message "Tell me about TypeScript"
 ## 📋 **Commands**
 
 ### **Benchmark Command**
+
 Compare model performance across providers with detailed metrics.
 
 ```bash
@@ -46,6 +47,7 @@ anygpt benchmark [options]
 ```
 
 **Options:**
+
 - `--provider <name>` - Benchmark all models from this provider
 - `--model <model>` - Specific model to benchmark (requires --provider)
 - `--models <list>` - Comma-separated list of provider:model pairs
@@ -56,6 +58,7 @@ anygpt benchmark [options]
 - `--json` - Output results as JSON
 
 **Examples:**
+
 ```bash
 # Benchmark all models from a provider
 anygpt benchmark --provider openai --prompt "Hello" --output ./results
@@ -73,11 +76,13 @@ anygpt benchmark --models "cody:opus,cody:sonnet" \
 ```
 
 **Output:**
+
 - Console table with status, response time, size, and token usage
 - Individual response files (`.txt`) for each model/iteration
 - Summary JSON file with complete benchmark data for analysis
 
 **Example Output:**
+
 ```
 📊 Benchmark Results:
 ┌─────────────────────────────────────────────────────────────┐
@@ -99,6 +104,7 @@ anygpt benchmark --models "cody:opus,cody:sonnet" \
 ```
 
 **Use Cases:**
+
 - **Model Selection**: Find the fastest/most efficient model for your use case
 - **Quality Testing**: Compare response quality across models
 - **Cost Analysis**: Analyze token usage patterns for cost estimation
