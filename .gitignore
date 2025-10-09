@@ -104,3 +104,4 @@ vitest.config.*.timestamp*
 
 # Note: package-lock.json is NOT gitignored (Nx needs it locally)
 # But it's auto-unstaged by .husky/pre-commit hook to prevent commits
+package-lock.json
