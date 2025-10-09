@@ -35,22 +35,24 @@ export async function generateAISummary(
           )}\n- These are brand new packages being added to the monorepo\n- Treat these as major new features, not just bug fixes`
         : '';
 
-    const prompt = `Generate a focused summary of the actual code changes in this release.
+    const prompt = `Analyze the code changes and provide a bullet-point summary.
 
-IMPORTANT:
-- Focus ONLY on actual functional changes, new features, and bug fixes
-- **ESPECIALLY highlight any new packages being added** - these are major features
-- Ignore version bumps, dependency updates, and package.json changes
-- Use bullet points for clarity
-- Be concise but comprehensive - adjust length based on complexity${newPackagesNote}
+RULES:
+- DO NOT include any "TITLE:" or headers
+- Start directly with bullet points using "-" or "*"
+- Focus on functional changes, new features, and bug fixes
+- Ignore version bumps and dependency updates${newPackagesNote}
 
-Code Changes (diff):
+Code Changes:
 ${truncatedDiff}
 
 Changelog:
 ${changelog}
 
-Provide a clear summary of what actually changed in the code. Keep it brief for simple changes, more detailed for complex ones.`;
+Respond with ONLY bullet points describing the changes. Example format:
+- Added tag-based model resolution system
+- Enhanced CLI with new commands
+- Fixed bug in router configuration`;
 
     // Execute the command with prompt via stdin
     // The command should be fully configured in nx.json (e.g., "npx anygpt chat --stdin --model fast --max-tokens 1000")
@@ -61,7 +63,29 @@ Provide a clear summary of what actually changed in the code. Keep it brief for 
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 
-    return stdout.trim();
+    let summary = stdout.trim();
+
+    console.log(`🔍 Raw AI output (${summary.length} chars):`);
+    console.log(summary);
+    console.log('--- END RAW OUTPUT ---');
+
+    // Strip markdown code blocks if present
+    summary = summary.replace(/^```\s*\n?/gm, '').replace(/\n?```\s*$/gm, '');
+
+    // Strip out TITLE: and SUMMARY: prefixes if AI included them
+    // (AI sometimes ignores instructions and uses old format)
+    summary = summary.replace(/^TITLE:\s*.+?$/im, '');
+    summary = summary.replace(/^SUMMARY:\s*$/im, '');
+    summary = summary.trim();
+
+    console.log(
+      `✅ Cleaned summary (${summary.length} chars): ${summary.substring(
+        0,
+        200
+      )}...`
+    );
+
+    return summary;
   } catch (error) {
     console.log('⚠️  AI summary generation failed');
     console.error(error);
