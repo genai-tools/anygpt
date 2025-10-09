@@ -173,8 +173,16 @@ export default async function runExecutor(
           }
         );
 
+        console.log(`📝 AI Summary length: ${aiSummary.length} chars`);
+        if (aiSummary) {
+          console.log(
+            `📝 AI Summary preview: ${aiSummary.substring(0, 200)}...`
+          );
+        }
+
         // Step 2: Build PR body with summary
         const prBodyWithAI = buildPRBody(aiSummary, releases);
+        console.log(`📄 PR Body length: ${prBodyWithAI.length} chars`);
 
         // Step 3: Generate title from summary
         console.log('🎯 Generating AI title from summary...');
