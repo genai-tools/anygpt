@@ -16,6 +16,10 @@ export interface ChatCompletionRequest {
   frequency_penalty?: number;
   presence_penalty?: number;
   stream?: boolean;
+  // Reasoning support (OpenAI o1/o3, Anthropic Claude extended thinking)
+  reasoning?: {
+    effort?: 'minimal' | 'low' | 'medium' | 'high';
+  };
 }
 
 export interface ChatCompletionResponse {
