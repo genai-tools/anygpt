@@ -26,7 +26,7 @@ import {
   enableAutoMerge,
   openPRInBrowser,
   getRepoName,
-  addChangelogComment,
+  addUpdateComment,
   getPRDiff,
   markPRReady,
 } from '../../lib/pr-creation.js';
@@ -339,9 +339,9 @@ export default async function runExecutor(
       }
     }
 
-    // Add changelog as a comment
-    console.log('📋 Adding changelog comment...');
-    await addChangelogComment(prNumber, changelog);
+    // Add tracking comment
+    console.log('📋 Adding update tracking comment...');
+    await addUpdateComment(prNumber, 'publish');
 
     // Open in browser
     await openPRInBrowser(prNumber);
