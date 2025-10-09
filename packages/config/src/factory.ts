@@ -2,7 +2,7 @@
  * Config factory for direct connector instantiation
  */
 
-import type { IConnector } from '@anygpt/types';
+import type { IConnector, ExtraBodyParams } from '@anygpt/types';
 
 /**
  * Reasoning effort levels matching OpenAI's ReasoningEffort type
@@ -10,27 +10,41 @@ import type { IConnector } from '@anygpt/types';
 export type ReasoningEffort = 'minimal' | 'low' | 'medium' | 'high';
 
 /**
- * Reasoning configuration object
+ * Reasoning configuration object (OpenAI o1/o3 only)
  */
 export interface ReasoningConfig {
+  // OpenAI o1/o3 models: reasoning_effort parameter
   effort?: ReasoningEffort;
 }
 
-export interface ModelMetadata {
-  tags: string[];
-  // Reasoning configuration for extended thinking/reasoning models
+/**
+ * Base model configuration properties shared across rules, metadata, and resolved configs
+ */
+export interface BaseModelConfig {
+  // Tags to categorize and identify models
+  tags?: string[];
+  // Reasoning configuration for OpenAI o1/o3 models
   reasoning?: ReasoningEffort | ReasoningConfig;
-  [key: string]: unknown; // Allow additional metadata like cost, context window, etc.
+  // Maximum tokens for completion
+  max_tokens?: number;
+  // Provider-specific extra parameters (e.g., Anthropic's thinking parameter)
+  extra_body?: ExtraBodyParams;
+  // Enable/disable models
+  // true or undefined = enabled, false = disabled
+  enabled?: boolean;
 }
 
-export interface ModelRule {
+export interface ModelMetadata extends BaseModelConfig {
+  // Allow additional metadata like cost, context window, etc.
+  [key: string]: unknown;
+}
+
+export interface ModelRule extends Omit<BaseModelConfig, 'reasoning'> {
   // Glob patterns, regex strings, or RegExp objects to match model IDs
   // Glob: '*gpt-5*', '!*nano*'
   // Regex string: '/gpt-[45]/', '/^claude.*sonnet$/i'
   // RegExp: /gpt-[45]/, /^claude.*sonnet$/i
   pattern: (string | RegExp)[];
-  // Tags to apply to matching models
-  tags?: string[];
   // Reasoning configuration for matching models
   // Can be:
   //   - true: use default 'medium' effort
@@ -38,9 +52,6 @@ export interface ModelRule {
   //   - ReasoningEffort: direct effort level (shorthand)
   //   - ReasoningConfig: explicit object form
   reasoning?: boolean | ReasoningEffort | ReasoningConfig;
-  // Enable/disable models matching this pattern
-  // true or undefined = enabled, false = disabled
-  enabled?: boolean;
 }
 
 export interface FactoryProviderConfig {
@@ -69,8 +80,8 @@ export interface FactoryProviderConfig {
 
 export interface ModelAlias {
   provider: string;
-  model?: string;  // Direct model name
-  tag?: string;    // Or reference a tag
+  model?: string; // Direct model name
+  tag?: string; // Or reference a tag
 }
 
 export interface FactoryConfig {
@@ -83,10 +94,13 @@ export interface FactoryConfig {
       level?: 'debug' | 'info' | 'warn' | 'error';
     };
     // Per-provider defaults
-    providers?: Record<string, {
-      model?: string;
-      [key: string]: unknown;
-    }>;
+    providers?: Record<
+      string,
+      {
+        model?: string;
+        [key: string]: unknown;
+      }
+    >;
     // Model aliases for cross-provider model mapping
     aliases?: Record<string, ModelAlias[]>;
     // Global pattern-based model rules (lowest priority)
