@@ -1,3 +1,10 @@
+# 1.0.0 (2025-10-09)
+
+### 🧱 Updated Dependencies
+
+- Updated types to 1.0.0
+- Updated openai to 1.0.0
+
 ## 0.3.5 (2025-10-08)
 
 ### 🩹 Fixes
