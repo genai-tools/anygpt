@@ -35,7 +35,7 @@ const consoleLogger = new ConsoleLogger(
   process.env.VERBOSE === 'true' || process.argv.includes('--verbose')
 );
 
-import type { ModelAlias, FactoryProviderConfig } from '@anygpt/config';
+import type { ModelAlias, FactoryProviderConfig, ModelRule } from '@anygpt/config';
 
 export interface CLIContext {
   router: any;
@@ -56,6 +56,7 @@ export interface CLIContext {
       [key: string]: unknown;
     }>;
     aliases?: Record<string, ModelAlias[]>;
+    modelRules?: ModelRule[];
   };
 }
 
@@ -91,7 +92,8 @@ export async function setupCLIContext(configPath?: string): Promise<CLIContext> 
           maxRetries: config.defaults?.maxRetries,
           logging: config.defaults?.logging,
           providers: config.defaults?.providers,
-          aliases: config.defaults?.aliases
+          aliases: config.defaults?.aliases,
+          modelRules: config.defaults?.modelRules
         }
       };
     } else {

@@ -1,8 +1,11 @@
 import type { CLIContext } from '../utils/cli-context.js';
+import { resolveModelConfig } from '@anygpt/config';
 
 interface ListModelsOptions {
   provider?: string;
   json?: boolean;
+  tags?: boolean;
+  filterTags?: string;  // Comma-separated tags, use ! prefix for exclusion
 }
 
 /**
@@ -164,22 +167,73 @@ export async function listModelsCommand(
       }
     }
     
+    // Resolve tags if requested or if filtering by tags
+    let modelsWithTags = models;
+    if (options.tags || options.filterTags) {
+      const providerConfig = context.providers[providerId];
+      const globalRules = context.defaults.modelRules;
+      
+      modelsWithTags = models.map(model => {
+        const config = resolveModelConfig(model.id, providerId, providerConfig, globalRules);
+        return {
+          ...model,
+          resolvedTags: config.tags || []
+        };
+      });
+      
+      // Apply tag filtering if specified
+      if (options.filterTags) {
+        const filters = options.filterTags.split(',').map(t => t.trim());
+        const includeTags = filters.filter(t => !t.startsWith('!')).map(t => t.toLowerCase());
+        const excludeTags = filters.filter(t => t.startsWith('!')).map(t => t.substring(1).toLowerCase());
+        
+        modelsWithTags = modelsWithTags.filter(model => {
+          const modelTags = (model.resolvedTags || []).map(t => t.toLowerCase());
+          
+          // Check exclusions first
+          for (const excludeTag of excludeTags) {
+            if (modelTags.includes(excludeTag)) {
+              return false;  // Exclude this model
+            }
+          }
+          
+          // If there are include filters, model must have at least one
+          if (includeTags.length > 0) {
+            return includeTags.some(includeTag => modelTags.includes(includeTag));
+          }
+          
+          return true;  // No include filters or passed exclusions
+        });
+      }
+    }
+    
     if (options.json) {
-      console.log(JSON.stringify(models, null, 2));
+      console.log(JSON.stringify(modelsWithTags, null, 2));
     } else {
       console.log(`\n📋 Available models from provider '${providerId}':\n`);
       
-      if (models.length === 0) {
+      if (modelsWithTags.length === 0) {
         console.log('  No models available');
+      } else if (options.tags) {
+        // Show models with tags
+        for (const model of modelsWithTags) {
+          console.log(`  ${model.id}`);
+          if (model.resolvedTags && model.resolvedTags.length > 0) {
+            console.log(`    Tags: ${model.resolvedTags.join(', ')}`);
+          } else {
+            console.log(`    Tags: (none)`);
+          }
+          console.log();
+        }
       } else {
         // Find max lengths for table formatting
-        const maxIdLength = Math.max(...models.map(m => m.id.length), 10);
+        const maxIdLength = Math.max(...modelsWithTags.map(m => m.id.length), 10);
         const maxProviderLength = Math.max(
-          ...models.map(m => m.provider || ''),
+          ...modelsWithTags.map(m => m.provider || ''),
           10
         );
         const maxDisplayLength = Math.max(
-          ...models.map(m => m.display_name || ''),
+          ...modelsWithTags.map(m => m.display_name || ''),
           15
         );
         
@@ -188,14 +242,14 @@ export async function listModelsCommand(
         console.log(`  ${'─'.repeat(maxIdLength)}  ${'─'.repeat(maxProviderLength)}  ${'─'.repeat(maxDisplayLength)}`);
         
         // Print table rows
-        for (const model of models) {
+        for (const model of modelsWithTags) {
           const provider = model.provider || '-';
           const displayName = model.display_name || '-';
           console.log(`  ${model.id.padEnd(maxIdLength)}  ${provider.padEnd(maxProviderLength)}  ${displayName.padEnd(maxDisplayLength)}`);
         }
       }
       
-      console.log(`\n✅ Found ${models.length} model${models.length !== 1 ? 's' : ''}\n`);
+      console.log(`\n✅ Found ${modelsWithTags.length} model${modelsWithTags.length !== 1 ? 's' : ''}\n`);
     }
     
   } catch (error) {
