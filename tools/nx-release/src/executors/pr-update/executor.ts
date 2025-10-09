@@ -13,6 +13,7 @@ import {
   getPRDiff,
   getRepoName,
   addChangelogComment,
+  markPRReady,
 } from '../../lib/pr-creation.js';
 import { execa } from 'execa';
 
@@ -88,6 +89,9 @@ export default async function runExecutor(
     // Extract changelog
     console.log('📋 Extracting changelog...');
     const { changelog } = await extractChangelog(changelogPatterns);
+
+    // Convert draft PR to ready (if it was a draft placeholder)
+    await markPRReady(existingPR);
 
     // Update PR first (without AI summary)
     console.log(`\n📝 Updating PR #${existingPR}...`);
