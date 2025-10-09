@@ -2,11 +2,9 @@ import { execa } from 'execa';
 import type { PackageRelease } from './changelog.js';
 import { truncateDiff, formatTruncationStats } from './diff-truncation.js';
 
-export interface AIGeneratedContent {
-  title: string;
-  summary: string;
-}
-
+/**
+ * Generate AI summary from diff and changelog
+ */
 export async function generateAISummary(
   changelog: string,
   releases: PackageRelease[],
@@ -15,7 +13,7 @@ export async function generateAISummary(
   options: {
     maxLinesPerFile?: number;
   } = {}
-): Promise<AIGeneratedContent> {
+): Promise<string> {
   const { maxLinesPerFile = 150 } = options;
   try {
     // Truncate diff per-file to prevent large files from dominating
@@ -37,12 +35,13 @@ export async function generateAISummary(
           )}\n- These are brand new packages being added to the monorepo\n- Treat these as major new features, not just bug fixes`
         : '';
 
-    const prompt = `Generate a PR title and summary for this release.
+    const prompt = `Generate a focused summary of the actual code changes in this release.
 
 IMPORTANT:
 - Focus ONLY on actual functional changes, new features, and bug fixes
 - **ESPECIALLY highlight any new packages being added** - these are major features
 - Ignore version bumps, dependency updates, and package.json changes
+- Use bullet points for clarity
 - Be concise but comprehensive - adjust length based on complexity${newPackagesNote}
 
 Code Changes (diff):
@@ -51,20 +50,7 @@ ${truncatedDiff}
 Changelog:
 ${changelog}
 
-Provide your response in this EXACT format:
-
-TITLE: <concise PR title, max 80 chars, describing the main change>
-
-SUMMARY:
-<bullet points of what actually changed in the code>
-
-Example:
-TITLE: Add model tag resolution system
-
-SUMMARY:
-- Implemented tag-based model selection (@reasoning, @fast)
-- Enhanced CLI with tag resolution support
-- Added comprehensive test coverage`;
+Provide a clear summary of what actually changed in the code. Keep it brief for simple changes, more detailed for complex ones.`;
 
     // Execute the command with prompt via stdin
     // The command should be fully configured in nx.json (e.g., "npx anygpt chat --stdin --model fast --max-tokens 1000")
@@ -75,41 +61,52 @@ SUMMARY:
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 
-    const output = stdout.trim();
-
-    // Parse the structured output
-    const titleMatch = output.match(/^TITLE:\s*(.+?)$/im);
-    const summaryMatch = output.match(/^SUMMARY:\s*([\s\S]+?)$/im);
-
-    if (!titleMatch || !summaryMatch) {
-      // Fallback: use first line as title, rest as summary
-      const lines = output.split('\n').filter((l) => l.trim());
-      return {
-        title: lines[0]?.replace(/^TITLE:\s*/i, '').trim() || 'Release',
-        summary: lines.slice(1).join('\n').trim() || '',
-      };
-    }
-
-    let title = titleMatch[1].trim();
-    let summary = summaryMatch[1].trim();
-
-    // Remove any remaining "TITLE:" prefix (in case AI included it in the captured group)
-    title = title.replace(/^TITLE:\s*/i, '');
-
-    // Remove any "SUMMARY:" prefix from summary
-    summary = summary.replace(/^SUMMARY:\s*/i, '');
-
-    return {
-      title,
-      summary,
-    };
+    return stdout.trim();
   } catch (error) {
-    console.log('⚠️  AI generation failed, using fallback');
+    console.log('⚠️  AI summary generation failed');
     console.error(error);
-    // Return empty strings to signal failure
-    return {
-      title: '',
-      summary: '',
-    };
+    return '';
+  }
+}
+
+/**
+ * Generate a concise PR title from the summary and changelog
+ */
+export async function generateAITitle(
+  summary: string,
+  changelog: string,
+  releases: PackageRelease[],
+  command: string
+): Promise<string> {
+  try {
+    const releasesList = releases
+      .map((r) => `${r.name}@${r.version}`)
+      .join(', ');
+
+    const prompt = `Generate a concise PR title (max 80 characters) for this release.
+
+Packages being released:
+${releasesList}
+
+Summary of changes:
+${summary}
+
+Changelog:
+${changelog}
+
+Provide ONLY the title text, nothing else. Make it descriptive but concise.`;
+
+    const [cmd, ...args] = command.split(' ');
+
+    const { stdout } = await execa(cmd, args, {
+      input: prompt,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+
+    return stdout.trim();
+  } catch (error) {
+    console.log('⚠️  AI title generation failed');
+    console.error(error);
+    return '';
   }
 }
