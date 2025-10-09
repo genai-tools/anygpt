@@ -60,9 +60,9 @@ The hook scans for secrets BEFORE they reach GitHub:
 
 **Automated secret scanning runs on all branches:**
 
-- ✅ Gitleaks workflow runs on every push and PR
-- ✅ Scans all branches (not just main/production)
-- ✅ Blocks merges if secrets are detected
+- ✅ Gitleaks workflow runs on every push and pull request
+- ✅ Scans all branches including external fork contributions
+- ✅ Blocks commits/merges if secrets are detected
 - ✅ Uses `.gitleaksignore` to whitelist safe placeholders
 
 **Note:** Pre-commit hooks are still the primary defense. GitHub Actions provide a safety net.
