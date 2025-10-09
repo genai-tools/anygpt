@@ -3,7 +3,11 @@
  * Supports: aliases, tags, and direct model names
  */
 
-import type { FactoryProviderConfig, ModelAlias, ModelRule } from './factory.js';
+import type {
+  FactoryProviderConfig,
+  ModelAlias,
+  ModelRule,
+} from './factory.js';
 
 export interface ModelResolutionContext {
   providers: Record<string, FactoryProviderConfig>;
@@ -30,23 +34,23 @@ export function findModelByTag(
   if (preferredProvider && providers[preferredProvider]?.models) {
     const providerModels = providers[preferredProvider].models!;
     for (const [modelName, metadata] of Object.entries(providerModels)) {
-      if (metadata.tags.includes(tag)) {
+      if (metadata.tags?.includes(tag)) {
         return { provider: preferredProvider, model: modelName };
       }
     }
   }
-  
+
   // Search all providers
   for (const [providerId, providerConfig] of Object.entries(providers)) {
     if (!providerConfig.models) continue;
-    
+
     for (const [modelName, metadata] of Object.entries(providerConfig.models)) {
-      if (metadata.tags.includes(tag)) {
+      if (metadata.tags?.includes(tag)) {
         return { provider: providerId, model: modelName };
       }
     }
   }
-  
+
   return null;
 }
 
@@ -64,14 +68,18 @@ export function resolveModel(
   // Step 1: Check central aliases
   if (context.aliases?.[modelName]) {
     const aliasList = context.aliases[modelName];
-    
+
     // Try preferred provider first
     if (preferredProvider) {
-      const match = aliasList.find(a => a.provider === preferredProvider);
+      const match = aliasList.find((a) => a.provider === preferredProvider);
       if (match) {
         // If alias references a tag, resolve it
         if (match.tag) {
-          const tagResult = findModelByTag(match.tag, context.providers, match.provider);
+          const tagResult = findModelByTag(
+            match.tag,
+            context.providers,
+            match.provider
+          );
           if (tagResult) return tagResult;
         }
         // Otherwise use direct model
@@ -80,22 +88,30 @@ export function resolveModel(
         }
       }
     }
-    
+
     // Use first alias
     const firstAlias = aliasList[0];
     if (firstAlias.tag) {
-      const tagResult = findModelByTag(firstAlias.tag, context.providers, firstAlias.provider);
+      const tagResult = findModelByTag(
+        firstAlias.tag,
+        context.providers,
+        firstAlias.provider
+      );
       if (tagResult) return tagResult;
     }
     if (firstAlias.model) {
       return { provider: firstAlias.provider, model: firstAlias.model };
     }
   }
-  
+
   // Step 2: Search per-provider tags
-  const tagResult = findModelByTag(modelName, context.providers, preferredProvider);
+  const tagResult = findModelByTag(
+    modelName,
+    context.providers,
+    preferredProvider
+  );
   if (tagResult) return tagResult;
-  
+
   // Step 3: Not found - return null (caller should treat as direct model name)
   return null;
 }
@@ -133,21 +149,26 @@ export function listAvailableTags(
 ): AvailableTagsResult {
   const tags: TagInfo[] = [];
   const aliases: AliasInfo[] = [];
-  const providers: Array<{ id: string; name?: string; isDefault: boolean }> = [];
-  
+  const providers: Array<{ id: string; name?: string; isDefault: boolean }> =
+    [];
+
   // Collect provider information
-  for (const [providerId, providerConfig] of Object.entries(context.providers)) {
+  for (const [providerId, providerConfig] of Object.entries(
+    context.providers
+  )) {
     providers.push({
       id: providerId,
       name: providerConfig.name,
-      isDefault: providerId === context.defaultProvider
+      isDefault: providerId === context.defaultProvider,
     });
   }
-  
+
   // Collect all tags from explicit provider models
-  for (const [providerId, providerConfig] of Object.entries(context.providers)) {
+  for (const [providerId, providerConfig] of Object.entries(
+    context.providers
+  )) {
     if (!providerConfig.models) continue;
-    
+
     for (const [modelName, metadata] of Object.entries(providerConfig.models)) {
       if (metadata.tags) {
         for (const tag of metadata.tags) {
@@ -156,18 +177,21 @@ export function listAvailableTags(
             provider: providerId,
             providerName: providerConfig.name,
             model: modelName,
-            isDefault: providerId === context.defaultProvider && 
-                       modelName === providerConfig.settings?.defaultModel
+            isDefault:
+              providerId === context.defaultProvider &&
+              modelName === providerConfig.settings?.defaultModel,
           });
         }
       }
     }
   }
-  
+
   // Collect tags from provider-level modelRules (pattern-based)
-  for (const [providerId, providerConfig] of Object.entries(context.providers)) {
+  for (const [providerId, providerConfig] of Object.entries(
+    context.providers
+  )) {
     if (!providerConfig.modelRules) continue;
-    
+
     for (const rule of providerConfig.modelRules) {
       if (rule.tags) {
         for (const tag of rule.tags) {
@@ -177,33 +201,35 @@ export function listAvailableTags(
             provider: providerId,
             providerName: providerConfig.name,
             model: `[pattern: ${rule.pattern.join(', ')}]`,
-            isDefault: false
+            isDefault: false,
           });
         }
       }
     }
   }
-  
+
   // Collect tags from global modelRules (apply to all providers)
   if (context.globalModelRules) {
     for (const rule of context.globalModelRules) {
       if (rule.tags) {
         for (const tag of rule.tags) {
           // Add tag for each provider since global rules apply to all
-          for (const [providerId, providerConfig] of Object.entries(context.providers)) {
+          for (const [providerId, providerConfig] of Object.entries(
+            context.providers
+          )) {
             tags.push({
               tag,
               provider: providerId,
               providerName: providerConfig.name,
               model: `[global pattern: ${rule.pattern.join(', ')}]`,
-              isDefault: false
+              isDefault: false,
             });
           }
         }
       }
     }
   }
-  
+
   // Collect all aliases
   if (context.aliases) {
     for (const [aliasName, aliasList] of Object.entries(context.aliases)) {
@@ -213,21 +239,25 @@ export function listAvailableTags(
           provider: alias.provider,
           providerName: context.providers[alias.provider]?.name,
           model: alias.model,
-          tag: alias.tag
+          tag: alias.tag,
         };
-        
+
         // Resolve the alias to get the actual model
         if (alias.tag) {
-          const resolution = findModelByTag(alias.tag, context.providers, alias.provider);
+          const resolution = findModelByTag(
+            alias.tag,
+            context.providers,
+            alias.provider
+          );
           if (resolution) {
             aliasInfo.resolvedModel = resolution.model;
           }
         }
-        
+
         aliases.push(aliasInfo);
       }
     }
   }
-  
+
   return { tags, aliases, providers };
 }

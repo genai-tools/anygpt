@@ -7,44 +7,42 @@ export type {
   ConnectorConfig,
   ProviderConfig,
   AnyGPTConfig,
-  ConfigLoadOptions
+  ConfigLoadOptions,
 } from '@anygpt/types';
 
 // Default configurations
-export {
-  getDefaultConfig,
-  convertCodexToAnyGPTConfig
-} from './defaults.js';
+export { getDefaultConfig, convertCodexToAnyGPTConfig } from './defaults.js';
 // Connector loading
 export {
   loadConnectors,
   getConnectorConfig,
-  clearConnectorCache
+  clearConnectorCache,
 } from './connector-loader.js';
 
 // Convenience functions to set up router with config
 export { setupRouter, setupRouterFromFactory } from './setup.js';
 
 // Migration utilities
-export {
-  migrateFromCodex,
-  runMigration
-} from './migrate.js';
+export { migrateFromCodex, runMigration } from './migrate.js';
 
 // Factory function for direct connector instantiation
-export { 
+export {
   config,
   type FactoryConfig,
   type FactoryProviderConfig,
   type ModelAlias,
+  type BaseModelConfig,
   type ModelMetadata,
   type ModelRule,
   type ReasoningEffort,
-  type ReasoningConfig
+  type ReasoningConfig,
 } from './factory.js';
 
 // Model pattern resolver
-export { resolveModelConfig, type ResolvedModelConfig } from './model-pattern-resolver.js';
+export {
+  resolveModelConfig,
+  type ResolvedModelConfig,
+} from './model-pattern-resolver.js';
 
 // Configuration loader (not exported by default, used internally)
 export { loadConfig, validateConfig } from './loader.js';
@@ -58,13 +56,13 @@ export {
   type ModelResolutionContext,
   type TagInfo,
   type AliasInfo,
-  type AvailableTagsResult
+  type AvailableTagsResult,
 } from './model-resolver.js';
 
 // Glob pattern matching for model filtering
 export { matchesGlobPatterns } from './glob-matcher.js';
 
-// Note: Connector factory functions (like openai()) should be imported directly 
+// Note: Connector factory functions (like openai()) should be imported directly
 // from their packages to keep config package connector-agnostic:
 // import { openai } from '@anygpt/openai';
 // import { anthropic } from '@anygpt/anthropic'; // future
