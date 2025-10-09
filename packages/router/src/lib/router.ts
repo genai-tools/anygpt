@@ -1,16 +1,16 @@
 import { ConnectorRegistry } from '../connectors/registry.js';
-import type { 
-  RouterConfig, 
-  ChatCompletionRequest, 
-  ChatCompletionResponse, 
-  ResponseRequest, 
-  ResponseResponse, 
-  IRouter 
+import type {
+  RouterConfig,
+  ChatCompletionRequest,
+  ChatCompletionResponse,
+  ResponseRequest,
+  ResponseResponse,
+  IRouter,
 } from '../types/router.js';
-import type { 
-  ModelInfo, 
+import type {
+  ModelInfo,
   ChatCompletionRequest as BaseRequest,
-  ConnectorConfig
+  ConnectorConfig,
 } from '../types/base.js';
 import type { IConnector, ConnectorFactory } from '../types/connector.js';
 
@@ -22,23 +22,25 @@ export class GenAIRouter implements IRouter {
     this.config = {
       timeout: 30000,
       maxRetries: 3,
-      ...config
+      ...config,
     };
 
     // Initialize registry - connectors will be registered externally
     this.registry = new ConnectorRegistry();
-    
+
     // TODO: Connectors should be registered by the application using this router
   }
 
-  async chatCompletion(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
+  async chatCompletion(
+    request: ChatCompletionRequest
+  ): Promise<ChatCompletionResponse> {
     // Validate provider exists in config
     if (!this.config.providers?.[request.provider]) {
       throw new Error(`Provider '${request.provider}' not configured`);
     }
 
     const providerConfig = this.config.providers[request.provider];
-    
+
     // Normalize config
     const normalizedConfig = {
       baseURL: providerConfig.api.url,
@@ -47,7 +49,7 @@ export class GenAIRouter implements IRouter {
       timeout: providerConfig.timeout || this.config.timeout,
       maxRetries: providerConfig.maxRetries || this.config.maxRetries,
     };
-    
+
     // Get connector from registry based on provider type
     const connector = this.getConnector(providerConfig.type, normalizedConfig);
 
@@ -61,11 +63,12 @@ export class GenAIRouter implements IRouter {
       frequency_penalty: request.frequency_penalty,
       presence_penalty: request.presence_penalty,
       reasoning: request.reasoning,
+      extra_body: request.extra_body,
     };
 
     try {
       const response = await connector.chatCompletion(baseRequest);
-      
+
       // Convert base response to router response
       return {
         id: response.id,
@@ -89,9 +92,13 @@ export class GenAIRouter implements IRouter {
       };
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error(`Chat completion failed for provider ${request.provider}: ${error.message}`);
+        throw new Error(
+          `Chat completion failed for provider ${request.provider}: ${error.message}`
+        );
       }
-      throw new Error(`Unknown chat completion error for provider ${request.provider}`);
+      throw new Error(
+        `Unknown chat completion error for provider ${request.provider}`
+      );
     }
   }
 
@@ -102,7 +109,7 @@ export class GenAIRouter implements IRouter {
     }
 
     const providerConfig = this.config.providers[request.provider];
-    
+
     // Normalize config
     const normalizedConfig = {
       baseURL: providerConfig.api.url,
@@ -111,13 +118,13 @@ export class GenAIRouter implements IRouter {
       timeout: providerConfig.timeout || this.config.timeout,
       maxRetries: providerConfig.maxRetries || this.config.maxRetries,
     };
-    
+
     // Get connector from registry based on provider type
     const connector = this.getConnector(providerConfig.type, normalizedConfig);
 
     try {
       const response = await connector.response(request);
-      
+
       // Add provider to response
       return {
         ...response,
@@ -125,9 +132,13 @@ export class GenAIRouter implements IRouter {
       };
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error(`Response failed for provider ${request.provider}: ${error.message}`);
+        throw new Error(
+          `Response failed for provider ${request.provider}: ${error.message}`
+        );
       }
-      throw new Error(`Unknown response error for provider ${request.provider}`);
+      throw new Error(
+        `Unknown response error for provider ${request.provider}`
+      );
     }
   }
 
@@ -138,7 +149,7 @@ export class GenAIRouter implements IRouter {
     }
 
     const providerConfig = this.config.providers[provider];
-    
+
     // Normalize config
     const normalizedConfig = {
       baseURL: providerConfig.api.url,
@@ -147,7 +158,7 @@ export class GenAIRouter implements IRouter {
       timeout: providerConfig.timeout || this.config.timeout,
       maxRetries: providerConfig.maxRetries || this.config.maxRetries,
     };
-    
+
     // Get connector from registry based on provider type
     const connector = this.getConnector(providerConfig.type, normalizedConfig);
 
@@ -155,17 +166,22 @@ export class GenAIRouter implements IRouter {
       return await connector.listModels();
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error(`Failed to list models for provider ${provider}: ${error.message}`);
+        throw new Error(
+          `Failed to list models for provider ${provider}: ${error.message}`
+        );
       }
       throw new Error(`Unknown error listing models for provider ${provider}`);
     }
   }
 
-  private getConnector(providerId: string, config: ConnectorConfig): IConnector {
+  private getConnector(
+    providerId: string,
+    config: ConnectorConfig
+  ): IConnector {
     if (!this.registry.hasConnector(providerId)) {
       throw new Error(`No connector registered for provider: ${providerId}`);
     }
-    
+
     return this.registry.getConnector(providerId, config);
   }
 
