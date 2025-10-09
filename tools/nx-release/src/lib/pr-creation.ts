@@ -45,7 +45,7 @@ This PR will **automatically merge** once all CI checks pass ✅
 If checks fail, review the errors and push fixes to this branch.
 
 ---
-*Full changelog details are in the comment below 📋*
+*Detailed changelogs are available in individual package CHANGELOG.md files*
 `;
 }
 
@@ -53,14 +53,11 @@ export async function addChangelogComment(
   prNumber: string,
   changelog: string
 ): Promise<void> {
-  const commentBody = `## 📋 Changelog
-
-${changelog}
-
----
-*This changelog was automatically generated from conventional commits.*`;
-
-  await execa('gh', ['pr', 'comment', prNumber, '--body', commentBody]);
+  // Skip adding changelog comment - the AI summary in PR description is sufficient
+  // Detailed changelogs are available in individual package CHANGELOG.md files
+  console.log(
+    '   Skipping changelog comment (details in package CHANGELOG.md files)'
+  );
 }
 
 export async function createPR(
