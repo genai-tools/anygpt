@@ -2,6 +2,12 @@
  * Chat-related types and interfaces
  */
 
+/**
+ * Provider-specific extra body parameters
+ * Used for provider-specific features like Anthropic's thinking parameter
+ */
+export type ExtraBodyParams = Record<string, unknown>;
+
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
