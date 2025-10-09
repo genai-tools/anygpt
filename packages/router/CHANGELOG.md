@@ -1,3 +1,7 @@
+## 0.3.1 (2025-10-09)
+
+This was a version bump only for router to align it with other projects, there were no code changes.
+
 ## 0.3.0 (2025-10-06)
 
 ### 🚀 Features
