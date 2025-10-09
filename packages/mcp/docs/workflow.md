@@ -47,8 +47,8 @@ Call `anygpt_list_tags` to see available tags and their model mappings:
     },
     {
       "tag": "sonnet",
-      "provider": "booking",
-      "model": "ml-asset:static-model/claude-sonnet-4-5"
+      "provider": "openai",
+      "model": "claude-sonnet-4-5"
     },
     {
       "tag": "gemini",
@@ -57,7 +57,7 @@ Call `anygpt_list_tags` to see available tags and their model mappings:
     }
   ],
   "providers": [
-    { "id": "booking", "name": "Company AI Gateway", "isDefault": true },
+    { "id": "openai", "name": "OpenAI", "isDefault": true },
     { "id": "cody", "name": "Sourcegraph Cody", "isDefault": false }
   ]
 }
@@ -67,10 +67,10 @@ Call `anygpt_list_tags` to see available tags and their model mappings:
 
 ```json
 {
-  "provider": "booking",
+  "provider": "openai",
   "models": [
-    { "id": "ml-asset:static-model/gpt-5", "provider": "booking" },
-    { "id": "ml-asset:static-model/claude-sonnet-4-5", "provider": "booking" }
+    { "id": "gpt-5", "provider": "openai" },
+    { "id": "claude-sonnet-4-5", "provider": "openai" }
   ]
 }
 ```
@@ -93,8 +93,8 @@ Call `anygpt_chat_completion` with your chosen model:
 
 ```json
 {
-  "model": "ml-asset:static-model/claude-sonnet-4-5",
-  "provider": "booking",
+  "model": "claude-sonnet-4-5",
+  "provider": "openai",
   "messages": [{ "role": "user", "content": "Hello!" }]
 }
 ```
