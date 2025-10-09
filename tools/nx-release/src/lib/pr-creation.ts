@@ -74,7 +74,7 @@ export async function createPR(
   await writeFile(prBodyPath, body, 'utf-8');
 
   const { draft = false } = options;
-  
+
   console.log(`\n📝 Creating ${draft ? 'draft ' : ''}release PR...`);
   const args = [
     'pr',
@@ -88,11 +88,11 @@ export async function createPR(
     '--base',
     baseBranch,
   ];
-  
+
   if (draft) {
     args.push('--draft');
   }
-  
+
   const { stdout: prUrl } = await execa('gh', args);
 
   return prUrl.trim();
@@ -171,4 +171,19 @@ export async function getPRBaseCommit(
     `origin/${targetBranch}`,
   ]);
   return stdout.trim();
+}
+
+export async function getPRDiff(
+  prNumber: string,
+  paths: string[]
+): Promise<string> {
+  // Get the PR diff from GitHub
+  const { stdout } = await execa('gh', [
+    'pr',
+    'diff',
+    prNumber,
+    '--',
+    ...paths,
+  ]);
+  return stdout;
 }
