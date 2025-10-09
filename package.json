@@ -67,7 +67,7 @@
         "options": {
           "baseBranch": "main",
           "targetBranch": "production",
-          "aiCommand": "npx anygpt chat --stdin --model fast --max-tokens 1000",
+          "aiCommand": "npx anygpt chat --stdin --tag fast --max-tokens 1000",
           "autoMerge": true
         }
       },
@@ -79,7 +79,7 @@
         "options": {
           "baseBranch": "main",
           "targetBranch": "production",
-          "aiCommand": "npx anygpt chat --stdin --model fast --max-tokens 1000"
+          "aiCommand": "npx anygpt chat --stdin --tag fast --max-tokens 1000"
         }
       }
     }
