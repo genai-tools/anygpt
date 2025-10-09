@@ -18,7 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+
+      - name: Fetch production branch
+        run: git fetch origin production:production --depth=1
 
       - name: Generate Changelog Summary
         run: |
@@ -33,8 +37,8 @@ jobs:
               pkg_name=$(jq -r '.name' "$pkg_json")
               pr_version=$(jq -r '.version' "$pkg_json")
               
-              # Get version from production branch
-              prod_version=$(git show origin/production:"$pkg_json" 2>/dev/null | jq -r '.version' 2>/dev/null || echo "")
+              # Get version from production branch (using local ref, not origin)
+              prod_version=$(git show production:"$pkg_json" 2>/dev/null | jq -r '.version' 2>/dev/null || echo "")
               
               # If versions differ, add to changed packages
               if [ "$pr_version" != "$prod_version" ] && [ -n "$prod_version" ]; then
