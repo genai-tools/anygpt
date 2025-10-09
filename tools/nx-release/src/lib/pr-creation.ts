@@ -65,7 +65,41 @@ ${changelog}
 ---
 *This changelog was automatically generated from conventional commits.*`;
 
-  await execa('gh', ['pr', 'comment', prNumber, '--body', commentBody]);
+  // Check if a changelog comment already exists
+  try {
+    const { stdout } = await execa('gh', [
+      'pr',
+      'view',
+      prNumber,
+      '--json',
+      'comments',
+      '--jq',
+      '.comments[] | select(.body | startswith("## 📋 Changelog")) | .id',
+    ]);
+
+    const existingCommentId = stdout.trim();
+
+    if (existingCommentId) {
+      // Update existing comment
+      await execa('gh', [
+        'api',
+        '-X',
+        'PATCH',
+        `/repos/:owner/:repo/issues/comments/${existingCommentId}`,
+        '-f',
+        `body=${commentBody}`,
+      ]);
+      console.log('   Updated existing changelog comment');
+    } else {
+      // Create new comment
+      await execa('gh', ['pr', 'comment', prNumber, '--body', commentBody]);
+      console.log('   Added new changelog comment');
+    }
+  } catch (error) {
+    // Fallback: create new comment if checking fails
+    await execa('gh', ['pr', 'comment', prNumber, '--body', commentBody]);
+    console.log('   Added changelog comment');
+  }
 }
 
 export async function createPR(
