@@ -17,12 +17,7 @@
     { "plugin": "./tools/nx-tsdown" },
     { "plugin": "./tools/nx-tsgo" },
     { "plugin": "./tools/nx-vitest" },
-    {
-      "plugin": "@nx/eslint/plugin",
-      "options": {
-        "targetName": "lint"
-      }
-    }
+    { "plugin": "@nx/eslint/plugin", "options": { "targetName": "lint" } }
   ],
   "targetDefaults": {
     "@nx/js:swc": {
@@ -30,12 +25,8 @@
       "dependsOn": ["^build"],
       "inputs": ["production", "^production"]
     },
-    "test": {
-      "dependsOn": ["^build"]
-    },
-    "nx-release-publish": {
-      "dependsOn": ["build", "lint"]
-    },
+    "test": { "dependsOn": ["^build"] },
+    "nx-release-publish": { "dependsOn": ["build", "lint"] },
     "release": {
       "executor": "./tools/nx-release:release",
       "options": {
@@ -61,28 +52,19 @@
       "types": {
         "docs": {
           "semverBump": "patch",
-          "changelog": {
-            "title": "📖 Documentation",
-            "hidden": false
-          }
+          "changelog": { "title": "📖 Documentation", "hidden": false }
         }
       }
     },
     "changelog": {
-      "workspaceChangelog": {
-        "createRelease": false,
-        "file": false
-      },
+      "workspaceChangelog": { "createRelease": false, "file": false },
       "projectChangelogs": {
         "createRelease": false,
         "file": "{projectRoot}/CHANGELOG.md"
       }
     },
-    "version": {
-      "conventionalCommits": true
-    }
+    "version": { "conventionalCommits": true }
   },
-  "tui": {
-    "enabled": false
-  }
+  "tui": { "enabled": false },
+  "nxCloudId": "68e7aec08c2fc3d55914bb10"
 }
