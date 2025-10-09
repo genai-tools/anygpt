@@ -171,6 +171,12 @@ export async function chatCommand(
     const duration = Date.now() - startTime;
 
     const reply = response.choices[0]?.message?.content;
+    const finishReason = response.choices[0]?.finish_reason;
+
+    // Debug: Log finish reason if response seems truncated
+    if (finishReason && finishReason !== 'stop') {
+      context.logger.debug(`⚠️  Finish reason: ${finishReason}`);
+    }
 
     // Print the actual response (clearly visible)
     if (reply) {

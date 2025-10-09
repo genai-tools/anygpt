@@ -35,12 +35,14 @@ export async function generateAISummary(
           )}\n- These are brand new packages being added to the monorepo\n- Treat these as major new features, not just bug fixes`
         : '';
 
-    const prompt = `Analyze the code changes and provide a bullet-point summary.
+    const prompt = `Analyze the code changes and provide a comprehensive bullet-point summary.
 
 RULES:
 - DO NOT include any "TITLE:" or headers
 - Start directly with bullet points using "-" or "*"
+- Provide a DETAILED summary with multiple bullet points (aim for 5-10 points)
 - Focus on functional changes, new features, and bug fixes
+- Include implementation details where relevant
 - Ignore version bumps and dependency updates${newPackagesNote}
 
 Code Changes:
@@ -49,10 +51,12 @@ ${truncatedDiff}
 Changelog:
 ${changelog}
 
-Respond with ONLY bullet points describing the changes. Example format:
-- Added tag-based model resolution system
-- Enhanced CLI with new commands
-- Fixed bug in router configuration`;
+Respond with ONLY bullet points describing the changes. Be thorough and detailed. Example format:
+- Added tag-based model resolution system with pattern matching
+- Implemented TagRegistry for O(1) tag lookup performance
+- Enhanced CLI with new chat command supporting stdin input
+- Fixed bug in router configuration causing incorrect model selection
+- Updated documentation with usage examples`;
 
     // Execute the command with prompt via stdin
     const [cmd, ...args] = command.split(' ');
@@ -60,6 +64,8 @@ Respond with ONLY bullet points describing the changes. Example format:
     const { stdout } = await execa(cmd, args, {
       input: prompt,
       stdio: ['pipe', 'pipe', 'pipe'],
+      maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+      encoding: 'utf8',
     });
 
     let summary = stdout.trim();
@@ -124,6 +130,8 @@ Provide ONLY the title text, nothing else. Make it descriptive but concise.`;
     const { stdout } = await execa(cmd, args, {
       input: prompt,
       stdio: ['pipe', 'pipe', 'pipe'],
+      maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+      encoding: 'utf8',
     });
 
     return stdout.trim();
