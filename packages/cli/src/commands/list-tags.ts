@@ -18,6 +18,7 @@ export async function listTagsCommand(
     providers: context.providers,
     aliases: context.defaults.aliases,
     defaultProvider: context.defaults.provider,
+    globalModelRules: context.defaults.modelRules,
   });
 
   // Filter by provider if specified
