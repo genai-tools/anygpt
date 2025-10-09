@@ -159,7 +159,7 @@ export default async function runExecutor(
       // Still need to create/update PR to production
       if (!existingPR) {
         console.log('📝 Creating PR to production...');
-        const prTitle = 'chore: sync main to production';
+        const prTitle = buildPRTitle([]);
         const prBody = buildPRBody('', []);
         const prUrl = await createPR(prTitle, prBody, baseBranch, targetBranch);
         console.log(`✅ PR created: ${prUrl}`);
