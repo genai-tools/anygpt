@@ -40,7 +40,7 @@ program
   )
   .option(
     '--tag <tag>',
-    'tag name for model resolution (e.g., "sonnet", "booking:gemini", "cody:opus")'
+    'tag name for model resolution (e.g., "sonnet", "openai:gemini", "cody:opus")'
   )
   .option('--max-tokens <number>', 'maximum tokens to generate', parseInt)
   .option('--usage', 'show token usage statistics')
@@ -68,6 +68,15 @@ program
     '--filter-tags <tags>',
     'filter models by tags (comma-separated, use ! prefix to exclude). Examples: "reasoning", "!reasoning", "claude,sonnet"'
   )
+  .option(
+    '--enabled [value]',
+    'filter by enabled status (true/false, default: true if flag present)',
+    (val) => {
+      if (val === 'false' || val === '0') return false;
+      if (val === 'true' || val === '1') return true;
+      return true; // Default to true if just --enabled is passed
+    }
+  )
   .option('--json', 'output as JSON')
   .action(withCLIContext(listModelsCommand));
 
@@ -94,14 +103,13 @@ program
   )
   .option(
     '--prompt <text>',
-    'prompt to use for benchmarking',
-    'What is 2+2? Answer in one sentence.'
+    'prompt to use for benchmarking (default: "What is 2+2? Answer in one sentence.")'
   )
+  .option('--stdin', 'read prompt from stdin')
   .option(
     '--max-tokens <number>',
-    'maximum tokens to generate',
-    (val) => parseInt(val, 10),
-    100
+    'maximum tokens to generate (optional, some models may not support this)',
+    (val) => parseInt(val, 10)
   )
   .option(
     '--iterations <number>',
@@ -110,6 +118,10 @@ program
     1
   )
   .option('--all', 'benchmark all models from all providers')
+  .option(
+    '--filter-tags <tags>',
+    'filter models by tags (comma-separated, use ! prefix to exclude)'
+  )
   .option('--output <directory>', 'directory to save response files')
   .option('--json', 'output as JSON')
   .action(withCLIContext(benchmarkCommand));
