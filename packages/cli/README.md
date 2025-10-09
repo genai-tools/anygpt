@@ -21,6 +21,7 @@ The AnyGPT CLI provides:
 ### **Installation**
 
 ```bash
+# Install globally
 npm install -g @anygpt/cli
 ```
 
