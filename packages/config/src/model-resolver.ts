@@ -3,12 +3,13 @@
  * Supports: aliases, tags, and direct model names
  */
 
-import type { FactoryProviderConfig, ModelAlias } from './factory.js';
+import type { FactoryProviderConfig, ModelAlias, ModelRule } from './factory.js';
 
 export interface ModelResolutionContext {
   providers: Record<string, FactoryProviderConfig>;
   aliases?: Record<string, ModelAlias[]>;
   defaultProvider?: string;
+  globalModelRules?: ModelRule[];
 }
 
 export interface ModelResolution {
@@ -125,6 +126,7 @@ export interface AvailableTagsResult {
 /**
  * List all available tags, aliases, and their model mappings from configuration
  * This makes tag resolution discoverable for users and external agents
+ * Now includes tags from both explicit models AND modelRules
  */
 export function listAvailableTags(
   context: ModelResolutionContext
@@ -142,20 +144,62 @@ export function listAvailableTags(
     });
   }
   
-  // Collect all tags from provider models
+  // Collect all tags from explicit provider models
   for (const [providerId, providerConfig] of Object.entries(context.providers)) {
     if (!providerConfig.models) continue;
     
     for (const [modelName, metadata] of Object.entries(providerConfig.models)) {
-      for (const tag of metadata.tags) {
-        tags.push({
-          tag,
-          provider: providerId,
-          providerName: providerConfig.name,
-          model: modelName,
-          isDefault: providerId === context.defaultProvider && 
-                     modelName === providerConfig.settings?.defaultModel
-        });
+      if (metadata.tags) {
+        for (const tag of metadata.tags) {
+          tags.push({
+            tag,
+            provider: providerId,
+            providerName: providerConfig.name,
+            model: modelName,
+            isDefault: providerId === context.defaultProvider && 
+                       modelName === providerConfig.settings?.defaultModel
+          });
+        }
+      }
+    }
+  }
+  
+  // Collect tags from provider-level modelRules (pattern-based)
+  for (const [providerId, providerConfig] of Object.entries(context.providers)) {
+    if (!providerConfig.modelRules) continue;
+    
+    for (const rule of providerConfig.modelRules) {
+      if (rule.tags) {
+        for (const tag of rule.tags) {
+          // Add tag with pattern info
+          tags.push({
+            tag,
+            provider: providerId,
+            providerName: providerConfig.name,
+            model: `[pattern: ${rule.pattern.join(', ')}]`,
+            isDefault: false
+          });
+        }
+      }
+    }
+  }
+  
+  // Collect tags from global modelRules (apply to all providers)
+  if (context.globalModelRules) {
+    for (const rule of context.globalModelRules) {
+      if (rule.tags) {
+        for (const tag of rule.tags) {
+          // Add tag for each provider since global rules apply to all
+          for (const [providerId, providerConfig] of Object.entries(context.providers)) {
+            tags.push({
+              tag,
+              provider: providerId,
+              providerName: providerConfig.name,
+              model: `[global pattern: ${rule.pattern.join(', ')}]`,
+              isDefault: false
+            });
+          }
+        }
       }
     }
   }
