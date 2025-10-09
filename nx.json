@@ -41,7 +41,13 @@
       "executor": "./tools/nx-release:release",
       "options": {
         "aiCommand": "npx anygpt chat --stdin --model fast --max-tokens 1000",
-        "maxLinesPerFile": 150
+        "maxLinesPerFile": 150,
+        "diffPaths": [
+          "packages/*/src/**",
+          "packages/connectors/*/src/**",
+          "packages/*/*.md",
+          "packages/connectors/*/*.md"
+        ]
       }
     }
   },
