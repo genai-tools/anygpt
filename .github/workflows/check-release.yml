@@ -23,7 +23,7 @@ jobs:
           node-version: lts/*
 
       - name: Install dependencies
-        run: npm install --no-package-lock
+        run: npm install
 
       - name: Build tools
         run: npm run build
@@ -36,6 +36,6 @@ jobs:
           echo "Running comprehensive CI on all packages..."
           npx nx run-many -t lint test build typecheck --projects='packages/*,packages/connectors/*'
 
-      # - name: Fix CI issues
-      #   if: failure()
-      #   run: npx nx fix-ci || true
+      - name: Fix CI issues
+        if: failure()
+        run: npx nx fix-ci || true
