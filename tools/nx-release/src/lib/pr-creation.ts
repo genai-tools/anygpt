@@ -53,15 +53,10 @@ export async function addUpdateComment(
   prNumber: string,
   source: 'publish' | 'pr-update'
 ): Promise<void> {
-  const timestamp = new Date().toISOString();
-  const sourceLabel =
+  const commentBody =
     source === 'publish'
       ? '🚀 Auto-updated from `npx nx publish`'
       : '🔄 Manually updated via `npx nx pr-update`';
-
-  const commentBody = `${sourceLabel}
-
-*Updated at ${timestamp}*`;
 
   await execa('gh', ['pr', 'comment', prNumber, '--body', commentBody]);
   console.log(`   Added ${source} tracking comment`);
