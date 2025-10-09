@@ -14,12 +14,15 @@
     "sharedGlobals": ["{workspaceRoot}/.github/workflows/ci.yml"]
   },
   "plugins": [
-    { "plugin": "./tools/nx-tsdown" },
-    { "plugin": "./tools/nx-tsgo" },
-    { "plugin": "./tools/nx-vitest" },
+    { "plugin": "nx-tsdown" },
+    { "plugin": "nx-tsgo" },
+    { "plugin": "nx-vitest" },
     { "plugin": "@nx/eslint/plugin", "options": { "targetName": "lint" } }
   ],
   "targetDefaults": {
+    "build": {
+      "dependsOn": ["nx-tsdown:build", "^build"]
+    },
     "@nx/js:swc": {
       "cache": true,
       "dependsOn": ["^build"],
