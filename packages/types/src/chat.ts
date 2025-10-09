@@ -18,7 +18,13 @@ export interface ChatCompletionRequest {
   stream?: boolean;
   // Reasoning support (OpenAI o1/o3, Anthropic Claude extended thinking)
   reasoning?: {
+    // OpenAI o1/o3 models: reasoning_effort parameter
     effort?: 'minimal' | 'low' | 'medium' | 'high';
+    // Anthropic extended thinking models: thinking parameter
+    thinking?: {
+      type: 'enabled';
+      budget_tokens?: number;
+    };
   };
 }
 
