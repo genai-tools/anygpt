@@ -4,8 +4,9 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "npx tsdown --cwd tools/nx-tsdown && npx tsdown --cwd tools/nx-tsgo && npx tsdown --cwd tools/nx-vitest && npx tsdown --cwd tools/nx-release",
-    "prepare": "husky"
+    "build": "npm run build --workspaces --if-present",
+    "prepare": "husky",
+    "postinstall": "npm run build"
   },
   "private": true,
   "devDependencies": {
