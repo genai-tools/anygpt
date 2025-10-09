@@ -53,11 +53,19 @@ export async function addChangelogComment(
   prNumber: string,
   changelog: string
 ): Promise<void> {
-  // Skip adding changelog comment - the AI summary in PR description is sufficient
-  // Detailed changelogs are available in individual package CHANGELOG.md files
-  console.log(
-    '   Skipping changelog comment (details in package CHANGELOG.md files)'
-  );
+  if (!changelog || changelog.trim().length === 0) {
+    console.log('   No changelog entries to add');
+    return;
+  }
+
+  const commentBody = `## 📋 Changelog
+
+${changelog}
+
+---
+*This changelog was automatically generated from conventional commits.*`;
+
+  await execa('gh', ['pr', 'comment', prNumber, '--body', commentBody]);
 }
 
 export async function createPR(

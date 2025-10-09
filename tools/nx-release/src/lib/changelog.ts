@@ -7,7 +7,8 @@ export interface PackageRelease {
 }
 
 export async function extractChangelog(
-  patterns: string[]
+  patterns: string[],
+  targetVersions?: Map<string, string>
 ): Promise<{ changelog: string; releases: PackageRelease[] }> {
   let changelog = '';
   const releases: PackageRelease[] = [];
@@ -33,7 +34,18 @@ export async function extractChangelog(
         // Extract version from first header (e.g., "## 0.8.0 (2025-10-06)")
         const versionMatch = lines[firstHeaderIdx].match(/##\s+([\d.]+)/);
         if (versionMatch) {
-          releases.push({ name: pkgName, version: versionMatch[1] });
+          const version = versionMatch[1];
+
+          // If targetVersions is provided, only include entries for those versions
+          if (targetVersions && !targetVersions.has(pkgName)) {
+            continue; // Skip packages not in target list
+          }
+
+          if (targetVersions && targetVersions.get(pkgName) !== version) {
+            continue; // Skip if version doesn't match target
+          }
+
+          releases.push({ name: pkgName, version });
         }
 
         const secondHeaderIdx = lines.findIndex(

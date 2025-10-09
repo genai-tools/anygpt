@@ -131,9 +131,15 @@ export default async function runExecutor(
     const releases = await getPackageVersionDiff(baseBranch, targetBranch);
     console.log(`📦 Found ${releases.length} package(s) with new versions`);
 
-    // Extract changelog
+    // Create a map of package names to versions for filtering changelog
+    const targetVersions = new Map(releases.map((r) => [r.name, r.version]));
+
+    // Extract changelog (only for packages being released)
     console.log('📋 Extracting changelog...');
-    const { changelog } = await extractChangelog(changelogPatterns);
+    const { changelog } = await extractChangelog(
+      changelogPatterns,
+      targetVersions
+    );
 
     // Build PR title from releases
     const prTitle = buildPRTitle(releases);
