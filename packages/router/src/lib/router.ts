@@ -60,6 +60,7 @@ export class GenAIRouter implements IRouter {
       top_p: request.top_p,
       frequency_penalty: request.frequency_penalty,
       presence_penalty: request.presence_penalty,
+      reasoning: request.reasoning,
     };
 
     try {
