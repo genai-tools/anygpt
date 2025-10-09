@@ -175,15 +175,10 @@ export async function getPRBaseCommit(
 
 export async function getPRDiff(
   prNumber: string,
-  paths: string[]
+  paths?: string[]
 ): Promise<string> {
-  // Get the PR diff from GitHub
-  const { stdout } = await execa('gh', [
-    'pr',
-    'diff',
-    prNumber,
-    '--',
-    ...paths,
-  ]);
+  // Get the full PR diff from GitHub
+  // Note: gh pr diff doesn't support path filtering, so we get the full diff
+  const { stdout } = await execa('gh', ['pr', 'diff', prNumber]);
   return stdout;
 }
