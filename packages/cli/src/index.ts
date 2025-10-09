@@ -63,6 +63,11 @@ program
     '--provider <name>',
     'provider name from config (uses default from config if not specified)'
   )
+  .option('--tags', 'show resolved tags for each model')
+  .option(
+    '--filter-tags <tags>',
+    'filter models by tags (comma-separated, use ! prefix to exclude). Examples: "reasoning", "!reasoning", "claude,sonnet"'
+  )
   .option('--json', 'output as JSON')
   .action(withCLIContext(listModelsCommand));
 
@@ -104,6 +109,7 @@ program
     (val) => parseInt(val, 10),
     1
   )
+  .option('--all', 'benchmark all models from all providers')
   .option('--output <directory>', 'directory to save response files')
   .option('--json', 'output as JSON')
   .action(withCLIContext(benchmarkCommand));

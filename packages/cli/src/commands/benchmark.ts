@@ -1,6 +1,7 @@
 import type { CLIContext } from '../utils/cli-context.js';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
+import { resolveModel, resolveModelConfig } from '@anygpt/config';
 
 interface BenchmarkOptions {
   provider?: string;
@@ -11,6 +12,7 @@ interface BenchmarkOptions {
   iterations?: number;
   json?: boolean;
   output?: string;
+  all?: boolean;
 }
 
 interface BenchmarkResult {
@@ -65,18 +67,52 @@ export async function benchmarkCommand(context: CLIContext, options: BenchmarkOp
     // Single model specified
     modelsToTest.push({ provider: options.provider, model: options.model });
   } else if (options.provider) {
-    // All models from a provider
+    // All models from a provider (filtered by modelRules enabled flag)
     try {
       const models = await router.listModels(options.provider);
+      const providerConfig = providers[options.provider];
+      const globalRules = context.defaults?.modelRules;
+      
       // IMPORTANT: Use the provider from options, not from parsing the model ID
       // Model IDs may contain colons (e.g., ml-asset:static-model/gpt-5)
-      modelsToTest = models.map((m: any) => ({
-        provider: options.provider!,
-        model: m.id
-      }));
+      modelsToTest = models
+        .filter((m: any) => {
+          const config = resolveModelConfig(m.id, options.provider!, providerConfig, globalRules);
+          // enabled is true by default (undefined means enabled)
+          return config.enabled !== false;
+        })
+        .map((m: any) => ({
+          provider: options.provider!,
+          model: m.id
+        }));
+      
+      if (!options.json) {
+        console.log(`🔍 Filtered to ${modelsToTest.length} enabled models`);
+      }
     } catch (error) {
       console.error(`Error listing models for provider ${options.provider}:`, error);
       process.exit(1);
+    }
+  } else if (options.all) {
+    // Benchmark ALL models from ALL providers (filtered by modelRules enabled flag)
+    const providerNames = Object.keys(providers);
+    const globalRules = context.defaults?.modelRules;
+    
+    for (const provider of providerNames) {
+      try {
+        const models = await router.listModels(provider);
+        const providerConfig = providers[provider];
+        
+        for (const model of models) {
+          // Check if model is enabled via modelRules
+          const config = resolveModelConfig(model.id, provider, providerConfig, globalRules);
+          if (config.enabled !== false) {
+            modelsToTest.push({ provider, model: model.id });
+          }
+        }
+      } catch (error) {
+        console.error(`Skipping provider ${provider}: ${error}`);
+      }
     }
   } else {
     // Benchmark all providers with their default models
@@ -85,8 +121,24 @@ export async function benchmarkCommand(context: CLIContext, options: BenchmarkOp
       const defaultModel = context.defaults?.providers?.[provider]?.model;
       
       if (defaultModel) {
-        // Use default model
-        modelsToTest.push({ provider, model: defaultModel });
+        // Resolve tag to actual model ID if needed
+        const resolution = resolveModel(
+          defaultModel,
+          {
+            providers: context.providers,
+            aliases: context.defaults?.aliases,
+            defaultProvider: context.defaults?.provider,
+          },
+          provider
+        );
+        
+        if (resolution) {
+          // Use resolved model
+          modelsToTest.push({ provider: resolution.provider, model: resolution.model });
+        } else {
+          // Use as-is (might be a direct model ID)
+          modelsToTest.push({ provider, model: defaultModel });
+        }
       } else {
         // Use first available model
         try {
@@ -103,7 +155,7 @@ export async function benchmarkCommand(context: CLIContext, options: BenchmarkOp
   }
 
   if (modelsToTest.length === 0) {
-    console.error('No models to benchmark. Specify --provider, --model, or --models');
+    console.error('No models to benchmark. Specify --provider, --model, --models, or --all');
     process.exit(1);
   }
 
@@ -144,6 +196,11 @@ export async function benchmarkCommand(context: CLIContext, options: BenchmarkOp
       let result: BenchmarkResult;
 
       try {
+        // Resolve model configuration using rule matching
+        const providerConfig = providers[provider];
+        const globalRules = context.defaults?.modelRules;
+        const modelConfig = resolveModelConfig(model, provider, providerConfig, globalRules);
+        
         // Debug logging
         if (process.env.DEBUG_BENCHMARK) {
           console.log(`\n[DEBUG] Calling router.chatCompletion with:`);
@@ -151,13 +208,15 @@ export async function benchmarkCommand(context: CLIContext, options: BenchmarkOp
           console.log(`  model: ${model}`);
           console.log(`  prompt: ${prompt}`);
           console.log(`  max_tokens: ${maxTokens}`);
+          console.log(`  reasoning: ${JSON.stringify(modelConfig?.reasoning)}`);
         }
-        
+
         const response = await router.chatCompletion({
           provider,
           model,
           messages: [{ role: 'user', content: prompt }],
-          max_tokens: maxTokens
+          max_tokens: maxTokens,
+          ...(modelConfig.reasoning && { reasoning: modelConfig.reasoning })
         });
 
         const responseTime = Date.now() - startTime;
@@ -299,37 +358,57 @@ ${responseContent}
       return a.responseTime - b.responseTime;
     });
 
-    // Print table
-    console.log('┌─────────────────────────────────────────────────────────────────────────┐');
-    console.log('│ Provider:Model                    │ Status  │ Time    │ Size  │ Tokens │');
-    console.log('├─────────────────────────────────────────────────────────────────────────┤');
+    // Calculate column widths dynamically
+    const maxProviderLen = Math.max(...sortedResults.map(r => r.provider.length), 8);
+    const maxModelLen = Math.max(...sortedResults.map(r => r.model.length), 5);
+    const providerWidth = Math.min(maxProviderLen, 20);
+    const modelWidth = Math.min(maxModelLen, 60);
+    const totalWidth = providerWidth + modelWidth + 40; // +40 for other columns and padding
+
+    // Print table header
+    const headerLine = '─'.repeat(totalWidth);
+    console.log(`┌${headerLine}┐`);
+    console.log(`│ ${'Provider'.padEnd(providerWidth)} │ ${'Model'.padEnd(modelWidth)} │ Status │  Time   │  Size │ Tokens │`);
+    console.log(`├${headerLine}┤`);
     
     for (const result of sortedResults) {
-      const modelName = `${result.provider}:${result.model}`.substring(0, 32).padEnd(32);
-      const status = result.status === 'success' ? '✅ OK  ' : '❌ ERR ';
+      const provider = result.provider.substring(0, providerWidth).padEnd(providerWidth);
+      const model = result.model.substring(0, modelWidth).padEnd(modelWidth);
+      const status = result.status === 'success' ? '✅ OK ' : '❌ ERR';
       const time = `${result.responseTime}ms`.padEnd(7);
       const size = `${result.responseSize}ch`.padEnd(5);
       const tokens = result.tokenUsage ? `${result.tokenUsage.total}`.padEnd(6) : '-'.padEnd(6);
       
-      console.log(`│ ${modelName} │ ${status} │ ${time} │ ${size} │ ${tokens} │`);
-      
-      if (result.status === 'error' && result.error) {
-        console.log(`│   Error: ${result.error.substring(0, 60).padEnd(60)} │`);
-      }
+      console.log(`│ ${provider} │ ${model} │ ${status} │ ${time} │ ${size} │ ${tokens} │`);
     }
     
-    console.log('└─────────────────────────────────────────────────────────────────────────┘');
+    console.log(`└${headerLine}┘`);
 
     // Summary statistics
     const successful = results.filter(r => r.status === 'success');
+    const failed = results.filter(r => r.status === 'error');
+    
     if (successful.length > 0) {
+      const fastest = successful.reduce((min, r) => r.responseTime < min.responseTime ? r : min);
+      const slowest = successful.reduce((max, r) => r.responseTime > max.responseTime ? r : max);
+      
       console.log('\n📈 Summary:');
       console.log(`  Total: ${results.length} models`);
       console.log(`  Successful: ${successful.length}`);
-      console.log(`  Failed: ${results.length - successful.length}`);
-      console.log(`  Fastest: ${Math.min(...successful.map(r => r.responseTime))}ms`);
-      console.log(`  Slowest: ${Math.max(...successful.map(r => r.responseTime))}ms`);
+      console.log(`  Failed: ${failed.length}`);
+      console.log(`  Fastest: ${fastest.responseTime}ms (${fastest.provider}:${fastest.model})`);
+      console.log(`  Slowest: ${slowest.responseTime}ms (${slowest.provider}:${slowest.model})`);
       console.log(`  Average: ${Math.round(successful.reduce((sum, r) => sum + r.responseTime, 0) / successful.length)}ms`);
+    }
+    
+    // Error report (if any failures)
+    if (failed.length > 0) {
+      console.log('\n❌ Error Report:\n');
+      for (const result of failed) {
+        console.log(`  ${result.provider}:${result.model}`);
+        console.log(`    ${result.error}`);
+        console.log('');
+      }
     }
   }
 }
