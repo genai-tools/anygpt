@@ -28,6 +28,7 @@ import {
   getRepoName,
   addChangelogComment,
   getPRDiff,
+  markPRReady,
 } from '../../lib/pr-creation.js';
 
 export default async function runExecutor(
@@ -292,8 +293,12 @@ export default async function runExecutor(
         await enableAutoMerge(prNumber);
       }
     } else {
-      // EXISTING PR: Update first, then generate AI summary from actual PR diff
+      // EXISTING PR: Mark as ready if it was a draft, then update
       prNumber = existingPR;
+
+      // Convert draft PR to ready (if it was a draft placeholder)
+      await markPRReady(prNumber);
+
       const prBodyWithoutAI = buildPRBody('', releases);
       await updatePR(existingPR, prBodyWithoutAI);
       console.log(
