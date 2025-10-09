@@ -67,13 +67,16 @@ export async function createPR(
   title: string,
   body: string,
   headBranch: string,
-  baseBranch: string
+  baseBranch: string,
+  options: { draft?: boolean } = {}
 ): Promise<string> {
   const prBodyPath = '/tmp/release-pr.md';
   await writeFile(prBodyPath, body, 'utf-8');
 
-  console.log('\n📝 Creating release PR...');
-  const { stdout: prUrl } = await execa('gh', [
+  const { draft = false } = options;
+  
+  console.log(`\n📝 Creating ${draft ? 'draft ' : ''}release PR...`);
+  const args = [
     'pr',
     'create',
     '--title',
@@ -84,7 +87,13 @@ export async function createPR(
     headBranch,
     '--base',
     baseBranch,
-  ]);
+  ];
+  
+  if (draft) {
+    args.push('--draft');
+  }
+  
+  const { stdout: prUrl } = await execa('gh', args);
 
   return prUrl.trim();
 }

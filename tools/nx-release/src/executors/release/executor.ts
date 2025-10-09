@@ -147,6 +147,19 @@ export default async function runExecutor(
       
       if (!hasUnpushed) {
         console.log('\n❌ No version changes were made');
+        
+        // If no existing PR, create a draft PR to keep the workflow ready
+        if (!existingPR) {
+          console.log('📝 Creating draft PR to keep release workflow ready...');
+          const prTitle = 'Draft release';
+          const prBody = `## 📝 Draft Release PR\n\nThis is a draft PR created automatically to keep the release workflow ready.\n\nWhen you make changes that trigger version bumps, this PR will be updated with:\n- Package versions\n- Changelog\n- AI-generated summary\n\n**No action needed** - this will be automatically updated on the next release.`;
+          const prUrl = await createPR(prTitle, prBody, baseBranch, targetBranch, { draft: true });
+          console.log(`✅ Draft PR created: ${prUrl}`);
+          await openPRInBrowser();
+        } else {
+          console.log('ℹ️  Existing PR found - no changes needed');
+        }
+        
         console.log('ℹ️  No changes detected - nothing to release');
         return { success: true };
       }
@@ -161,7 +174,7 @@ export default async function runExecutor(
         console.log('📝 Creating PR to production...');
         const prTitle = buildPRTitle([]);
         const prBody = buildPRBody('', []);
-        const prUrl = await createPR(prTitle, prBody, baseBranch, targetBranch);
+        const prUrl = await createPR(prTitle, prBody, baseBranch, targetBranch, { draft: false });
         console.log(`✅ PR created: ${prUrl}`);
         
         const prNumber = prUrl.split('/').pop() || '';
