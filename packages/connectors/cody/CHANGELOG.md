@@ -1,3 +1,19 @@
+## 1.1.0 (2025-10-09)
+
+### 🚀 Features
+
+- **cody:** update connector for tag resolution support ([dbe3cb5](https://github.com/genai-tools/anygpt/commit/dbe3cb5))
+
+### 🧱 Updated Dependencies
+
+- Updated router to 0.4.0
+- Updated types to 1.1.0
+- Updated openai to 1.1.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.3.6 (2025-10-09)
 
 ### 🧱 Updated Dependencies
