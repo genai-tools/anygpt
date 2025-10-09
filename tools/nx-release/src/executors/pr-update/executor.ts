@@ -173,27 +173,24 @@ export default async function runExecutor(
           }
         );
 
-        // Step 2: Update PR with summary
+        // Step 2: Build PR body with summary
         const prBodyWithAI = buildPRBody(aiSummary, releases);
-        await updatePR(existingPR, prBodyWithAI);
-        console.log('✅ PR description updated with AI summary');
 
-        // Step 3: Generate title from summary and update
-        if (aiSummary) {
-          console.log('🎯 Generating AI title from summary...');
-          const { generateAITitle } = await import('../../lib/ai-summary.js');
-          const aiTitle = await generateAITitle(
-            aiSummary,
-            changelog,
-            releases,
-            finalAiCommand
-          );
+        // Step 3: Generate title from summary
+        console.log('🎯 Generating AI title from summary...');
+        const { generateAITitle } = await import('../../lib/ai-summary.js');
+        const aiTitle = await generateAITitle(
+          aiSummary,
+          changelog,
+          releases,
+          finalAiCommand
+        );
 
-          if (aiTitle) {
-            await updatePR(existingPR, prBodyWithAI, aiTitle);
-            console.log(`✅ PR title updated: "${aiTitle}"`);
-          }
-        }
+        // Step 4: Update PR with both title and body in one call
+        await updatePR(existingPR, prBodyWithAI, aiTitle || prTitle);
+        console.log(
+          `✅ PR updated with AI summary and title: "${aiTitle || prTitle}"`
+        );
       } catch (error) {
         console.warn('⚠️  Failed to generate AI content:', error);
         console.log('   PR updated without AI enhancements');
