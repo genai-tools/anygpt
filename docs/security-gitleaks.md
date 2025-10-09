@@ -15,6 +15,19 @@ The workflow runs on:
 - Every push to any branch (`**`)
 - Every pull request to any branch
 
+**Why both triggers?**
+
+- `push` - Scans internal branches when you push
+- `pull_request` - Scans external fork contributions (forks can't trigger push events)
+
+**Smart deduplication:** The workflow includes a condition to skip internal PRs (already scanned on push) and only run for external forks:
+
+```yaml
+if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+```
+
+This prevents duplicate runs while ensuring external contributions are always scanned.
+
 **What it scans for:**
 
 - API keys (OpenAI, Anthropic, AWS, etc.)
