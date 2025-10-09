@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "type": "module",
-  "scripts": {    
+  "scripts": {
     "build": "npx tsdown --cwd tools/nx-tsdown && npx tsdown --cwd tools/nx-tsgo && npx tsdown --cwd tools/nx-vitest && npx tsdown --cwd tools/nx-release",
     "prepare": "husky"
   },
@@ -61,6 +61,9 @@
       },
       "publish": {
         "executor": "./tools/nx-release:release",
+        "dependsOn": [
+          "nx-release:build"
+        ],
         "options": {
           "baseBranch": "main",
           "targetBranch": "production",
@@ -70,6 +73,9 @@
       },
       "pr-update": {
         "executor": "./tools/nx-release:pr-update",
+        "dependsOn": [
+          "nx-release:build"
+        ],
         "options": {
           "baseBranch": "main",
           "targetBranch": "production",
