@@ -1,10 +1,7 @@
 import type { ExecutorContext } from '@nx/devkit';
 import type { PrUpdateExecutorSchema } from './schema.js';
 import { getCurrentBranch } from '../../lib/git-operations.js';
-import {
-  extractChangelog,
-  extractReleasesFromTags,
-} from '../../lib/changelog.js';
+import { extractChangelog } from '../../lib/changelog.js';
 import { generateAISummary } from '../../lib/ai-summary.js';
 import {
   getExistingPR,
@@ -15,7 +12,6 @@ import {
   addChangelogComment,
   markPRReady,
 } from '../../lib/pr-creation.js';
-import { execa } from 'execa';
 
 export default async function runExecutor(
   options: PrUpdateExecutorSchema,
@@ -63,32 +59,12 @@ export default async function runExecutor(
 
     console.log(`📋 Found PR #${existingPR}`);
 
-    // Get all tags that exist in main but not in target branch
-    const { stdout: mainTags } = await execa('git', [
-      'tag',
-      '--merged',
-      baseBranch,
-    ]);
-    const { stdout: targetTags } = await execa('git', [
-      'tag',
-      '--merged',
-      `origin/${targetBranch}`,
-    ]);
-
-    const mainTagSet = new Set(mainTags.split('\n').filter(Boolean));
-    const targetTagSet = new Set(targetTags.split('\n').filter(Boolean));
-    const newTags = Array.from(mainTagSet).filter(
-      (tag) => !targetTagSet.has(tag)
-    );
-
-    console.log(`📦 Found ${newTags.length} new release(s)`);
-
-    // Extract package releases from new tags
-    const releases = extractReleasesFromTags(newTags);
-
-    // Extract changelog
+    // Extract changelog and releases from CHANGELOG files
+    // This gives us the actual packages that have new versions to publish
     console.log('📋 Extracting changelog...');
-    const { changelog } = await extractChangelog(changelogPatterns);
+    const { changelog, releases } = await extractChangelog(changelogPatterns);
+
+    console.log(`📦 Found ${releases.length} package(s) with new versions`);
 
     // Convert draft PR to ready (if it was a draft placeholder)
     await markPRReady(existingPR);
