@@ -53,6 +53,17 @@
       "!packages/cli/node_modules/**"
     ],
     "releaseTagPattern": "{projectName}@{version}",
+    "conventionalCommits": {
+      "types": {
+        "docs": {
+          "semverBump": "patch",
+          "changelog": {
+            "title": "📖 Documentation",
+            "hidden": false
+          }
+        }
+      }
+    },
     "changelog": {
       "workspaceChangelog": {
         "createRelease": false,
