@@ -43,6 +43,7 @@ export default async function runExecutor(
       'packages/connectors/*/CHANGELOG.md',
     ],
     aiCommand,
+    aiTitleCommand,
     model,
     maxLinesPerFile = 150,
     autoMerge = true,
@@ -55,6 +56,8 @@ export default async function runExecutor(
     model && aiCommand
       ? aiCommand.replace(/--model\s+\S+/, `--model ${model}`)
       : aiCommand;
+  
+  const finalAiTitleCommand = aiTitleCommand || finalAiCommand;
 
   try {
     console.log('🚀 Starting release process...\n');
@@ -248,7 +251,7 @@ export default async function runExecutor(
           aiSummary,
           changelog,
           releases,
-          finalAiCommand
+          finalAiTitleCommand
         );
 
         // Step 4: Create PR with AI-generated title and summary

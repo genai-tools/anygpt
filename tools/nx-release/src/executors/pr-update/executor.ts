@@ -92,6 +92,7 @@ export default async function runExecutor(
       'packages/connectors/*/CHANGELOG.md',
     ],
     aiCommand,
+    aiTitleCommand,
     model,
     maxLinesPerFile = 150,
     diffPaths = ['packages/*/src/**', 'packages/connectors/*/src/**'],
@@ -102,6 +103,8 @@ export default async function runExecutor(
     model && aiCommand
       ? aiCommand.replace(/--model\s+\S+/, `--model ${model}`)
       : aiCommand;
+  
+  const finalAiTitleCommand = aiTitleCommand || finalAiCommand;
 
   try {
     console.log('🔄 Updating release PR...\n');
@@ -191,7 +194,7 @@ export default async function runExecutor(
           aiSummary,
           changelog,
           releases,
-          finalAiCommand
+          finalAiTitleCommand
         );
 
         // Step 4: Update PR with both title and body in one call

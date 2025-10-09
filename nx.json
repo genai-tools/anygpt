@@ -33,7 +33,8 @@
     "release": {
       "executor": "./tools/nx-release:release",
       "options": {
-        "aiCommand": "npx anygpt chat --stdin --tag fast --max-tokens 1000",
+        "aiCommand": "npx anygpt chat --stdin --tag fast --max-tokens 2000",
+        "aiTitleCommand": "npx anygpt chat --stdin --tag fast --max-tokens 100",
         "maxLinesPerFile": 150,
         "diffPaths": [
           "packages/**/src/**",
@@ -45,7 +46,8 @@
     "pr-update": {
       "executor": "./tools/nx-release:pr-update",
       "options": {
-        "aiCommand": "npx anygpt chat --stdin --tag fast --max-tokens 1000",
+        "aiCommand": "npx anygpt chat --stdin --tag fast --max-tokens 2000",
+        "aiTitleCommand": "npx anygpt chat --stdin --tag fast --max-tokens 100",
         "maxLinesPerFile": 150
       }
     }
