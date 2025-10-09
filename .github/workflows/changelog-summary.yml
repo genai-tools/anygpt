@@ -17,16 +17,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Generate Changelog Summary
         run: |
           echo "## 📋 Release Changelog" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Extract changelogs for packages being released
-          for changelog in packages/*/CHANGELOG.md packages/connectors/*/CHANGELOG.md; do
+          # Get packages with version differences between this PR and production
+          changed_packages=""
+          for pkg_json in packages/*/package.json packages/connectors/*/package.json; do
+            if [ -f "$pkg_json" ]; then
+              pkg_dir=$(dirname "$pkg_json")
+              pkg_name=$(jq -r '.name' "$pkg_json")
+              pr_version=$(jq -r '.version' "$pkg_json")
+              
+              # Get version from production branch
+              prod_version=$(git show origin/production:"$pkg_json" 2>/dev/null | jq -r '.version' 2>/dev/null || echo "")
+              
+              # If versions differ, add to changed packages
+              if [ "$pr_version" != "$prod_version" ] && [ -n "$prod_version" ]; then
+                changed_packages="$changed_packages $pkg_dir"
+              fi
+            fi
+          done
+
+          # Extract changelogs only for changed packages
+          for pkg_dir in $changed_packages; do
+            changelog="$pkg_dir/CHANGELOG.md"
             if [ -f "$changelog" ]; then
-              pkg_name=$(echo "$changelog" | sed 's|.*/\([^/]*\)/CHANGELOG.md|\1|')
+              pkg_name=$(basename "$pkg_dir")
               
               # Extract first entry (between first two ## headers)
               first_entry=$(awk '/^## / {if (++count == 2) exit} count == 1' "$changelog")
@@ -38,3 +59,7 @@ jobs:
               fi
             fi
           done
+
+          if [ -z "$changed_packages" ]; then
+            echo "No package version changes detected in this PR." >> $GITHUB_STEP_SUMMARY
+          fi
