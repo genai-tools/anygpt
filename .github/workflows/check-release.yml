@@ -31,6 +31,27 @@ jobs:
       - name: Format check
         run: npx nx format:check || true
 
+      - name: Generate Changelog Summary
+        run: |
+          echo "## 📋 Release Changelog" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Extract changelogs for packages being released
+          for changelog in packages/*/CHANGELOG.md packages/connectors/*/CHANGELOG.md; do
+            if [ -f "$changelog" ]; then
+              pkg_name=$(echo "$changelog" | sed 's|.*/\([^/]*\)/CHANGELOG.md|\1|')
+              
+              # Extract first entry (between first two ## headers)
+              first_entry=$(awk '/^## / {if (++count == 2) exit} count == 1' "$changelog")
+              
+              if [ -n "$first_entry" ]; then
+                echo "### 📦 $pkg_name" >> $GITHUB_STEP_SUMMARY
+                echo "$first_entry" >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          done
+
       - name: Run full CI on all release packages
         run: |
           echo "Running comprehensive CI on all packages..."
