@@ -24,7 +24,7 @@ jobs:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
 
-      - run: npm install --no-package-lock
+      - run: npm install
       - run: npm run build
 
       - name: Publish to npm
