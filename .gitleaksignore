@@ -1,0 +1,20 @@
+# Gitleaks Ignore File
+# Whitelist safe placeholder tokens and documentation examples
+
+# Safe placeholder tokens in documentation and examples
+sgp_your-token
+sgp_your-token-here
+sk-litellm-master-key
+sk-dev-key
+sk-ant-...
+
+# Documentation file with historical incident reference (redacted token)
+docs/security-incident-response.md:sgp_981819e57d6acf39_
+
+# Example configuration files with placeholder keys
+examples/**/*:sk-litellm-master-key
+examples/**/*:sk-dev-key
+packages/connectors/cody/examples/**/*:sgp_your-token-here
+
+# Documentation with example tokens
+docs/**/*:sk-ant-
