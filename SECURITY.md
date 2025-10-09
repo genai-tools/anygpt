@@ -7,6 +7,7 @@ This project handles sensitive credentials and API keys. Follow these guidelines
 ### ⚠️ NEVER Commit These
 
 **Absolutely forbidden in git:**
+
 - API keys, tokens, passwords
 - Internal company URLs (use `example.com` instead)
 - Real credentials in example files
@@ -15,21 +16,23 @@ This project handles sensitive credentials and API keys. Follow these guidelines
 ### ✅ Safe Practices
 
 1. **Use Environment Variables**
+
    ```typescript
    // ✅ GOOD
-   accessToken: process.env.SRC_ACCESS_TOKEN
-   
+   accessToken: process.env.SRC_ACCESS_TOKEN;
+
    // ❌ BAD
-   accessToken: 'sgp_abc123...'
+   accessToken: 'sgp_abc123...';
    ```
 
 2. **Use Generic Examples**
+
    ```typescript
    // ✅ GOOD
-   endpoint: 'https://sourcegraph.example.com/'
-   
+   endpoint: 'https://sourcegraph.example.com/';
+
    // ❌ BAD
-   endpoint: 'https://sourcegraph.internal-company.com/'
+   endpoint: 'https://sourcegraph.internal-company.com/';
    ```
 
 3. **Check Before Committing**
@@ -46,21 +49,25 @@ This project handles sensitive credentials and API keys. Follow these guidelines
 **Location**: `.husky/pre-commit` (version-controlled and transparent)
 
 The hook scans for secrets BEFORE they reach GitHub:
-- Hardcoded tokens (sgp_, sk-, ghp_)
+
+- Hardcoded tokens (sgp*, sk-, ghp*)
 - Internal company URLs
 - Sensitive files (.env, config.json, etc.)
 
 **No manual installation needed** - Husky sets it up automatically!
 
-#### Why No GitHub Actions?
+#### GitHub Actions (Gitleaks)
 
-**We deliberately don't use GitHub Actions for security scanning** because:
-- ❌ Damage is already done once code reaches GitHub
-- ❌ Secrets are exposed in git history
-- ❌ PRs contain the sensitive data
-- ✅ Pre-commit hooks catch issues BEFORE they leave your machine
+**Automated secret scanning runs on all branches:**
 
-**Prevention at the source is the only real protection.**
+- ✅ Gitleaks workflow runs on every push and PR
+- ✅ Scans all branches (not just main/production)
+- ✅ Blocks merges if secrets are detected
+- ✅ Uses `.gitleaksignore` to whitelist safe placeholders
+
+**Note:** Pre-commit hooks are still the primary defense. GitHub Actions provide a safety net.
+
+📖 **See [docs/security-gitleaks.md](docs/security-gitleaks.md) for complete gitleaks documentation.**
 
 ### 🚨 If You Accidentally Commit Secrets
 
@@ -69,14 +76,16 @@ The hook scans for secrets BEFORE they reach GitHub:
 1. **Revoke the exposed credential** (API key, token, etc.)
 2. **DO NOT PUSH** if you haven't already
 3. **Remove from history:**
+
    ```bash
    # If not pushed yet
    git reset --soft HEAD~1
-   
+
    # If already pushed - requires force push
    git filter-repo --replace-text <(echo "SECRET_VALUE==>REDACTED")
    git push --force
    ```
+
 4. **Notify your security team** if applicable
 
 ### 📋 Security Checklist
@@ -92,6 +101,7 @@ Before every release:
 ### 🔍 Files Protected by .gitignore
 
 These are automatically ignored:
+
 - `.anygpt/` - Personal configuration with real credentials
 - `.env*` - Environment variable files
 - `**/config.json` - Configuration files
