@@ -1,3 +1,28 @@
+## 0.22.1 (2025-10-09)
+
+### 🧱 Updated Dependencies
+
+- Updated config to 0.6.1
+- Updated router to 0.3.1
+- Updated types to 0.2.1
+
+# 1.0.0 (2025-10-09)
+
+### 🧱 Updated Dependencies
+
+- Updated config to 1.0.0
+- Updated types to 1.0.0
+
+## 0.22.0 (2025-10-08)
+
+### 🚀 Features
+
+- **cli:** add tag-based model selection to feature list ([f3fc9ab](https://github.com/genai-tools/anygpt/commit/f3fc9ab))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.21.0 (2025-10-08)
 
 ### 🚀 Features

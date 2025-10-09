@@ -153,10 +153,31 @@ export default async function runExecutor(
       
       // We have unpushed commits (e.g., CI fixes, docs) but no version bump
       console.log('\n⚠️  No version changes, but found unpushed commits');
-      console.log('📤 Pushing commits to update PR...');
+      console.log('📤 Pushing commits to main...');
       await pushWithTags(baseBranch);
       
-      console.log('✅ PR updated with latest commits');
+      // Still need to create/update PR to production
+      if (!existingPR) {
+        console.log('📝 Creating PR to production...');
+        const prTitle = 'chore: sync main to production';
+        const prBody = buildPRBody('', []);
+        const prUrl = await createPR(prTitle, prBody, baseBranch, targetBranch);
+        console.log(`✅ PR created: ${prUrl}`);
+        
+        const prNumber = prUrl.split('/').pop() || '';
+        
+        if (autoMerge) {
+          await enableAutoMerge(prNumber);
+        }
+        
+        await openPRInBrowser();
+      } else {
+        console.log('ℹ️  Existing PR will be updated automatically by the push');
+        const repoName = await getRepoName();
+        console.log(`✅ PR updated: https://github.com/${repoName}/pull/${existingPR}`);
+        await openPRInBrowser(existingPR);
+      }
+      
       console.log('ℹ️  No package versions were bumped - PR will not publish to npm');
       return { success: true };
     }

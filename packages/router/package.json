@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/router",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Core router for AnyGPT - routes requests to multiple AI providers",
   "type": "module",
   "main": "./dist/index.js",
