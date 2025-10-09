@@ -37,8 +37,14 @@ export {
   type FactoryConfig,
   type FactoryProviderConfig,
   type ModelAlias,
-  type ModelMetadata
+  type ModelMetadata,
+  type ModelRule,
+  type ReasoningEffort,
+  type ReasoningConfig
 } from './factory.js';
+
+// Model pattern resolver
+export { resolveModelConfig, type ResolvedModelConfig } from './model-pattern-resolver.js';
 
 // Configuration loader (not exported by default, used internally)
 export { loadConfig, validateConfig } from './loader.js';
@@ -54,6 +60,9 @@ export {
   type AliasInfo,
   type AvailableTagsResult
 } from './model-resolver.js';
+
+// Glob pattern matching for model filtering
+export { matchesGlobPatterns } from './glob-matcher.js';
 
 // Note: Connector factory functions (like openai()) should be imported directly 
 // from their packages to keep config package connector-agnostic:
