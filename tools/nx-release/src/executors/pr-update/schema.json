@@ -19,6 +19,10 @@
       "type": "string",
       "description": "Command to run for AI summary generation (should accept prompt via stdin). Leave empty to skip AI summaries."
     },
+    "aiTitleCommand": {
+      "type": "string",
+      "description": "Command to run for AI title generation (should accept prompt via stdin). Defaults to aiCommand if not specified."
+    },
     "model": {
       "type": "string",
       "description": "AI model to use (overrides model in aiCommand if specified). Examples: fast, gpt-4o, sonnet, etc."
