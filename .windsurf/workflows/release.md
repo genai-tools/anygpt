@@ -43,9 +43,13 @@ auto_execution_mode: 3
 
 # Step 4 · Release
 
-- **Command**: `npm run release`
+- **Command**: `npx nx publish`
 - **Goal**: Execute the scripted Nx release and let it push changes.
-- **Rule**: NEVER manually run `nx release` or any other Nx commands directly. The `npm run release` command is a custom executor that handles the entire release workflow including PR creation.
+- **Rule**: NEVER manually run `nx release` or any other Nx commands directly. The `npx nx publish` command is a custom executor that handles the entire release workflow including PR creation.
+- **Behavior**:
+  - **With version changes**: Creates release PR with package versions, AI summary, auto-merge enabled
+  - **With unpushed commits (no versions)**: Creates sync PR with date-based title, auto-merge enabled
+  - **No changes at all**: Creates draft PR as placeholder (will be updated on next release)
 - **If it fails**:
   - Stop immediately and report the error to the user
   - Do NOT attempt to fix it by running manual commands

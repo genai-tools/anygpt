@@ -95,7 +95,7 @@ git push
 ### Step 2: Run Release Command
 
 ```bash
-npm run release
+npx nx publish
 ```
 
 This command:
@@ -112,17 +112,24 @@ This command:
    - Creates git tags
    - Commits and pushes to `main`
 
-3. **Generates AI Summary**:
+3. **Generates AI Summary** (if changes detected):
    - Analyzes changelog entries
-   - Reviews code diff (up to 5000 chars)
+   - Reviews code diff (smart truncation per file)
    - Uses your `anygpt` CLI to generate intelligent summary
    - Highlights key changes and reviewer notes
 
 4. **Creates Release PR**:
-   - Title: "Release cli v0.12.0" (shows actual packages)
-   - 🤖 AI-generated summary section
-   - 📋 Full changelog
-   - ✅ Auto-merge enabled
+   - **With version changes**: "Release cli v1.0.0" (shows actual packages)
+     - 🤖 AI-generated summary section
+     - 📋 Full changelog
+     - ✅ Auto-merge enabled with rebase
+   - **With unpushed commits (no versions)**: "Release: 2025-10-09" (date-based)
+     - Pushes commits to main
+     - Creates PR with auto-merge enabled
+   - **No changes at all**: "Draft release" (draft PR)
+     - 📝 Creates draft PR as placeholder
+     - Will be updated on next release
+     - No auto-merge (it's a draft)
 
 ### Step 3: Automatic CI Validation
 
@@ -209,6 +216,42 @@ For urgent fixes:
 
 Typically takes 2-3 minutes from release command to npm publish.
 
+## 📝 PR Types
+
+The release workflow creates different types of PRs based on what changed:
+
+### 1. Release PR (with version bumps)
+**Title:** `"Release: cli@1.0.0, mcp@1.0.0"` or `"Release cli v1.0.0"` (single package)
+
+**Contents:**
+- 📦 List of packages being published
+- 🤖 AI-generated summary of changes
+- 📋 Full changelog as comment
+- ✅ Auto-merge enabled with rebase
+
+**When created:** After running `npx nx publish` with version-bumping changes
+
+### 2. Sync PR (unpushed commits, no versions)
+**Title:** `"Release: 2025-10-09"` (date-based)
+
+**Contents:**
+- ⚡ Auto-merge enabled message
+- 📋 Note about no package versions
+
+**When created:** When you have unpushed commits but no version changes
+
+### 3. Draft PR (no changes at all)
+**Title:** `"Draft release"`
+
+**Contents:**
+- 📝 Explanation that it's a placeholder
+- Will be updated automatically on next release
+- No action needed
+
+**When created:** When running `npx nx publish` with no changes and no existing PR
+
+**Status:** Draft (won't clutter your PR list, won't trigger notifications)
+
 ## 📦 Package Versioning
 
 ### Independent Versioning
@@ -247,7 +290,13 @@ Based on [Conventional Commits](https://www.conventionalcommits.org/):
 
 ### "No changes detected"
 
-**Possible causes:**
+**What happens:**
+
+When no changes are detected, the workflow creates a **draft PR** titled "Draft release" as a placeholder. This keeps the release workflow ready without cluttering your PR list.
+
+**The draft PR will be automatically updated** when you make changes that trigger version bumps.
+
+**Possible causes of no changes:**
 
 1. **No releasable changes**
    - Only `docs:`, `chore:`, `style:` commits
