@@ -7,6 +7,19 @@ export interface ChatMessage {
   content: string;
 }
 
+/**
+ * Provider-specific extra parameters that can be passed in extra_body
+ */
+export interface ExtraBodyParams {
+  // Anthropic extended thinking parameter
+  thinking?: {
+    type: 'enabled';
+    budget_tokens?: number;
+  };
+  // Allow any other provider-specific parameters
+  [key: string]: unknown;
+}
+
 export interface ChatCompletionRequest {
   messages: ChatMessage[];
   model?: string;
@@ -16,10 +29,13 @@ export interface ChatCompletionRequest {
   frequency_penalty?: number;
   presence_penalty?: number;
   stream?: boolean;
-  // Reasoning support (OpenAI o1/o3, Anthropic Claude extended thinking)
+  // Reasoning support (OpenAI o1/o3)
   reasoning?: {
+    // OpenAI o1/o3 models: reasoning_effort parameter
     effort?: 'minimal' | 'low' | 'medium' | 'high';
   };
+  // Provider-specific extra parameters that will be merged into the API request body
+  extra_body?: ExtraBodyParams;
 }
 
 export interface ChatCompletionResponse {
@@ -53,15 +69,15 @@ export interface ModelCapabilities {
   /** Output features supported */
   output: {
     text: boolean;
-    structured?: boolean;      // JSON mode
+    structured?: boolean; // JSON mode
     function_calling?: boolean;
     streaming?: boolean;
-    verbosity_control?: boolean;  // OpenAI verbosity
+    verbosity_control?: boolean; // OpenAI verbosity
   };
   /** Reasoning features */
   reasoning?: {
     enabled: boolean;
-    effort_control?: boolean;   // OpenAI reasoning effort
+    effort_control?: boolean; // OpenAI reasoning effort
   };
 }
 
