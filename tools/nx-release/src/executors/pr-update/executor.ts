@@ -11,6 +11,7 @@ import { execa } from 'execa';
 import {
   getExistingPR,
   buildPRBody,
+  updatePR,
   getPRDiff,
   getRepoName,
   addChangelogComment,
