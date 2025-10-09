@@ -1,14 +1,20 @@
 # @anygpt/config
 
-Shared configuration management for AnyGPT with dynamic connector loading.
+Shared configuration management for AnyGPT with dynamic connector loading and powerful model rules.
 
 ## Features
 
+- **Model Rules**: Pattern-based configuration for tags, reasoning, and model enablement
 - **Dynamic Connector Loading**: Load connectors on-demand via `import()`
 - **Multiple Config Sources**: Support for TypeScript, JavaScript, and JSON config files
 - **User Configuration**: `~/.anygpt/anygpt.config.ts` support
 - **No Monster Dependencies**: CLI and MCP packages stay lean
 - **Type Safety**: Full TypeScript support
+
+## Documentation
+
+- **[Model Rules Guide](./docs/MODEL_RULES.md)** - Comprehensive guide to pattern-based model configuration
+- **[Factory Config](./docs/FACTORY_CONFIG.md)** - Advanced configuration with connector instances (coming soon)
 
 ## Configuration Locations
 
@@ -24,7 +30,56 @@ The config loader searches for configuration files in this order:
 8. `/etc/anygpt/anygpt.config.js`
 9. `/etc/anygpt/anygpt.config.json`
 
-## Configuration Format
+## Quick Start
+
+### Factory Config (Recommended)
+
+The modern approach using connector instances and model rules:
+
+```typescript
+import { config } from '@anygpt/config';
+import { openai } from '@anygpt/openai';
+
+export default config({
+  defaults: {
+    provider: 'openai',
+    // Global model rules apply to all providers
+    modelRules: [
+      {
+        pattern: [/o[13]/, /thinking/],
+        tags: ['reasoning'],
+        reasoning: { effort: 'medium' }
+      },
+      {
+        pattern: [/gpt-5/, /sonnet/, /opus/],
+        tags: ['premium']
+      }
+    ]
+  },
+  providers: {
+    openai: {
+      name: 'OpenAI',
+      connector: openai({
+        apiKey: process.env.OPENAI_API_KEY
+      }),
+      // Provider-specific rules
+      modelRules: [
+        {
+          pattern: [/gpt-5/, /gpt-4/],
+          enabled: true
+        }
+      ]
+    }
+  }
+});
+```
+
+See **[Model Rules Guide](./docs/MODEL_RULES.md)** for comprehensive documentation.
+
+### Legacy Config Format
+
+<details>
+<summary>Click to expand legacy format (deprecated)</summary>
 
 ```typescript
 import type { AnyGPTConfig } from '@anygpt/config';
@@ -36,20 +91,10 @@ const config: AnyGPTConfig = {
     'openai-main': {
       name: 'OpenAI GPT Models',
       connector: {
-        connector: '@anygpt/openai',  // Package to dynamically import
+        connector: '@anygpt/openai',
         config: {
           apiKey: process.env.OPENAI_API_KEY,
           baseURL: 'https://api.openai.com/v1'
-        }
-      }
-    },
-    
-    'ollama-local': {
-      name: 'Local Ollama',
-      connector: {
-        connector: '@anygpt/openai',  // Same connector, different config
-        config: {
-          baseURL: 'http://localhost:11434/v1'
         }
       }
     }
@@ -62,6 +107,9 @@ const config: AnyGPTConfig = {
 };
 
 export default config;
+```
+
+</details>
 ```
 
 ## Usage
