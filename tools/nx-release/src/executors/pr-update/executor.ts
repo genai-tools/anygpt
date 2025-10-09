@@ -1,8 +1,9 @@
 import type { ExecutorContext } from '@nx/devkit';
 import type { PrUpdateExecutorSchema } from './schema.js';
 import { getCurrentBranch } from '../../lib/git-operations.js';
-import { extractChangelog } from '../../lib/changelog.js';
+import { extractChangelog, type PackageRelease } from '../../lib/changelog.js';
 import { generateAISummary } from '../../lib/ai-summary.js';
+import { execa } from 'execa';
 import {
   getExistingPR,
   buildPRBody,
@@ -12,6 +13,68 @@ import {
   addChangelogComment,
   markPRReady,
 } from '../../lib/pr-creation.js';
+
+async function getPackageVersionDiff(
+  baseBranch: string,
+  targetBranch: string
+): Promise<PackageRelease[]> {
+  const releases: PackageRelease[] = [];
+
+  // Use safe glob patterns to find package.json files
+  const patterns = [
+    'packages/*/package.json',
+    'packages/connectors/*/package.json',
+  ];
+
+  for (const pattern of patterns) {
+    try {
+      const { stdout } = await execa('bash', [
+        '-c',
+        `ls ${pattern} 2>/dev/null || true`,
+      ]);
+      const files = stdout.split('\n').filter(Boolean);
+
+      for (const file of files) {
+        try {
+          // Get version from main branch
+          const { stdout: mainContent } = await execa('git', [
+            'show',
+            `${baseBranch}:${file}`,
+          ]);
+          const mainPkg = JSON.parse(mainContent);
+
+          // Get version from target branch
+          let targetVersion: string | null = null;
+          try {
+            const { stdout: targetContent } = await execa('git', [
+              'show',
+              `origin/${targetBranch}:${file}`,
+            ]);
+            const targetPkg = JSON.parse(targetContent);
+            targetVersion = targetPkg.version;
+          } catch {
+            // File doesn't exist in target branch (new package)
+            targetVersion = null;
+          }
+
+          // If versions differ, this package has changes
+          if (mainPkg.version !== targetVersion) {
+            releases.push({
+              name: mainPkg.name,
+              version: mainPkg.version,
+            });
+          }
+        } catch {
+          // Skip files that can't be read
+        }
+      }
+    } catch {
+      // Pattern didn't match any files
+    }
+  }
+
+  return releases;
+}
 
 export default async function runExecutor(
   options: PrUpdateExecutorSchema,
@@ -59,12 +122,14 @@ export default async function runExecutor(
 
     console.log(`📋 Found PR #${existingPR}`);
 
-    // Extract changelog and releases from CHANGELOG files
-    // This gives us the actual packages that have new versions to publish
-    console.log('📋 Extracting changelog...');
-    const { changelog, releases } = await extractChangelog(changelogPatterns);
-
+    // Get packages with version differences between main and production
+    console.log('📦 Comparing package versions between branches...');
+    const releases = await getPackageVersionDiff(baseBranch, targetBranch);
     console.log(`📦 Found ${releases.length} package(s) with new versions`);
+
+    // Extract changelog
+    console.log('📋 Extracting changelog...');
+    const { changelog } = await extractChangelog(changelogPatterns);
 
     // Convert draft PR to ready (if it was a draft placeholder)
     await markPRReady(existingPR);
