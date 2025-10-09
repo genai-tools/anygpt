@@ -161,7 +161,7 @@ export default async function runExecutor(
       );
       try {
         const prDiff = await getPRDiff(existingPR);
-        const aiSummary = await generateAISummary(
+        const aiContent = await generateAISummary(
           changelog,
           releases,
           prDiff,
@@ -171,9 +171,10 @@ export default async function runExecutor(
           }
         );
 
-        // Update PR with AI summary
-        const prBodyWithAI = buildPRBody(aiSummary, releases);
-        await updatePR(existingPR, prBodyWithAI);
+        // Update PR with AI-generated title and summary
+        const finalTitle = aiContent.title || prTitle;
+        const prBodyWithAI = buildPRBody(aiContent.summary, releases);
+        await updatePR(existingPR, prBodyWithAI, finalTitle);
         console.log('✅ PR description updated with AI summary');
       } catch (error) {
         console.warn('⚠️  Failed to generate AI summary:', error);

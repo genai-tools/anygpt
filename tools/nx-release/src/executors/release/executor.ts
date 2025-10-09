@@ -227,7 +227,7 @@ export default async function runExecutor(
           afterSha,
           diffPaths
         );
-        const aiSummary = await generateAISummary(
+        const aiContent = await generateAISummary(
           changelog,
           releases,
           localDiff,
@@ -237,9 +237,10 @@ export default async function runExecutor(
           }
         );
 
-        // Create PR with AI summary included
-        const prBodyWithAI = buildPRBody(aiSummary, releases);
-        const prUrl = await createPR(prTitle, prBodyWithAI, targetBranch, {
+        // Use AI-generated title if available, otherwise use default
+        const finalTitle = aiContent.title || prTitle;
+        const prBodyWithAI = buildPRBody(aiContent.summary, releases);
+        const prUrl = await createPR(finalTitle, prBodyWithAI, targetBranch, {
           headBranch: baseBranch,
         });
         console.log(`✅ PR created with AI summary: ${prUrl}`);
