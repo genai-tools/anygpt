@@ -5,7 +5,7 @@
 | **Status** | ❌ Not Started |
 | **Progress** | 0/12 tasks |
 | **Spec** | [Conversation Command](../../../../../products/anygpt/specs/anygpt/cli/conversation.md) |
-| **Use Case** | [Conversations](../../../../../products/anygpt/use-cases/conversations.md) |
+| **Use Case** | [Conversations](../../../../../products/anygpt/cases/conversations.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
 
@@ -23,7 +23,7 @@ Stateful multi-turn conversations with context management. Maintains conversatio
 ### Blockers
 Depends on: 3-1-conversation-storage
 
-## Tasks
+## Implementation Plan
 
 - [ ] Implement start subcommand
 - [ ] Implement message subcommand
@@ -38,7 +38,7 @@ Depends on: 3-1-conversation-storage
 - [ ] Write E2E tests
 - [ ] Documentation
 
-## Design
+## Technical Design
 
 **Subcommands**:
 - `start` - Start new conversation
@@ -67,8 +67,3 @@ Depends on: 3-1-conversation-storage
 **Internal**: 3-1-conversation-storage, 2-1-cli-chat  
 **External**: commander
 
-## References
-
-- [Architecture](../../architecture.md)
-- [Roadmap](../../roadmap.md)
-- [Spec](../../../../../products/anygpt/specs/anygpt/cli/conversation.md)

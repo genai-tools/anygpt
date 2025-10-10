@@ -5,7 +5,7 @@
 | **Status** | ❌ Not Started |
 | **Progress** | 0/24 tasks |
 | **Spec** | [Configuration Loader](../../../../../products/anygpt/specs/README.md#configuration-loader) |
-| **Use Case** | [Flexible Configuration](../../../../../products/anygpt/use-cases/flexible-configuration.md) |
+| **Use Case** | [Flexible Configuration](../../../../../products/anygpt/cases/flexible-configuration.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
 
@@ -26,7 +26,7 @@ Configuration loader that searches multiple locations, supports multiple formats
 ### Blockers
 None
 
-## Tasks
+## Implementation Plan
 
 ### Setup
 - [ ] Create config package structure (`packages/config/`)
@@ -64,7 +64,7 @@ None
 ### Documentation
 - [ ] Write API documentation (JSDoc, README, examples)
 
-## Design
+## Technical Design
 
 ### Components
 
@@ -170,8 +170,3 @@ interface LoadedConfig {
 
 All errors include clear messages and suggestions for fixing.
 
-## References
-
-- [Architecture](../../architecture.md)
-- [Roadmap](../../roadmap.md)
-- [Spec](../../../../../products/anygpt/specs/README.md#configuration-loader)
