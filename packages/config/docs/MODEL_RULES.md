@@ -29,7 +29,10 @@ interface ModelRule {
   // reasoning: false - disables reasoning
   // reasoning: ReasoningEffort - direct effort level (shorthand)
   // reasoning: ReasoningConfig - explicit object form
+  max_tokens?: number; // Maximum tokens for model responses
+  useLegacyMaxTokens?: boolean; // API parameter style (true = max_tokens, false = max_completion_tokens)
   enabled?: boolean; // Enable/disable models (true/undefined = enabled, false = disabled)
+  extra_body?: Record<string, unknown>; // Provider-specific parameters
 }
 ```
 
@@ -159,7 +162,64 @@ modelRules: [
 ];
 ```
 
-### 3. Enable/Disable Models
+### 3. Token Limits and API Compatibility
+
+Configure maximum token limits and API parameter style:
+
+#### Max Tokens
+
+Set default token limits for model responses:
+
+```typescript
+modelRules: [
+  {
+    pattern: [/.*/], // All models
+    max_tokens: 4096, // Default response limit
+  },
+  {
+    pattern: [/thinking/, /extended-thinking/],
+    max_tokens: 8192, // Higher limit for thinking models
+  },
+];
+```
+
+#### Legacy Max Tokens (API Compatibility)
+
+Control which API parameter name is used for token limits:
+
+- `useLegacyMaxTokens: true` → uses `max_tokens` parameter (Anthropic/Cody style)
+- `useLegacyMaxTokens: false` → uses `max_completion_tokens` parameter (OpenAI style, default)
+
+```typescript
+export default config({
+  providers: {
+    openai: {
+      connector: openai({ apiKey: process.env.OPENAI_API_KEY }),
+      modelRules: [
+        {
+          pattern: [/.*/],
+          max_tokens: 4096,
+          useLegacyMaxTokens: false, // Use max_completion_tokens (OpenAI standard)
+        },
+      ],
+    },
+    cody: {
+      connector: cody(),
+      modelRules: [
+        {
+          pattern: [/.*/],
+          max_tokens: 4096,
+          useLegacyMaxTokens: true, // Use max_tokens (Anthropic/Cody requirement)
+        },
+      ],
+    },
+  },
+});
+```
+
+**Why this matters**: OpenAI's modern API uses `max_completion_tokens`, while Anthropic and some gateways (like Cody) require the legacy `max_tokens` parameter. This capability flag ensures compatibility across different API styles.
+
+### 4. Enable/Disable Models
 
 Control which models are available for benchmarking or general use:
 
