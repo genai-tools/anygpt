@@ -50,115 +50,111 @@ See [Use Cases](../use-cases/) for detailed problem statements and business valu
 ## 2. Objectives
 
 - **Modular Architecture**: Clean separation of concerns with single-responsibility packages
-- **Zero Runtime Overhead**: Type-only packages with compile-time imports
 - **Dynamic Configuration**: Runtime connector loading without hardcoded dependencies
 - **Multi-Provider Support**: OpenAI, OpenAI-compatible APIs, local models
 - **Developer Experience**: CLI tools, comprehensive documentation, testing utilities
 - **MCP Compliance**: Full MCP protocol implementation for client integration
 
-## 3. Architecture Diagram
+## 3. Architecture
 
 ```mermaid
 graph TD
-    CLI[CLI Tool] --> Config[@anygpt/config]
-    MCP[MCP Client] --> MCPServer[genai-gateway-mcp]
+    CLI[CLI Tool] --> ConfigLoader[Configuration Loader]
+    MCP[MCP Client] --> MCPServer[MCP Server]
 
-    Config --> Router[@anygpt/router]
+    ConfigLoader --> Router[Provider Router]
     MCPServer --> Router
 
-    Router --> OpenAI[@anygpt/openai]
-    Router --> Mock[@anygpt/mock]
+    Router --> Connector1[Provider Connector]
+    Router --> Connector2[Mock Connector]
 
-    Config --> Types[@anygpt/types]
-    Mock --> Types
-
-    subgraph "Core Packages"
-        Types
-        Config
+    subgraph "Core Components"
+        ConfigLoader
         Router
     end
 
-    subgraph "Connector Packages"
-        OpenAI
-        Mock
+    subgraph "Connectors"
+        Connector1
+        Connector2
     end
 
-    subgraph "Application Packages"
+    subgraph "Applications"
         CLI
         MCPServer
     end
 
     subgraph "AI Providers"
-        OpenAIAPI[OpenAI API]
+        OpenAI[OpenAI API]
         Ollama[Ollama]
-        LocalAI[LocalAI]
+        Anthropic[Anthropic API]
     end
 
-    OpenAI --> OpenAIAPI
-    OpenAI --> Ollama
-    OpenAI --> LocalAI
+    Connector1 --> OpenAI
+    Connector1 --> Ollama
+    Connector1 --> Anthropic
 ```
 
-## 4. System Components
+## 4. Core Components
 
-### 4.1 Core Packages
+### Configuration Loader
 
-#### @anygpt/types
+**Responsibility**: Load and validate configuration from multiple sources
 
-- **Purpose**: Pure TypeScript type definitions
-- **Dependencies**: None (zero runtime overhead)
-- **Key Types**: ConnectorFactory, ChatCompletionRequest, ModelInfo, AnyGPTConfig
-- **Usage**: Always use `import type` syntax
+**Requirements**:
 
-#### @anygpt/router
+- Support multiple configuration formats (TypeScript, JSON, YAML)
+- Search hierarchy: project → user home → system-wide
+- Runtime connector loading based on configuration
+- Type validation and error reporting
 
-- **Purpose**: Core routing and connector registry
-- **Dependencies**: None (uses types internally)
-- **Key Classes**: GenAIRouter, ConnectorRegistry, BaseConnector
-- **Features**: Provider abstraction, connector pattern, type safety
+### Provider Router
 
-#### @anygpt/config
+**Responsibility**: Route requests to appropriate AI provider connectors
 
-- **Purpose**: Configuration management and dynamic connector loading
-- **Dependencies**: @anygpt/types
-- **Key Features**: Multiple config sources, runtime connector loading, setupRouter utility
-- **Config Locations**: Project, user home, system-wide
+**Requirements**:
 
-### 4.2 Connector Packages
+- Provider abstraction layer
+- Connector registry pattern
+- Request/response normalization
+- Error handling and retry logic
 
-#### @anygpt/openai
+### Provider Connectors
 
-- **Purpose**: OpenAI and OpenAI-compatible API connector
-- **Dependencies**: @anygpt/router, openai SDK
-- **Supported APIs**: OpenAI, Ollama, LocalAI, Together AI, Anyscale
-- **Features**: Chat completions, model listing, response API fallback
+**Responsibility**: Implement provider-specific API integration
 
-#### @anygpt/mock
+**Requirements**:
 
-- **Purpose**: Mock connector for testing and development
-- **Dependencies**: @anygpt/types
-- **Features**: Configurable delays, failure simulation, custom responses
-- **Use Cases**: Unit testing, development, offline work
+- Unified interface for all providers
+- Chat completion support
+- Model listing support
+- Streaming support (optional)
+- Provider-specific error mapping
 
-### 4.3 Application Packages
+### CLI Tool
 
-#### @anygpt/cli
+**Responsibility**: Command-line interface for AI interactions
 
-- **Purpose**: Command-line interface for AI interactions
-- **Dependencies**: @anygpt/config, @anygpt/mock
-- **Features**: Stateless chat, stateful conversations, forking, summarization
-- **Commands**: chat, conversation (start/message/list/fork/summarize)
+**Requirements**:
 
-#### genai-gateway-mcp
+- Stateless chat command
+- Stateful conversation management
+- Context optimization (fork, summarize)
+- Configuration inspection
 
-- **Purpose**: MCP server implementation
-- **Dependencies**: @anygpt/router (and connectors via dynamic loading)
-- **Interface**: JSON-RPC MCP protocol over stdin/stdout
-- **Tools**: chat_completion, list_models
+### MCP Server
 
-### 4.4 Configuration System
+**Responsibility**: MCP protocol implementation
 
-**Configuration Files** (searched in order):
+**Requirements**:
+
+- JSON-RPC 2.0 over stdin/stdout
+- MCP protocol compliance
+- Tool registration (chat_completion, list_models)
+- Provider routing integration
+
+## 5. Configuration Format
+
+**Configuration Search Order**:
 
 1. `./anygpt.config.ts` (project)
 2. `./anygpt.config.js`
@@ -170,10 +166,10 @@ graph TD
 **Dynamic Connector Loading**:
 
 - Connectors specified in config are loaded at runtime
-- No hardcoded dependencies in CLI or MCP server
-- Users install only needed connector packages
+- No hardcoded dependencies
+- Modular connector system
 
-## 5. Data Flow
+## 6. Data Flow
 
 ```mermaid
 sequenceDiagram
@@ -192,13 +188,13 @@ sequenceDiagram
 
 ### Flow Steps:
 
-1. **MCP client** sends a JSON-RPC request → **GenAI Gateway**
-2. **Gateway** routes request to appropriate AI provider
-3. **Gateway** converts the request into provider-specific HTTP format
-4. **Provider response** is normalized into MCP format
-5. **Gateway** returns the result back to the client
+1. **MCP client** sends a JSON-RPC request → **MCP Server**
+2. **MCP Server** routes request to appropriate AI provider via **Router**
+3. **Connector** converts the request into provider-specific format
+4. **Provider response** is normalized by **Connector**
+5. **MCP Server** returns the result back to the client
 
-## 6. Future Considerations
+## 7. Future Considerations
 
 See [Project Documentation](../../project/) for roadmap and feature planning.
 
