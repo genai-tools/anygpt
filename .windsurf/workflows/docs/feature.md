@@ -381,12 +381,12 @@ Create: `docs/projects/[project-name]/features/[phase]-[order]-[feature-name]/RE
 
 | Type | Dependency | Description |
 |------|------------|-------------|
-| 🚫 **Blocks** | [Feature Name](../[phase]-[order]-[feature-name]/) | Must be completed first |
+| 🚫 **Blocked by** | [Feature Name](../[phase]-[order]-[feature-name]/) | Must be completed first |
 | 📦 **Internal** | [@org/package](../../packages/package/) | Internal package/module |
 | 🌐 **External** | [package-name](https://www.npmjs.com/package/package-name) | What it's used for |
 
 **Emoji Guide**:
-- 🚫 **Blocks** - Feature cannot start until this is complete (blocker)
+- 🚫 **Blocked by** - This feature is blocked by these dependencies (must complete first)
 - 📦 **Internal** - Internal packages/modules from this monorepo
 - 🌐 **External** - External npm packages (link to npmjs.com)
 
@@ -394,7 +394,7 @@ Create: `docs/projects/[project-name]/features/[phase]-[order]-[feature-name]/RE
 ```markdown
 | Type | Dependency | Description |
 |------|------------|-------------|
-| 🚫 **Blocks** | [Configuration Loader](../1-1-config-loader/) | Need config system first |
+| 🚫 **Blocked by** | [Configuration Loader](../1-1-config-loader/) | Need config system first |
 | 📦 **Internal** | [@anygpt/types](../../packages/types/) | Shared type definitions |
 | 🌐 **External** | [zod](https://www.npmjs.com/package/zod) | Schema validation |
 ```
@@ -439,11 +439,12 @@ Before marking feature as complete:
 - Update progress counts in project README
 
 ### Dependency Management
-- Use emoji indicators: 🚫 Blocks, 📦 Internal, 🌐 External
-- Link to feature READMEs for blockers
+- Use emoji indicators: 🚫 Blocked by, 📦 Internal, 🌐 External
+- Link to feature READMEs for blocking dependencies
 - Link to package folders for internal deps
 - Link to npmjs.com for external deps
 - Consolidate blockers into Dependencies table (no separate Blockers section)
+- Use "Blocked by" not "Blocks" (this feature is blocked BY dependencies)
 
 ### Naming Conventions
 - **Folders**: Phase-prefixed (e.g., `1-1-config-loader`)
