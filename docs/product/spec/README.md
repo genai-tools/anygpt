@@ -180,89 +180,12 @@ sequenceDiagram
 4. **Provider response** is normalized into MCP format
 5. **Gateway** returns the result back to the client
 
-## 6. Non-Functional Requirements
+## 6. Future Considerations
 
-### Performance
-- **Minimal latency** through direct proxying without unnecessary processing
-- **Efficient memory usage** for handling concurrent requests
-- **Fast startup time** for container deployment
+See [Project Documentation](../../project/) for roadmap and feature planning.
 
-### Reliability
-- **Consistent error handling** and conversion into MCP-compatible errors
-- **Graceful degradation** when upstream API is unavailable
-- **Request/response validation** to ensure data integrity
-
-### Security
-- **API key protection**: Never logged, passed only via secure headers
-- **Input sanitization** to prevent injection attacks
-- **Rate limiting** to prevent abuse
-- **Secure defaults** for all configuration options
-
-### Scalability
-- **Horizontal scaling**: Multiple MCP Proxy instances behind load balancer
-- **Resource efficiency**: Minimal CPU and memory footprint
-- **Connection pooling** for upstream API calls
-
-## 7. Possible Extensions
-
-### Multi-Backend Support
-- **Multi-provider routing** (OpenAI, Anthropic, local models)
-- **Load balancing** across multiple API endpoints
-- **Failover mechanisms** for high availability
-
-### Performance Enhancements
-- **Response caching** with configurable TTL
-- **Request batching** for efficiency
-- **Connection pooling** and keep-alive
-
-### Monitoring & Observability
-- **Metrics collection** (Prometheus/Grafana)
-- **Request tracing** and logging
-- **Health checks** and status endpoints
-
-### Advanced Features
-- **Virtual tools** in MCP that map to custom APIs
-- **Request/response transformation** pipelines
-- **Authentication middleware** for various auth methods
-
-## 8. Risks & Mitigation
-
-### Technical Risks
-- **Response format mismatches**: MCP may require specific transformations
-  - *Mitigation*: Comprehensive testing and format validation
-- **Streaming support**: OpenAI `stream: true` → MCP events mapping
-  - *Mitigation*: Implement proper stream-to-event conversion
-- **MCP specification changes**: Protocol evolution over time
-  - *Mitigation*: Version compatibility matrix and upgrade paths
-
-### Operational Risks
-- **API rate limiting**: Upstream provider limits
-  - *Mitigation*: Implement backoff strategies and rate limiting
-- **Authentication failures**: API key rotation/expiration
-  - *Mitigation*: Graceful error handling and key refresh mechanisms
-
-## 9. Implementation Roadmap
-
-### Phase 1: Core Functionality
-- [ ] **Minimal Node.js prototype** for MCP Proxy
-- [ ] **Basic MCP protocol** implementation (JSON-RPC over stdio)
-- [ ] **OpenAI API integration** for `/chat/completions`
-- [ ] **Docker containerization** with basic configuration
-
-### Phase 2: Production Ready
-- [ ] **Error handling** and logging
-- [ ] **Configuration management** via environment variables
-- [ ] **Health checks** and monitoring endpoints
-- [ ] **Integration testing** with Docker Desktop MCP Toolkit
-
-### Phase 3: Advanced Features
-- [ ] **Streaming support** for real-time responses
-- [ ] **Multi-model support** and routing
-- [ ] **Caching layer** for performance optimization
-- [ ] **Windsurf integration** validation
-
-### Phase 4: Enterprise Features
-- [ ] **Multi-backend routing** (OpenAI, Anthropic, etc.)
-- [ ] **Monitoring dashboard** (Prometheus/Grafana)
-- [ ] **Advanced authentication** methods
-- [ ] **Load balancing** and high availability
+Potential enhancements being evaluated:
+- Response caching for performance
+- Streaming support for real-time responses
+- Advanced monitoring and observability
+- Request/response transformation pipelines
