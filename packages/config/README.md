@@ -14,25 +14,47 @@ Shared configuration management for AnyGPT with dynamic connector loading and po
 ## Documentation
 
 - **[Model Rules Guide](./docs/MODEL_RULES.md)** - Comprehensive guide to pattern-based model configuration
-- **[Factory Config](./docs/FACTORY_CONFIG.md)** - Advanced configuration with connector instances (coming soon)
 
-## Configuration Locations
+## 🔒 Private Configuration
+
+AnyGPT uses a **private configuration folder** that is automatically excluded from git:
+
+```
+.anygpt/
+├── anygpt.config.ts    # Your private configuration
+└── (other config files)
+```
+
+**This protects sensitive information** like API keys, company gateway URLs, and authentication tokens.
+
+## Configuration Priority
 
 The config loader searches for configuration files in this order:
 
-1. `./anygpt.config.ts` (current directory)
-2. `./anygpt.config.js`
-3. `./anygpt.config.json`
-4. `~/.anygpt/anygpt.config.ts` (user home)
-5. `~/.anygpt/anygpt.config.js`
-6. `~/.anygpt/anygpt.config.json`
-7. `/etc/anygpt/anygpt.config.ts` (system-wide)
-8. `/etc/anygpt/anygpt.config.js`
-9. `/etc/anygpt/anygpt.config.json`
+1. **`./.anygpt/anygpt.config.ts`** ← **Private config** (highest priority, git-ignored)
+2. **`./.anygpt/anygpt.config.js`**
+3. **`./.anygpt/anygpt.config.json`**
+4. `./anygpt.config.ts` ← Project root (for examples/testing)
+5. `./anygpt.config.js`
+6. `./anygpt.config.json`
+7. `~/.anygpt/anygpt.config.ts` ← User home directory
+8. `~/.anygpt/anygpt.config.js`
+9. `~/.anygpt/anygpt.config.json`
+10. `~/.codex/config.toml` ← Codex compatibility
+11. `/etc/anygpt/anygpt.config.ts` ← System-wide
+12. `/etc/anygpt/anygpt.config.js`
+13. `/etc/anygpt/anygpt.config.json`
+14. Built-in defaults ← Fallback (OpenAI + Mock providers)
 
-## Quick Start
+## 🚀 Quick Start
 
-### Factory Config (Recommended)
+### Step 1: Create Private Config
+
+```bash
+mkdir -p .anygpt
+```
+
+### Step 2: Factory Config (Recommended)
 
 The modern approach using connector instances and model rules:
 
@@ -48,33 +70,97 @@ export default config({
       {
         pattern: [/o[13]/, /thinking/],
         tags: ['reasoning'],
-        reasoning: { effort: 'medium' }
+        reasoning: { effort: 'medium' },
       },
       {
         pattern: [/gpt-5/, /sonnet/, /opus/],
-        tags: ['premium']
-      }
-    ]
+        tags: ['premium'],
+      },
+    ],
   },
   providers: {
     openai: {
       name: 'OpenAI',
       connector: openai({
-        apiKey: process.env.OPENAI_API_KEY
+        apiKey: process.env.OPENAI_API_KEY,
       }),
       // Provider-specific rules
       modelRules: [
         {
           pattern: [/gpt-5/, /gpt-4/],
-          enabled: true
-        }
-      ]
-    }
-  }
+          enabled: true,
+        },
+      ],
+    },
+  },
 });
 ```
 
 See **[Model Rules Guide](./docs/MODEL_RULES.md)** for comprehensive documentation.
+
+### Step 3: Set Environment Variables
+
+```bash
+export OPENAI_API_KEY="sk-..."
+export COMPANY_AI_KEY="your-company-key"
+```
+
+### Step 4: Test Configuration
+
+```bash
+npx anygpt chat "Hello!"
+```
+
+## 📝 Configuration Examples
+
+### Multiple Providers
+
+```typescript
+import { config, openai } from '@anygpt/config';
+
+export default config({
+  defaults: {
+    provider: 'openai',
+    model: 'gpt-4o',
+  },
+  providers: {
+    openai: {
+      name: 'OpenAI',
+      connector: openai({
+        apiKey: process.env.OPENAI_API_KEY,
+      }),
+    },
+    'local-ollama': {
+      name: 'Local Ollama',
+      connector: openai({
+        baseURL: 'http://localhost:11434/v1',
+      }),
+    },
+  },
+});
+```
+
+### Company Gateway
+
+```typescript
+import { config, openai } from '@anygpt/config';
+
+export default config({
+  defaults: {
+    provider: 'company-gateway',
+    model: 'gpt-4o',
+  },
+  providers: {
+    'company-gateway': {
+      name: 'Company AI Gateway',
+      connector: openai({
+        baseURL: 'https://internal-ai.company.com/v1',
+        apiKey: process.env.COMPANY_AI_KEY,
+      }),
+    },
+  },
+});
+```
 
 ### Legacy Config Format
 
@@ -86,7 +172,7 @@ import type { AnyGPTConfig } from '@anygpt/config';
 
 const config: AnyGPTConfig = {
   version: '1.0',
-  
+
   providers: {
     'openai-main': {
       name: 'OpenAI GPT Models',
@@ -94,16 +180,16 @@ const config: AnyGPTConfig = {
         connector: '@anygpt/openai',
         config: {
           apiKey: process.env.OPENAI_API_KEY,
-          baseURL: 'https://api.openai.com/v1'
-        }
-      }
-    }
+          baseURL: 'https://api.openai.com/v1',
+        },
+      },
+    },
   },
-  
+
   settings: {
     defaultProvider: 'openai-main',
-    timeout: 30000
-  }
+    timeout: 30000,
+  },
 };
 
 export default config;
@@ -126,7 +212,7 @@ const { router, config } = await setupRouter();
 const response = await router.chatCompletion({
   provider: 'openai-main',
   model: 'gpt-4',
-  messages: [{ role: 'user', content: 'Hello!' }]
+  messages: [{ role: 'user', content: 'Hello!' }],
 });
 ```
 
@@ -152,7 +238,7 @@ await loadConnectors(router, config);
 import { setupRouter } from '@anygpt/config';
 
 const { router, config } = await setupRouter({
-  configPath: './my-custom-config.ts'
+  configPath: './my-custom-config.ts',
 });
 ```
 
@@ -172,8 +258,9 @@ router.registerConnector(new OpenAIConnectorFactory());
 ```
 
 This means:
+
 - **CLI doesn't depend on specific connectors** - stays lightweight
-- **MCP doesn't depend on specific connectors** - stays lightweight  
+- **MCP doesn't depend on specific connectors** - stays lightweight
 - **Users choose which connectors to install** - `npm install @anygpt/openai`
 - **New connectors can be added** without touching CLI/MCP code
 
@@ -184,6 +271,63 @@ This means:
 3. **Extensibility**: Easy to add new AI providers without code changes
 4. **Configuration-Driven**: Everything controlled via config files
 5. **Type Safety**: Full TypeScript support with proper types
+
+## 🛡️ Security Best Practices
+
+1. **Never commit `.anygpt/` folder** - It's already in `.gitignore`
+2. **Use environment variables** for API keys
+3. **Share config templates** - Not actual config files
+4. **Backup configs securely** - Store encrypted backups
+
+## 🔄 Migration from Codex
+
+If you have an existing `~/.codex/config.toml` file:
+
+```bash
+npx anygpt migrate
+```
+
+This will convert your TOML configuration to the new TypeScript format.
+
+## 🔧 Environment Variables
+
+Common environment variables:
+
+```bash
+# OpenAI
+export OPENAI_API_KEY="sk-..."
+
+# Company gateway
+export COMPANY_AI_KEY="your-company-key"
+
+# Anthropic (if using)
+export ANTHROPIC_API_KEY="sk-ant-..."
+```
+
+## 📚 Advanced Topics
+
+### CLI Usage
+
+```bash
+# Quick chat (stateless)
+npx anygpt chat "Hello!"
+
+# Override provider
+npx anygpt chat "Hello!" --provider openai
+
+# Override model
+npx anygpt chat "Hello!" --model gpt-3.5-turbo
+
+# Conversations (stateful)
+npx anygpt conversation message "Hello!"
+```
+
+### CLI Configuration Management
+
+For detailed CLI configuration commands, see:
+
+- **[Config Command Guide](../cli/docs/config.md)** - Configuration inspection and validation
+- **[CLI Overview](../cli/docs/README.md)** - Full CLI documentation
 
 ## Connector Requirements
 
