@@ -21,36 +21,36 @@ TypeScript implementation of AnyGPT - a comprehensive ecosystem for building AI-
 
 | Feature | Status | Progress |
 |---------|--------|----------|
-| [1-1-config-loader](./features/1-1-config-loader/) | ❌ Not Started | 0/23 tasks |
-| [1-2-provider-router](./features/1-2-provider-router/) | ❌ Not Started | 0/15 tasks |
-| [1-3-connector-mock](./features/1-3-connector-mock/) | ❌ Not Started | 0/5 tasks |
-| [1-4-connector-openai](./features/1-4-connector-openai/) | ❌ Not Started | 0/6 tasks |
+| [Configuration Loader](./features/1-1-config-loader/) | ❌ Not Started | 0/23 tasks |
+| [Provider Router](./features/1-2-provider-router/) | ❌ Not Started | 0/15 tasks |
+| [Mock Connector](./features/1-3-connector-mock/) | ❌ Not Started | 0/5 tasks |
+| [OpenAI Connector](./features/1-4-connector-openai/) | ❌ Not Started | 0/6 tasks |
 
 ### Phase 2: Core Applications (0/3)
 
 | Feature | Status | Progress |
 |---------|--------|----------|
-| [2-1-cli-chat](./features/2-1-cli-chat/) | ❌ Not Started | 0/8 tasks |
-| [2-2-cli-config](./features/2-2-cli-config/) | ❌ Not Started | 0/6 tasks |
-| [2-3-mcp-server-core](./features/2-3-mcp-server-core/) | ❌ Not Started | 0/10 tasks |
+| [CLI: Chat Command](./features/2-1-cli-chat/) | ❌ Not Started | 0/8 tasks |
+| [CLI: Config Command](./features/2-2-cli-config/) | ❌ Not Started | 0/6 tasks |
+| [MCP Server Core](./features/2-3-mcp-server-core/) | ❌ Not Started | 0/10 tasks |
 
 ### Phase 3: Advanced Features (0/5)
 
 | Feature | Status | Progress |
 |---------|--------|----------|
-| [3-1-conversation-storage](./features/3-1-conversation-storage/) | ❌ Not Started | 0/7 tasks |
-| [3-2-cli-conversation](./features/3-2-cli-conversation/) | ❌ Not Started | 0/12 tasks |
-| [3-3-cli-conversation-fork](./features/3-3-cli-conversation-fork/) | ❌ Not Started | 0/5 tasks |
-| [3-4-cli-conversation-summarize](./features/3-4-cli-conversation-summarize/) | ❌ Not Started | 0/6 tasks |
-| [3-5-cli-benchmark](./features/3-5-cli-benchmark/) | ❌ Not Started | 0/10 tasks |
+| [Conversation Storage](./features/3-1-conversation-storage/) | ❌ Not Started | 0/7 tasks |
+| [CLI: Conversation Command](./features/3-2-cli-conversation/) | ❌ Not Started | 0/12 tasks |
+| [CLI: Conversation Fork](./features/3-3-cli-conversation-fork/) | ❌ Not Started | 0/5 tasks |
+| [CLI: Conversation Summarize](./features/3-4-cli-conversation-summarize/) | ❌ Not Started | 0/6 tasks |
+| [CLI: Benchmark Command](./features/3-5-cli-benchmark/) | ❌ Not Started | 0/10 tasks |
 
 ### Phase 4: Integrations (0/3)
 
 | Feature | Status | Progress |
 |---------|--------|----------|
-| [4-1-docker-mcp-container](./features/4-1-docker-mcp-container/) | ❌ Not Started | 0/6 tasks |
-| [4-2-docker-compose-config](./features/4-2-docker-compose-config/) | ❌ Not Started | 0/5 tasks |
-| [4-3-docker-mcp-toolkit-integration](./features/4-3-docker-mcp-toolkit-integration/) | ❌ Not Started | 0/4 tasks |
+| [Docker: MCP Container](./features/4-1-docker-mcp-container/) | ❌ Not Started | 0/6 tasks |
+| [Docker: Compose Configuration](./features/4-2-docker-compose-config/) | ❌ Not Started | 0/5 tasks |
+| [Docker: MCP Toolkit Integration](./features/4-3-docker-mcp-toolkit-integration/) | ❌ Not Started | 0/4 tasks |
 
 ## Quick Start
 
