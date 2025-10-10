@@ -318,10 +318,16 @@ Create: `docs/projects/[project-name]/features/[phase]-[order]-[feature-name]/RE
 ```markdown
 # [phase]-[order]-[feature-name]
 
-**Spec**: [Link to spec]  
-**Use Case**: [Link to use case]  
-**Status**: ❌ Not Started | 🔄 In Progress | ✅ Complete  
-**Progress**: 0/N tasks (0%)
+| | |
+|---|---|
+| **Status** | ❌ Not Started \| 🔄 In Progress \| ✅ Complete |
+| **Progress** | 0/N tasks |
+| **Spec** | [Link to spec] |
+| **Use Case** | [Link to use case] |
+| **Architecture** | [System Design](../../architecture.md) |
+| **Roadmap** | [Feature List](../../roadmap.md) |
+
+---
 
 ## Overview
 
