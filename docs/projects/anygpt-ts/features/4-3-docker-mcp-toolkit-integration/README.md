@@ -8,6 +8,8 @@
 | **Use Case** | [Docker MCP Toolkit](../../../../products/anygpt/cases/docker-mcp-toolkit.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
+| **Technical Design** | [design.md](./design.md) |
+| **Testing Strategy** | [tests.md](./tests.md) |
 
 ---
 
@@ -29,25 +31,6 @@ Depends on: 4-2-docker-compose-config
 - [ ] Multiple client support verification
 - [ ] Test with various MCP clients (Claude, Cursor, etc.)
 - [ ] Documentation and examples
-
-## Technical Design
-
-**Integration Points**:
-- Compatible with Docker MCP Toolkit
-- Supports multiple concurrent clients
-- Centralized configuration
-- Easy setup for end users
-
-**See [design.md](./design.md)** for detailed design.
-
-## Tests
-
-**Key tests**:
-- Multiple clients can connect simultaneously
-- Configuration is centralized
-- All MCP clients work correctly
-
-**See [tests.md](./tests.md)** for detailed test scenarios.
 
 ## Dependencies
 

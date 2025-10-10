@@ -8,6 +8,8 @@
 | **Use Case** | [Flexible Configuration](../../../../products/anygpt/cases/flexible-configuration.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
+| **Technical Design** | [design.md](./design.md) |
+| **Testing Strategy** | [tests.md](./tests.md) |
 
 ---
 
@@ -31,25 +33,6 @@ Depends on: 1-1-config-loader
 - [ ] Write tests for all subcommands
 - [ ] Error handling with helpful messages
 - [ ] Documentation
-
-## Technical Design
-
-**Subcommands**:
-- `show` - Display current configuration
-- `validate` - Check configuration file for errors
-- `list` - Show all configuration search paths
-
-**See [design.md](./design.md)** for detailed design.
-
-## Tests
-
-**E2E Tests**:
-- `anygpt config show` displays config
-- `anygpt config validate` checks config
-- `anygpt config list` shows paths
-- Exit codes match spec
-
-**See [tests.md](./tests.md)** for detailed test scenarios.
 
 ## Dependencies
 

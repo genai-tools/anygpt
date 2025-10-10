@@ -8,6 +8,8 @@
 | **Use Case** | [Conversations](../../../../products/anygpt/cases/conversations.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
+| **Technical Design** | [design.md](./design.md) |
+| **Testing Strategy** | [tests.md](./tests.md) |
 
 ---
 
@@ -37,30 +39,6 @@ Depends on: 3-1-conversation-storage
 - [ ] Write integration tests
 - [ ] Write E2E tests
 - [ ] Documentation
-
-## Technical Design
-
-**Subcommands**:
-- `start` - Start new conversation
-- `message` - Send message in conversation
-- `list` - List all conversations
-- `show` - Show conversation history
-- `end` - End conversation
-- `delete` - Delete conversation
-
-**Context Management**: Maintains full message history, auto-start if no active conversation
-
-**See [design.md](./design.md)** for detailed design.
-
-## Tests
-
-**E2E Tests**:
-- All subcommands work
-- Auto-start works
-- Context preserved across messages
-- All examples from spec work
-
-**See [tests.md](./tests.md)** for detailed test scenarios.
 
 ## Dependencies
 

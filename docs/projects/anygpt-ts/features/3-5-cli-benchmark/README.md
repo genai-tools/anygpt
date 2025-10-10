@@ -8,6 +8,8 @@
 | **Use Case** | [Model Benchmarking](../../../../products/anygpt/cases/model-benchmarking.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
+| **Technical Design** | [design.md](./design.md) |
+| **Testing Strategy** | [tests.md](./tests.md) |
 
 ---
 
@@ -35,28 +37,6 @@ Depends on: 1-2-provider-router, 1-3-connector-mock, 1-4-connector-openai
 - [ ] Write tests
 - [ ] E2E tests
 - [ ] Documentation
-
-## Technical Design
-
-**Metrics Collected**:
-- Latency (time to first token, total time)
-- Token usage (prompt, completion, total)
-- Cost estimation
-- Success rate
-
-**Output Formats**: Table, JSON, CSV
-
-**See [design.md](./design.md)** for detailed design.
-
-## Tests
-
-**Key tests**:
-- All output formats work
-- Metrics are accurate
-- Parallel execution works
-- All examples from spec work
-
-**See [tests.md](./tests.md)** for detailed test scenarios.
 
 ## Dependencies
 

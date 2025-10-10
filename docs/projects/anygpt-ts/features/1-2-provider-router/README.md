@@ -8,18 +8,12 @@
 | **Use Case** | [Provider Agnostic Chat](../../../../products/anygpt/cases/provider-agnostic-chat.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
+| **Technical Design** | [design.md](./design.md) |
+| **Testing Strategy** | [tests.md](./tests.md) |
 
 ---
 
 ## Overview
 
 Routes requests to appropriate provider connectors based on configuration.
-
-## Technical Design
-
-**See [design.md](./design.md)** for detailed design.
-
-## Testing Strategy
-
-**See [tests.md](./tests.md)** for detailed test scenarios.
 
