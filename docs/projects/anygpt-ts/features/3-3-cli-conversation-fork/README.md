@@ -5,7 +5,7 @@
 | **Status** | ❌ Not Started |
 | **Progress** | 0/6 tasks |
 | **Spec** | [Conversation Fork](../../../../../products/anygpt/specs/anygpt/cli/conversation.md) |
-| **Use Case** | [Context Optimization](../../../../../products/anygpt/use-cases/context-optimization.md) |
+| **Use Case** | [Context Optimization](../../../../../products/anygpt/cases/context-optimization.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
 
@@ -23,7 +23,7 @@ Branch conversations to explore alternatives. Create a copy of conversation at s
 ### Blockers
 Depends on: 3-2-cli-conversation
 
-## Tasks
+## Implementation Plan
 
 - [ ] Implement fork subcommand
 - [ ] Copy conversation history up to fork point
@@ -32,7 +32,7 @@ Depends on: 3-2-cli-conversation
 - [ ] Write tests
 - [ ] Documentation
 
-## Design
+## Technical Design
 
 **Fork Logic**:
 - Copy conversation at specific message
@@ -56,8 +56,3 @@ Depends on: 3-2-cli-conversation
 **Internal**: 3-2-cli-conversation  
 **External**: None
 
-## References
-
-- [Architecture](../../architecture.md)
-- [Roadmap](../../roadmap.md)
-- [Spec](../../../../../products/anygpt/specs/anygpt/cli/conversation.md)

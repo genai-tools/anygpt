@@ -344,7 +344,7 @@ Create: `docs/projects/[project-name]/features/[phase]-[order]-[feature-name]/RE
 ### Blockers
 [List blockers or "None"]
 
-## Tasks
+## Implementation Plan
 
 ### Setup
 - [ ] [Task description]
@@ -358,7 +358,7 @@ Create: `docs/projects/[project-name]/features/[phase]-[order]-[feature-name]/RE
 
 [Continue for all phases]
 
-## Design
+## Technical Design
 
 [Brief design summary - key components, algorithms, data structures]
 
@@ -374,12 +374,6 @@ Create: `docs/projects/[project-name]/features/[phase]-[order]-[feature-name]/RE
 
 **Internal**: [List internal dependencies]  
 **External**: [List external dependencies]
-
-## References
-
-- [Architecture](../../architecture.md)
-- [Roadmap](../../roadmap.md)
-- [Spec](link)
 ```
 
 ## Quality Checklist

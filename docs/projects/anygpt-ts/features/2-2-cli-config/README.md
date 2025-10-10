@@ -5,7 +5,7 @@
 | **Status** | ❌ Not Started |
 | **Progress** | 0/6 tasks |
 | **Spec** | [Config Command](../../../../../products/anygpt/specs/anygpt/cli/config.md) |
-| **Use Case** | [Flexible Configuration](../../../../../products/anygpt/use-cases/flexible-configuration.md) |
+| **Use Case** | [Flexible Configuration](../../../../../products/anygpt/cases/flexible-configuration.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
 
@@ -23,7 +23,7 @@ Configuration inspection and validation commands. Helps users understand and deb
 ### Blockers
 Depends on: 1-1-config-loader
 
-## Tasks
+## Implementation Plan
 
 - [ ] Implement show subcommand (display current config)
 - [ ] Implement validate subcommand (check config file)
@@ -32,7 +32,7 @@ Depends on: 1-1-config-loader
 - [ ] Error handling with helpful messages
 - [ ] Documentation
 
-## Design
+## Technical Design
 
 **Subcommands**:
 - `show` - Display current configuration
@@ -56,8 +56,3 @@ Depends on: 1-1-config-loader
 **Internal**: 1-1-config-loader  
 **External**: commander
 
-## References
-
-- [Architecture](../../architecture.md)
-- [Roadmap](../../roadmap.md)
-- [Spec](../../../../../products/anygpt/specs/anygpt/cli/config.md)

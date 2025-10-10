@@ -5,7 +5,7 @@
 | **Status** | ❌ Not Started |
 | **Progress** | 0/10 tasks |
 | **Spec** | [MCP Server](../../../../../products/anygpt/specs/anygpt/mcp-server.md) |
-| **Use Case** | [MCP Server](../../../../../products/anygpt/use-cases/mcp-server.md) |
+| **Use Case** | [MCP Server](../../../../../products/anygpt/cases/mcp-server.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
 
@@ -23,7 +23,7 @@ MCP protocol server (JSON-RPC over stdin/stdout) for IDE/tool integration. Enabl
 ### Blockers
 Depends on: 1-1-config-loader, 1-2-provider-router, 1-3-connector-mock, 1-4-connector-openai
 
-## Tasks
+## Implementation Plan
 
 - [ ] Setup JSON-RPC transport (stdin/stdout)
 - [ ] Implement initialize method
@@ -36,7 +36,7 @@ Depends on: 1-1-config-loader, 1-2-provider-router, 1-3-connector-mock, 1-4-conn
 - [ ] MCP protocol compliance tests
 - [ ] Documentation
 
-## Design
+## Technical Design
 
 **Components**:
 - **JSON-RPC transport** - stdin/stdout communication
@@ -69,8 +69,3 @@ Depends on: 1-1-config-loader, 1-2-provider-router, 1-3-connector-mock, 1-4-conn
 **Internal**: 1-1-config-loader, 1-2-provider-router, connectors  
 **External**: JSON-RPC library
 
-## References
-
-- [Architecture](../../architecture.md)
-- [Roadmap](../../roadmap.md)
-- [Spec](../../../../../products/anygpt/specs/anygpt/mcp-server.md)

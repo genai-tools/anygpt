@@ -5,7 +5,7 @@
 | **Status** | ❌ Not Started |
 | **Progress** | 0/6 tasks |
 | **Spec** | [Docker MCP Toolkit](../../../../../products/anygpt/specs/anygpt/docker-mcp-toolkit.md) |
-| **Use Case** | [Docker MCP Toolkit](../../../../../products/anygpt/use-cases/docker-mcp-toolkit.md) |
+| **Use Case** | [Docker MCP Toolkit](../../../../../products/anygpt/cases/docker-mcp-toolkit.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
 
@@ -23,7 +23,7 @@ Container image for MCP server deployment. Enables easy deployment of AnyGPT MCP
 ### Blockers
 Depends on: 2-3-mcp-server-core
 
-## Tasks
+## Implementation Plan
 
 - [ ] Create Dockerfile (Node.js base)
 - [ ] Container entrypoint (start MCP server)
@@ -32,7 +32,7 @@ Depends on: 2-3-mcp-server-core
 - [ ] Build and test container
 - [ ] Documentation
 
-## Design
+## Technical Design
 
 **Container Setup**:
 - Base: Node.js official image
@@ -57,8 +57,3 @@ Depends on: 2-3-mcp-server-core
 **Internal**: 2-3-mcp-server-core  
 **External**: Docker
 
-## References
-
-- [Architecture](../../architecture.md)
-- [Roadmap](../../roadmap.md)
-- [Spec](../../../../../products/anygpt/specs/anygpt/docker-mcp-toolkit.md)

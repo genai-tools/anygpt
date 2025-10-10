@@ -5,7 +5,7 @@
 | **Status** | ❌ Not Started |
 | **Progress** | 0/8 tasks |
 | **Spec** | [Chat Command](../../../../../products/anygpt/specs/anygpt/cli/chat.md) |
-| **Use Case** | [Provider Agnostic Chat](../../../../../products/anygpt/use-cases/provider-agnostic-chat.md) |
+| **Use Case** | [Provider Agnostic Chat](../../../../../products/anygpt/cases/provider-agnostic-chat.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
 
@@ -23,7 +23,7 @@ Stateless single-turn AI interaction via CLI. Simple command for quick AI querie
 ### Blockers
 Depends on: 1-1-config-loader, 1-2-provider-router, 1-3-connector-mock, 1-4-connector-openai
 
-## Tasks
+## Implementation Plan
 
 - [ ] Parse arguments (prompt, provider, model, options)
 - [ ] Build request from arguments
@@ -34,7 +34,7 @@ Depends on: 1-1-config-loader, 1-2-provider-router, 1-3-connector-mock, 1-4-conn
 - [ ] Write E2E tests
 - [ ] Documentation
 
-## Design
+## Technical Design
 
 **Components**:
 - **Command parser** (commander) - Parse CLI arguments
@@ -66,8 +66,3 @@ Depends on: 1-1-config-loader, 1-2-provider-router, 1-3-connector-mock, 1-4-conn
 **Internal**: 1-1-config-loader, 1-2-provider-router, connectors  
 **External**: commander
 
-## References
-
-- [Architecture](../../architecture.md)
-- [Roadmap](../../roadmap.md)
-- [Spec](../../../../../products/anygpt/specs/anygpt/cli/chat.md)

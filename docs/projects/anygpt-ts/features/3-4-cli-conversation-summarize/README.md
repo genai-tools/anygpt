@@ -5,7 +5,7 @@
 | **Status** | ❌ Not Started |
 | **Progress** | 0/6 tasks |
 | **Spec** | [Conversation Summarize](../../../../../products/anygpt/specs/anygpt/cli/conversation.md) |
-| **Use Case** | [Context Optimization](../../../../../products/anygpt/use-cases/context-optimization.md) |
+| **Use Case** | [Context Optimization](../../../../../products/anygpt/cases/context-optimization.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
 
@@ -23,7 +23,7 @@ Reduce context length while preserving meaning using AI summarization. Compress 
 ### Blockers
 Depends on: 3-2-cli-conversation
 
-## Tasks
+## Implementation Plan
 
 - [ ] Implement summarize subcommand
 - [ ] AI-powered summarization of old messages
@@ -32,7 +32,7 @@ Depends on: 3-2-cli-conversation
 - [ ] Write tests
 - [ ] Documentation
 
-## Design
+## Technical Design
 
 **Summarization Strategy**:
 - Use AI to summarize old messages
@@ -57,8 +57,3 @@ Depends on: 3-2-cli-conversation
 **Internal**: 3-2-cli-conversation, 1-2-provider-router  
 **External**: None
 
-## References
-
-- [Architecture](../../architecture.md)
-- [Roadmap](../../roadmap.md)
-- [Spec](../../../../../products/anygpt/specs/anygpt/cli/conversation.md)
