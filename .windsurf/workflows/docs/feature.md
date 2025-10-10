@@ -322,14 +322,19 @@ Create: `docs/projects/[project-name]/features/[phase]-[order]-[feature-name]/RE
 |---|---|
 | **Status** | ❌ Not Started \| 🔄 In Progress \| ✅ Complete |
 | **Progress** | 0/N tasks |
-| **Spec** | [Link to spec] |
-| **Use Case** | [Link to use case] |
+| **Spec** | [Link to spec](../../../../products/anygpt/specs/...) |
+| **Use Case** | [Link to use case](../../../../products/anygpt/cases/...) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
+| **Technical Design** | [design.md](./design.md) |
+| **Testing Strategy** | [tests.md](./tests.md) |
 
 ---
 
-**Note**: Folder name uses phase prefix (e.g., `1-1-config-loader`), but page title is clean (e.g., "Configuration Loader")
+**Note**: 
+- Folder name uses phase prefix (e.g., `1-1-config-loader`)
+- Page title is clean (e.g., "Configuration Loader")
+- Spec/use case paths: 4 levels up from feature folder
 
 ## Overview
 
@@ -348,8 +353,11 @@ Create: `docs/projects/[project-name]/features/[phase]-[order]-[feature-name]/RE
 
 ## Implementation Plan
 
+**Important**: Extract detailed tasks from design.md "Implementation Strategy" section.
+
 ### Setup
 - [ ] [Task description]
+- [ ] [Setup infrastructure]
 
 ### Phase 1: [Phase Name]
 - [ ] [Task description]
@@ -358,7 +366,7 @@ Create: `docs/projects/[project-name]/features/[phase]-[order]-[feature-name]/RE
 ### Phase 2: [Phase Name]
 - [ ] [Task description]
 
-[Continue for all phases]
+[Continue for all phases - organize by logical implementation order]
 
 ## Technical Design
 
@@ -388,12 +396,43 @@ Before marking feature as complete:
 - [ ] Spec requirements are satisfied
 - [ ] Examples from spec work
 - [ ] Documentation is updated
-- [ ] Code is reviewed
 
-## Notes
+## Best Practices
 
-- **TDD Approach**: Write tests before implementation
-- **Incremental**: Complete one feature at a time
-- **Spec-Driven**: Use spec as source of truth
-- **Track Progress**: Update status.md regularly
-- **Link Everything**: Connect design → tests → tasks → code
+### README Structure
+- **Reference table at top** - Quick navigation to all related docs
+- **Clean titles** - Use readable names, not phase codes
+- **Implementation Plan** - Detailed, actionable tasks with checkboxes
+- **Brief summaries** - Keep Technical Design and Tests sections concise
+- **Links to details** - Point to design.md and tests.md for deep dives
+
+### File Organization
+- **README.md** - Always create, contains status and summaries
+- **design.md** - Create for complex features, detailed architecture
+- **tests.md** - Create for features with many test scenarios
+- Keep design.md and tests.md optional but linked
+
+### Path Management
+- Spec paths: `../../../../products/anygpt/specs/...` (4 levels up)
+- Use case paths: `../../../../products/anygpt/cases/...` (4 levels up)
+- Verify paths work before committing
+
+### Task Management
+- Extract tasks from design.md "Implementation Strategy"
+- Organize by phases (Setup, Phase 1, Phase 2, etc.)
+- Use checkboxes for tracking progress
+- Keep tasks actionable and specific
+- Update progress counts in project README
+
+### Naming Conventions
+- **Folders**: Phase-prefixed (e.g., `1-1-config-loader`)
+- **Titles**: Clean names (e.g., "Configuration Loader")
+- **CLI features**: Prefix with "CLI:" (e.g., "CLI: Chat Command")
+- **Docker features**: Prefix with "Docker:" (e.g., "Docker: MCP Container")
+
+### Quality Standards
+- Each feature should be independently testable
+- Use TDD approach: write tests before implementation
+- Keep features small and focused
+- Document decisions in design.md
+- Update README.md regularly as work progresses
