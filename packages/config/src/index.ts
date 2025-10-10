@@ -10,6 +10,15 @@ export type {
   ConfigLoadOptions,
 } from '@anygpt/types';
 
+// Error types
+export {
+  ConfigError,
+  ConfigNotFoundError,
+  ConfigParseError,
+  ConfigValidationError,
+  ConnectorLoadError,
+} from './errors.js';
+
 // Default configurations
 export { getDefaultConfig, convertCodexToAnyGPTConfig } from './defaults.js';
 // Connector loading
