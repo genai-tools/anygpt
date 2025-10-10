@@ -1,4 +1,4 @@
-# 3-4-cli-conversation-summarize
+# CLI: Conversation Summarize
 
 | | |
 |---|---|

@@ -1,4 +1,4 @@
-# 4-2-docker-compose-config
+# Docker: Compose Configuration
 
 | | |
 |---|---|
