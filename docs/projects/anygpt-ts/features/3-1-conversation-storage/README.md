@@ -8,18 +8,12 @@
 | **Use Case** | [Conversations](../../../../products/anygpt/cases/conversations.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
+| **Technical Design** | [design.md](./design.md) |
+| **Testing Strategy** | [tests.md](./tests.md) |
 
 ---
 
 ## Overview
 
 Storage layer for conversation history, supporting persistence and retrieval of multi-turn conversations.
-
-## Technical Design
-
-**See [design.md](./design.md)** for detailed design.
-
-## Testing Strategy
-
-**See [tests.md](./tests.md)** for detailed test scenarios.
 

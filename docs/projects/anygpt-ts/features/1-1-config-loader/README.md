@@ -8,6 +8,8 @@
 | **Use Case** | [Flexible Configuration](../../../../products/anygpt/cases/flexible-configuration.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
+| **Technical Design** | [design.md](./design.md) |
+| **Testing Strategy** | [tests.md](./tests.md) |
 
 ---
 
@@ -63,14 +65,6 @@ None
 
 ### Documentation
 - [ ] Write API documentation (JSDoc, README, examples)
-
-## Technical Design
-
-**See [design.md](./design.md)** for detailed design.
-
-## Testing Strategy
-
-**See [tests.md](./tests.md)** for detailed test scenarios.
 
 ## Dependencies
 

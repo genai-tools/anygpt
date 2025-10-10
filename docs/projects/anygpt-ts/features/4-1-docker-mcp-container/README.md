@@ -8,6 +8,8 @@
 | **Use Case** | [Docker MCP Toolkit](../../../../products/anygpt/cases/docker-mcp-toolkit.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
+| **Technical Design** | [design.md](./design.md) |
+| **Testing Strategy** | [tests.md](./tests.md) |
 
 ---
 
@@ -31,26 +33,6 @@ Depends on: 2-3-mcp-server-core
 - [ ] Health check endpoint
 - [ ] Build and test container
 - [ ] Documentation
-
-## Technical Design
-
-**Container Setup**:
-- Base: Node.js official image
-- Entrypoint: Start MCP server
-- Config: Via environment variables
-- Health check: Simple ping endpoint
-
-**See [design.md](./design.md)** for detailed design.
-
-## Tests
-
-**Key tests**:
-- Container builds successfully
-- Container runs MCP server
-- Configuration via env vars works
-- Health check works
-
-**See [tests.md](./tests.md)** for detailed test scenarios.
 
 ## Dependencies
 

@@ -8,6 +8,8 @@
 | **Use Case** | [Context Optimization](../../../../products/anygpt/cases/context-optimization.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
+| **Technical Design** | [design.md](./design.md) |
+| **Testing Strategy** | [tests.md](./tests.md) |
 
 ---
 
@@ -31,25 +33,6 @@ Depends on: 3-2-cli-conversation
 - [ ] Both conversations remain independent
 - [ ] Write tests
 - [ ] Documentation
-
-## Technical Design
-
-**Fork Logic**:
-- Copy conversation at specific message
-- Create new conversation ID
-- Track parent conversation
-- Both conversations independent after fork
-
-**See [design.md](./design.md)** for detailed design.
-
-## Tests
-
-**Key tests**:
-- Fork creates independent copy
-- Both conversations work independently
-- Fork relationship tracked
-
-**See [tests.md](./tests.md)** for detailed test scenarios.
 
 ## Dependencies
 

@@ -8,6 +8,8 @@
 | **Use Case** | [Context Optimization](../../../../products/anygpt/cases/context-optimization.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
+| **Technical Design** | [design.md](./design.md) |
+| **Testing Strategy** | [tests.md](./tests.md) |
 
 ---
 
@@ -31,26 +33,6 @@ Depends on: 3-2-cli-conversation
 - [ ] Preserve recent messages (configurable)
 - [ ] Write tests
 - [ ] Documentation
-
-## Technical Design
-
-**Summarization Strategy**:
-- Use AI to summarize old messages
-- Preserve recent N messages
-- Create new conversation with: summary + recent messages
-- Reduces token usage significantly
-
-**See [design.md](./design.md)** for detailed design.
-
-## Tests
-
-**Key tests**:
-- Creates new conversation
-- Reduces token usage
-- Preserves meaning
-- Recent messages intact
-
-**See [tests.md](./tests.md)** for detailed test scenarios.
 
 ## Dependencies
 
