@@ -381,12 +381,16 @@ Create: `docs/projects/[project-name]/features/[phase]-[order]-[feature-name]/RE
 
 | Type | Dependency | Description |
 |------|------------|-------------|
-| 🚫 **Blocked by** | [Feature Name](../[phase]-[order]-[feature-name]/) | Must be completed first |
+| 🚫 **Blocked by** | [Feature Name](../[phase]-[order]-[feature-name]/) | Hard blocker - cannot start |
+| ⚠️ **Depends on** | [Feature Name](../[phase]-[order]-[feature-name]/) | Soft dependency - can start |
+| 🔗 **Related to** | [Feature Name](../[phase]-[order]-[feature-name]/) | Related feature - good to know |
 | 📦 **Internal** | [@org/package](../../packages/package/) | Internal package/module |
 | 🌐 **External** | [package-name](https://www.npmjs.com/package/package-name) | What it's used for |
 
 **Emoji Guide**:
-- 🚫 **Blocked by** - This feature is blocked by these dependencies (must complete first)
+- 🚫 **Blocked by** - Hard blocker, cannot start until complete
+- ⚠️ **Depends on** - Soft dependency, can start but will need eventually
+- 🔗 **Related to** - Related feature, not a blocker but contextually relevant
 - 📦 **Internal** - Internal packages/modules from this monorepo
 - 🌐 **External** - External npm packages (link to npmjs.com)
 
@@ -394,7 +398,9 @@ Create: `docs/projects/[project-name]/features/[phase]-[order]-[feature-name]/RE
 ```markdown
 | Type | Dependency | Description |
 |------|------------|-------------|
-| 🚫 **Blocked by** | [Configuration Loader](../1-1-config-loader/) | Need config system first |
+| 🚫 **Blocked by** | [Configuration Loader](../1-1-config-loader/) | Cannot start without config system |
+| ⚠️ **Depends on** | [Provider Router](../1-2-provider-router/) | Will need for integration |
+| 🔗 **Related to** | [CLI: Config Command](../2-2-cli-config/) | Similar CLI patterns |
 | 📦 **Internal** | [@anygpt/types](../../packages/types/) | Shared type definitions |
 | 🌐 **External** | [zod](https://www.npmjs.com/package/zod) | Schema validation |
 ```
@@ -439,12 +445,14 @@ Before marking feature as complete:
 - Update progress counts in project README
 
 ### Dependency Management
-- Use emoji indicators: 🚫 Blocked by, 📦 Internal, 🌐 External
-- Link to feature READMEs for blocking dependencies
+- Use emoji indicators: 🚫 Blocked by, ⚠️ Depends on, 🔗 Related to, 📦 Internal, 🌐 External
+- **🚫 Blocked by**: Hard blocker, cannot start without it
+- **⚠️ Depends on**: Soft dependency, can start but will need eventually
+- **🔗 Related to**: Related feature, not a blocker but good context
+- Link to feature READMEs for feature dependencies
 - Link to package folders for internal deps
 - Link to npmjs.com for external deps
-- Consolidate blockers into Dependencies table (no separate Blockers section)
-- Use "Blocked by" not "Blocks" (this feature is blocked BY dependencies)
+- Consolidate all dependencies into single table (no separate Blockers section)
 
 ### Naming Conventions
 - **Folders**: Phase-prefixed (e.g., `1-1-config-loader`)
