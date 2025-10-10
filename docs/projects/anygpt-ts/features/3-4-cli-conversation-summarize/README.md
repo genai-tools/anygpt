@@ -22,6 +22,9 @@ Reduce context length while preserving meaning using AI summarization. Compress 
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
+### Recent Updates
+- 2025-01-10: Feature documentation created
+
 ## Implementation Plan
 
 - [ ] Implement summarize subcommand
@@ -45,5 +48,8 @@ Reduce context length while preserving meaning using AI summarization. Compress 
 
 ## Dependencies
 
-**Internal**: 3-2-cli-conversation, 1-2-provider-router  
-**External**: None
+| Type | Dependency | Description |
+|------|------------|-------------|
+| 🚫 **Blocked by** | [CLI: Conversation Command](../3-2-cli-conversation/) | Need base conversation system |
+| ⚠️ **Depends on** | [Provider Router](../1-2-provider-router/) | Use AI for summarization |
+| 🔗 **Related to** | [CLI: Conversation Fork](../3-3-cli-conversation-fork/) | Both optimize context |

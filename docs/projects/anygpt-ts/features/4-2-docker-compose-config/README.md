@@ -22,6 +22,9 @@ Docker Compose configuration for easy deployment. Simplifies running AnyGPT MCP 
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
+### Recent Updates
+- 2025-01-10: Feature documentation created
+
 ## Implementation Plan
 
 - [ ] Create docker-compose.yml
@@ -44,5 +47,7 @@ Docker Compose configuration for easy deployment. Simplifies running AnyGPT MCP 
 
 ## Dependencies
 
-**Internal**: 4-1-docker-mcp-container  
-**External**: Docker Compose
+| Type | Dependency | Description |
+|------|------------|-------------|
+| 🚫 **Blocked by** | [Docker: MCP Container](../4-1-docker-mcp-container/) | Need container image |
+| 🌐 **External** | [Docker Compose](https://docs.docker.com/compose/) | Orchestration tool |
