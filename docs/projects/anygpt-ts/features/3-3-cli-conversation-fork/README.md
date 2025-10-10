@@ -22,6 +22,9 @@ Branch conversations to explore alternatives. Create a copy of conversation at s
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
+### Recent Updates
+- 2025-01-10: Feature documentation created
+
 ## Implementation Plan
 
 - [ ] Implement fork subcommand
@@ -44,5 +47,7 @@ Branch conversations to explore alternatives. Create a copy of conversation at s
 
 ## Dependencies
 
-**Internal**: 3-2-cli-conversation  
-**External**: None
+| Type | Dependency | Description |
+|------|------------|-------------|
+| 🚫 **Blocked by** | [CLI: Conversation Command](../3-2-cli-conversation/) | Need base conversation system |
+| 🔗 **Related to** | [CLI: Conversation Summarize](../3-4-cli-conversation-summarize/) | Both optimize context |

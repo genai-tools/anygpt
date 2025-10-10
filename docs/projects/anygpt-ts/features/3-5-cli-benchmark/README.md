@@ -22,6 +22,9 @@ Compare model performance across providers with detailed metrics. Helps users ch
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
+### Recent Updates
+- 2025-01-10: Feature documentation created
+
 ## Implementation Plan
 
 - [ ] Implement command parser
@@ -50,5 +53,10 @@ Compare model performance across providers with detailed metrics. Helps users ch
 
 ## Dependencies
 
-**Internal**: 1-2-provider-router, connectors  
-**External**: commander
+| Type | Dependency | Description |
+|------|------------|-------------|
+| 🚫 **Blocked by** | [Provider Router](../1-2-provider-router/) | Need routing to test providers |
+| ⚠️ **Depends on** | [Mock Connector](../1-3-connector-mock/) | For testing |
+| ⚠️ **Depends on** | [OpenAI Connector](../1-4-connector-openai/) | For real benchmarks |
+| 🔗 **Related to** | [CLI: Chat Command](../2-1-cli-chat/) | Similar CLI patterns |
+| �� **External** | [commander](https://www.npmjs.com/package/commander) | CLI framework |

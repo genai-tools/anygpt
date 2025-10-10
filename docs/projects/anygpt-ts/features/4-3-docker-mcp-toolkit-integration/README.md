@@ -22,6 +22,9 @@ Integration with Docker Desktop MCP Toolkit for multiple client support. Enables
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
+### Recent Updates
+- 2025-01-10: Feature documentation created
+
 ## Implementation Plan
 
 - [ ] Docker MCP Toolkit compatibility testing
@@ -43,5 +46,7 @@ Integration with Docker Desktop MCP Toolkit for multiple client support. Enables
 
 ## Dependencies
 
-**Internal**: 4-2-docker-compose-config  
-**External**: Docker MCP Toolkit
+| Type | Dependency | Description |
+|------|------------|-------------|
+| 🚫 **Blocked by** | [Docker: Compose Configuration](../4-2-docker-compose-config/) | Need compose setup |
+| 🌐 **External** | [Docker MCP Toolkit](https://github.com/docker/mcp-toolkit) | Docker Desktop integration |

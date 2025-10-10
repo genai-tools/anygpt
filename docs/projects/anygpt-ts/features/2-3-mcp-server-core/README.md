@@ -22,6 +22,9 @@ MCP protocol server (JSON-RPC over stdin/stdout) for IDE/tool integration. Enabl
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
+### Recent Updates
+- 2025-01-10: Feature documentation created
+
 ## Implementation Plan
 
 - [ ] Setup JSON-RPC transport (stdin/stdout)
@@ -54,5 +57,10 @@ MCP protocol server (JSON-RPC over stdin/stdout) for IDE/tool integration. Enabl
 
 ## Dependencies
 
-**Internal**: 1-1-config-loader, 1-2-provider-router, connectors  
-**External**: JSON-RPC library
+| Type | Dependency | Description |
+|------|------------|-------------|
+| 🚫 **Blocked by** | [Configuration Loader](../1-1-config-loader/) | Need config for provider settings |
+| 🚫 **Blocked by** | [Provider Router](../1-2-provider-router/) | Need routing to providers |
+| ⚠️ **Depends on** | [Mock Connector](../1-3-connector-mock/) | For testing |
+| ⚠️ **Depends on** | [OpenAI Connector](../1-4-connector-openai/) | For real usage |
+| 🌐 **External** | [@modelcontextprotocol/sdk](https://www.npmjs.com/package/@modelcontextprotocol/sdk) | MCP SDK |

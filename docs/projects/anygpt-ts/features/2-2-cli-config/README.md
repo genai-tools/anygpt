@@ -22,6 +22,9 @@ Configuration inspection and validation commands. Helps users understand and deb
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
+### Recent Updates
+- 2025-01-10: Feature documentation created
+
 ## Implementation Plan
 
 - [ ] Implement show subcommand (display current config)
@@ -48,5 +51,8 @@ Configuration inspection and validation commands. Helps users understand and deb
 
 ## Dependencies
 
-**Internal**: 1-1-config-loader  
-**External**: commander
+| Type | Dependency | Description |
+|------|------------|-------------|
+| 🚫 **Blocked by** | [Configuration Loader](../1-1-config-loader/) | Need config system to inspect |
+| 🔗 **Related to** | [CLI: Chat Command](../2-1-cli-chat/) | Similar CLI patterns |
+| 🌐 **External** | [commander](https://www.npmjs.com/package/commander) | CLI framework |

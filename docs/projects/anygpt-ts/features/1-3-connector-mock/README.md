@@ -22,6 +22,9 @@ Mock connector for testing and offline development. Provides configurable respon
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
+### Recent Updates
+- 2025-01-10: Feature documentation created
+
 ## Implementation Plan
 
 - [ ] Implement Connector interface
@@ -47,5 +50,7 @@ Mock connector for testing and offline development. Provides configurable respon
 
 ## Dependencies
 
-**Internal**: @anygpt/types  
-**External**: None
+| Type | Dependency | Description |
+|------|------------|-------------|
+| 🚫 **Blocked by** | [Provider Router](../1-2-provider-router/) | Need router to register connector with |
+| 📦 **Internal** | [@anygpt/types](../../packages/types/) | Shared type definitions |

@@ -71,6 +71,6 @@ Provider router that abstracts multiple AI providers, handles routing strategies
 
 | Type | Dependency | Description |
 |------|------------|-------------|
-| 🚫 **Blocks** | [Configuration Loader](../1-1-config-loader/) | Need config system first |
+| 🚫 **Blocked by** | [Configuration Loader](../1-1-config-loader/) | Need config system to load provider settings |
 | 📦 **Internal** | [@anygpt/types](../../packages/types/) | Shared type definitions |
 | 📦 **Internal** | [@anygpt/config](../../packages/config/) | Configuration management |

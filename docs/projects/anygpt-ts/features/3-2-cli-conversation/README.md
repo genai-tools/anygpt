@@ -22,6 +22,9 @@ Stateful multi-turn conversations with context management. Maintains conversatio
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
+### Recent Updates
+- 2025-01-10: Feature documentation created
+
 ## Implementation Plan
 
 - [ ] Implement start subcommand
@@ -37,8 +40,31 @@ Stateful multi-turn conversations with context management. Maintains conversatio
 - [ ] Write E2E tests
 - [ ] Documentation
 
+## Technical Design
+
+**Subcommands**:
+- `start` - Start new conversation
+- `message` - Send message in conversation
+- `list` - List all conversations
+- `show` - Show conversation history
+- `end` - End conversation
+- `delete` - Delete conversation
+
+**Context Management**: Maintains full message history, auto-start if no active conversation
+
+**See [design.md](./design.md)** for detailed design.
+
+## Tests
+
+**E2E Tests**: All subcommands work, auto-start works, context preserved across messages
+
+**See [tests.md](./tests.md)** for detailed test scenarios.
+
 ## Dependencies
 
-**Internal**: 3-1-conversation-storage, 2-1-cli-chat  
-**External**: commander
-
+| Type | Dependency | Description |
+|------|------------|-------------|
+| 🚫 **Blocked by** | [Conversation Storage](../3-1-conversation-storage/) | Need storage for conversations |
+| ⚠️ **Depends on** | [CLI: Chat Command](../2-1-cli-chat/) | Reuse chat logic |
+| 🔗 **Related to** | [CLI: Config Command](../2-2-cli-config/) | Similar CLI patterns |
+| 🌐 **External** | [commander](https://www.npmjs.com/package/commander) | CLI framework |
