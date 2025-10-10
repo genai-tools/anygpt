@@ -22,6 +22,9 @@ Persistent conversation storage infrastructure. Stores conversation history for 
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
+### Recent Updates
+- 2025-01-10: Feature documentation created
+
 ## Implementation Plan
 
 - [ ] Design storage format (JSON-based)
@@ -47,5 +50,7 @@ Persistent conversation storage infrastructure. Stores conversation history for 
 
 ## Dependencies
 
-**Internal**: None (infrastructure)  
-**External**: File system
+| Type | Dependency | Description |
+|------|------------|-------------|
+| ⚠️ **Depends on** | [CLI: Chat Command](../2-1-cli-chat/) | Will store chat conversations |
+| 📦 **Internal** | [@anygpt/types](../../packages/types/) | Shared type definitions |
