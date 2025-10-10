@@ -316,7 +316,7 @@ Create: `docs/projects/[project-name]/features/[feature-name]/tests.md`
 Create: `docs/projects/[project-name]/features/[phase]-[order]-[feature-name]/README.md`
 
 ```markdown
-# [phase]-[order]-[feature-name]
+# [Feature Name]
 
 | | |
 |---|---|
@@ -328,6 +328,8 @@ Create: `docs/projects/[project-name]/features/[phase]-[order]-[feature-name]/RE
 | **Roadmap** | [Feature List](../../roadmap.md) |
 
 ---
+
+**Note**: Folder name uses phase prefix (e.g., `1-1-config-loader`), but page title is clean (e.g., "Configuration Loader")
 
 ## Overview
 
