@@ -116,9 +116,14 @@ mkdir -p docs/projects/[project-name]/features/[phase]-[order]-[feature-name]
 **Example**: `mkdir -p docs/projects/anygpt-ts/features/3-5-cli-benchmark`
 
 Create files:
-- `design.md` - Feature-specific design
-- `tests.md` - Test scenarios  
-- `status.md` - Progress tracking and task list (merged)
+- `README.md` - Status, progress, tasks, design summary, test summary
+- `design.md` - (Optional) Detailed technical design
+- `tests.md` - (Optional) Detailed test scenarios
+
+**File strategy**:
+- **README.md**: Always create - status, tasks, brief design/test summary
+- **design.md**: Create only if design is complex and needs detail
+- **tests.md**: Create only if many test scenarios need documentation
 
 **Benefits of phase numbering**:
 - Features sort in implementation order in file explorer
@@ -306,53 +311,69 @@ Create: `docs/projects/[project-name]/features/[feature-name]/tests.md`
 [Any special testing considerations]
 ```
 
-## Status Template (includes tasks)
+## Feature README Template
 
-Create: `docs/projects/[project-name]/features/[feature-name]/status.md`
+Create: `docs/projects/[project-name]/features/[phase]-[order]-[feature-name]/README.md`
 
 ```markdown
-# [Feature Name] - Status
+# [phase]-[order]-[feature-name]
 
-**Last Updated**: [Date]  
+**Spec**: [Link to spec]  
+**Use Case**: [Link to use case]  
 **Status**: ❌ Not Started | 🔄 In Progress | ✅ Complete  
 **Progress**: 0/N tasks (0%)
 
-## Current Phase
+## Overview
 
-[Current phase description]
+[Brief description of what this feature does]
 
-## Recent Updates
+## Status
 
-### [Date]
-- [What was done]
+**Last Updated**: [Date]  
+**Current Phase**: [Phase description]
 
-## Blockers
+### Recent Updates
+- [Date]: [What was done]
 
+### Blockers
 [List blockers or "None"]
 
 ## Tasks
 
 ### Setup
-
 - [ ] [Task description]
-  - [Sub-task details]
 
 ### Phase 1: [Phase Name]
-
 - [ ] [Task description]
-  - [Sub-task details]
-
 - [ ] [Another task]
 
 ### Phase 2: [Phase Name]
-
 - [ ] [Task description]
 
 [Continue for all phases]
 
-## Links
+## Design
 
-[Design](./design.md) | [Tests](./tests.md) | [Roadmap](../../roadmap.md)
+[Brief design summary - key components, algorithms, data structures]
+
+**Detailed design**: See [design.md](./design.md) (if complex design exists)
+
+## Tests
+
+[Brief test summary - key test scenarios]
+
+**Detailed tests**: See [tests.md](./tests.md) (if many test scenarios)
+
+## Dependencies
+
+**Internal**: [List internal dependencies]  
+**External**: [List external dependencies]
+
+## References
+
+- [Architecture](../../architecture.md)
+- [Roadmap](../../roadmap.md)
+- [Spec](link)
 ```
 
 ## Quality Checklist
