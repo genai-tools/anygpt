@@ -106,10 +106,13 @@ export class OpenAIConnector extends BaseConnector {
           ...(validatedRequest.reasoning?.effort && {
             reasoning_effort: validatedRequest.reasoning.effort,
           }),
-          // Handle max_tokens: Keep as max_tokens (Anthropic/Claude models use this)
-          // OpenAI models use max_completion_tokens, but gateways should handle conversion
+          // Handle token limits based on useLegacyMaxTokens capability:
+          // - true: use max_tokens parameter (Anthropic/Cody models)
+          // - false/undefined: use max_completion_tokens parameter (OpenAI models, default)
           ...(validatedRequest.max_tokens !== undefined && {
-            max_tokens: validatedRequest.max_tokens,
+            [validatedRequest.useLegacyMaxTokens
+              ? 'max_tokens'
+              : 'max_completion_tokens']: validatedRequest.max_tokens,
           }),
         };
 
@@ -128,7 +131,7 @@ export class OpenAIConnector extends BaseConnector {
       });
 
       // Debug: Log request for truncation investigation
-      this.logger.info('[OpenAI Connector] Request:', {
+      this.logger.debug('[OpenAI Connector] Request:', {
         model: chatRequest.model,
         max_tokens: chatRequest.max_tokens,
         max_completion_tokens: chatRequest.max_completion_tokens,
