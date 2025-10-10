@@ -20,7 +20,7 @@ export {
 } from './errors.js';
 
 // Default configurations
-export { getDefaultConfig, convertCodexToAnyGPTConfig } from './defaults.js';
+export { getDefaultConfig } from './defaults.js';
 // Connector loading
 export {
   loadConnectors,
@@ -30,9 +30,6 @@ export {
 
 // Convenience functions to set up router with config
 export { setupRouter, setupRouterFromFactory } from './setup.js';
-
-// Migration utilities
-export { migrateFromCodex, runMigration } from './migrate.js';
 
 // Factory function for direct connector instantiation
 export {
