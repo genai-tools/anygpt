@@ -2,6 +2,11 @@
  * Base types for the GenAI Router connector system
  */
 
+import type { Logger } from '@anygpt/types';
+
+// Re-export Logger so it can be imported from this module
+export type { Logger };
+
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
@@ -25,6 +30,10 @@ export interface ChatCompletionRequest {
   model?: string;
   temperature?: number;
   max_tokens?: number;
+  // Capability flag: use legacy max_tokens parameter (Anthropic-style)
+  // - true: use max_tokens parameter (for Cody/Anthropic models)
+  // - false/undefined: use max_completion_tokens parameter (OpenAI-style, default)
+  useLegacyMaxTokens?: boolean;
   top_p?: number;
   frequency_penalty?: number;
   presence_penalty?: number;
@@ -90,13 +99,6 @@ export interface ModelInfo {
   display_name: string;
   /** What this model can do - only features that affect API calls */
   capabilities: ModelCapabilities;
-}
-
-export interface Logger {
-  debug(message: string, ...args: unknown[]): void;
-  info(message: string, ...args: unknown[]): void;
-  warn(message: string, ...args: unknown[]): void;
-  error(message: string, ...args: unknown[]): void;
 }
 
 export interface ConnectorConfig {
