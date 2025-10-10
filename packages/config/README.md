@@ -40,11 +40,10 @@ The config loader searches for configuration files in this order:
 7. `~/.anygpt/anygpt.config.ts` ← User home directory
 8. `~/.anygpt/anygpt.config.js`
 9. `~/.anygpt/anygpt.config.json`
-10. `~/.codex/config.toml` ← Codex compatibility
-11. `/etc/anygpt/anygpt.config.ts` ← System-wide
-12. `/etc/anygpt/anygpt.config.js`
-13. `/etc/anygpt/anygpt.config.json`
-14. Built-in defaults ← Fallback (OpenAI + Mock providers)
+10. `/etc/anygpt/anygpt.config.ts` ← System-wide
+11. `/etc/anygpt/anygpt.config.js`
+12. `/etc/anygpt/anygpt.config.json`
+13. Built-in defaults ← Fallback (OpenAI + Mock providers)
 
 ## 🚀 Quick Start
 
@@ -278,16 +277,6 @@ This means:
 2. **Use environment variables** for API keys
 3. **Share config templates** - Not actual config files
 4. **Backup configs securely** - Store encrypted backups
-
-## 🔄 Migration from Codex
-
-If you have an existing `~/.codex/config.toml` file:
-
-```bash
-npx anygpt migrate
-```
-
-This will convert your TOML configuration to the new TypeScript format.
 
 ## 🔧 Environment Variables
 
