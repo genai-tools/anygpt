@@ -8,6 +8,8 @@
 | **Use Case** | [MCP Server](../../../../products/anygpt/cases/mcp-server.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
+| **Technical Design** | [design.md](./design.md) |
+| **Testing Strategy** | [tests.md](./tests.md) |
 
 ---
 
@@ -35,34 +37,6 @@ Depends on: 1-1-config-loader, 1-2-provider-router, 1-3-connector-mock, 1-4-conn
 - [ ] Write integration tests
 - [ ] MCP protocol compliance tests
 - [ ] Documentation
-
-## Technical Design
-
-**Components**:
-- **JSON-RPC transport** - stdin/stdout communication
-- **MCP methods**: initialize, models/list, completion/complete
-- **Error handling** - MCP-compliant error codes
-
-**See [design.md](./design.md)** for detailed design.
-
-## Tests
-
-**Unit Tests**:
-- Parse JSON-RPC requests
-- Format JSON-RPC responses
-- Handle all MCP methods
-
-**Integration Tests**:
-- MCP client can connect
-- initialize works
-- models/list returns models
-- completion/complete works
-
-**Contract Tests**:
-- MCP protocol compliance
-- All error codes match spec
-
-**See [tests.md](./tests.md)** for detailed test scenarios.
 
 ## Dependencies
 

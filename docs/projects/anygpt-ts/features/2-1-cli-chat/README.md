@@ -8,6 +8,8 @@
 | **Use Case** | [Provider Agnostic Chat](../../../../products/anygpt/cases/provider-agnostic-chat.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
+| **Technical Design** | [design.md](./design.md) |
+| **Testing Strategy** | [tests.md](./tests.md) |
 
 ---
 
@@ -33,33 +35,6 @@ Depends on: 1-1-config-loader, 1-2-provider-router, 1-3-connector-mock, 1-4-conn
 - [ ] Write unit tests
 - [ ] Write E2E tests
 - [ ] Documentation
-
-## Technical Design
-
-**Components**:
-- **Command parser** (commander) - Parse CLI arguments
-- **Request builder** - Convert args to CompletionRequest
-- **Provider router integration** - Route to correct provider
-- **Output formatter** - Format response (text/JSON)
-
-**See [design.md](./design.md)** for detailed design.
-
-## Tests
-
-**Unit Tests**:
-- Parse command arguments
-- Build request from args
-- Format output (text, JSON)
-- Handle errors
-
-**E2E Tests**:
-- `anygpt chat "Hello"` works
-- `anygpt chat "Hello" --provider openai` works
-- `anygpt chat "Hello" --model gpt-4o` works
-- Exit codes match spec
-- Error messages match spec
-
-**See [tests.md](./tests.md)** for detailed test scenarios.
 
 ## Dependencies
 
