@@ -7,43 +7,53 @@ export type {
   ConnectorConfig,
   ProviderConfig,
   AnyGPTConfig,
-  ConfigLoadOptions
+  ConfigLoadOptions,
 } from '@anygpt/types';
 
-// Default configurations
+// Error types
 export {
-  getDefaultConfig,
-  convertCodexToAnyGPTConfig
-} from './defaults.js';
+  ConfigError,
+  ConfigNotFoundError,
+  ConfigParseError,
+  ConfigValidationError,
+  ConnectorLoadError,
+} from './errors.js';
+
+// Default configurations
+export { getDefaultConfig } from './defaults.js';
 // Connector loading
 export {
   loadConnectors,
   getConnectorConfig,
-  clearConnectorCache
+  clearConnectorCache,
 } from './connector-loader.js';
 
 // Convenience functions to set up router with config
 export { setupRouter, setupRouterFromFactory } from './setup.js';
 
-// Migration utilities
-export {
-  migrateFromCodex,
-  runMigration
-} from './migrate.js';
-
 // Factory function for direct connector instantiation
-export { 
+export {
   config,
   type FactoryConfig,
   type FactoryProviderConfig,
   type ModelAlias,
-  type ModelMetadata
+  type BaseModelConfig,
+  type ModelMetadata,
+  type ModelRule,
+  type ReasoningEffort,
+  type ReasoningConfig,
 } from './factory.js';
+
+// Model pattern resolver
+export {
+  resolveModelConfig,
+  type ResolvedModelConfig,
+} from './model-pattern-resolver.js';
 
 // Configuration loader (not exported by default, used internally)
 export { loadConfig, validateConfig } from './loader.js';
 
-// Model resolution utilities (shared between CLI and MCP)
+// Model resolution (tags, aliases, direct models)
 export {
   resolveModel,
   findModelByTag,
@@ -52,10 +62,20 @@ export {
   type ModelResolutionContext,
   type TagInfo,
   type AliasInfo,
-  type AvailableTagsResult
+  type AvailableTagsResult,
 } from './model-resolver.js';
 
-// Note: Connector factory functions (like openai()) should be imported directly 
+// Tag registry (pre-computed tag mappings)
+export {
+  buildTagRegistry,
+  type TagRegistry,
+  type TagMapping,
+} from './tag-registry.js';
+
+// Glob pattern matching for model filtering
+export { matchesGlobPatterns } from './glob-matcher.js';
+
+// Note: Connector factory functions (like openai()) should be imported directly
 // from their packages to keep config package connector-agnostic:
 // import { openai } from '@anygpt/openai';
 // import { anthropic } from '@anygpt/anthropic'; // future

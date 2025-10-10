@@ -7,6 +7,9 @@ import { createJiti } from 'jiti';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { loadConfig, validateConfig } from './loader.js';
+import { ConfigParseError, ConfigValidationError } from './errors.js';
+import type { AnyGPTConfig } from '@anygpt/types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -14,16 +17,16 @@ const __dirname = dirname(__filename);
 describe('Config Loader - TypeScript Support', () => {
   it('should load TypeScript config with jiti tryNative', async () => {
     const configPath = join(__dirname, '../examples/anygpt.config.ts');
-    
+
     const jiti = createJiti(import.meta.url, {
       tryNative: true,
       fsCache: true,
       interopDefault: true,
-      moduleCache: true
+      moduleCache: true,
     });
-    
+
     const config = await jiti.import(configPath, { default: true });
-    
+
     expect(config).toBeDefined();
     expect(config.providers).toBeDefined();
     expect(Object.keys(config.providers)).toContain('openai-main');
@@ -32,15 +35,15 @@ describe('Config Loader - TypeScript Support', () => {
 
   it('should handle TypeScript-specific syntax', async () => {
     const configPath = join(__dirname, '../examples/anygpt.config.ts');
-    
+
     const jiti = createJiti(import.meta.url, {
       tryNative: true,
       fsCache: true,
-      interopDefault: true
+      interopDefault: true,
     });
-    
+
     const config = await jiti.import(configPath, { default: true });
-    
+
     // Verify the config has proper TypeScript types
     expect(config.version).toBe('1.0');
     expect(config.providers['openai-main']).toBeDefined();
@@ -50,15 +53,15 @@ describe('Config Loader - TypeScript Support', () => {
 
   it('should work with multiple providers', async () => {
     const configPath = join(__dirname, '../examples/anygpt.config.ts');
-    
+
     const jiti = createJiti(import.meta.url, {
       tryNative: true,
       fsCache: true,
-      interopDefault: true
+      interopDefault: true,
     });
-    
+
     const config = await jiti.import(configPath, { default: true });
-    
+
     const providerKeys = Object.keys(config.providers);
     expect(providerKeys.length).toBeGreaterThanOrEqual(3);
     expect(providerKeys).toContain('openai-main');
@@ -68,27 +71,27 @@ describe('Config Loader - TypeScript Support', () => {
 
   it('should cache subsequent imports', async () => {
     const configPath = join(__dirname, '../examples/anygpt.config.ts');
-    
+
     const jiti = createJiti(import.meta.url, {
       tryNative: true,
       fsCache: true,
-      moduleCache: true
+      moduleCache: true,
     });
-    
+
     // First import
     const start1 = Date.now();
     const config1 = await jiti.import(configPath, { default: true });
     const time1 = Date.now() - start1;
-    
+
     // Second import (should be cached)
     const start2 = Date.now();
     const config2 = await jiti.import(configPath, { default: true });
     const time2 = Date.now() - start2;
-    
+
     expect(config1).toBeDefined();
     expect(config2).toBeDefined();
     expect(config1.providers).toEqual(config2.providers);
-    
+
     // Second import should be faster (cached)
     // Note: This is a loose check as timing can vary
     expect(time2).toBeLessThanOrEqual(time1 + 10);
@@ -99,16 +102,21 @@ describe('Config Loader - Node.js Version Compatibility', () => {
   it('should report current Node.js version', () => {
     const version = process.version;
     const major = parseInt(version.slice(1).split('.')[0]);
-    
+
     expect(major).toBeGreaterThanOrEqual(20);
-    
+
     // Log for debugging
     console.log(`Running on Node.js ${version}`);
-    
-    if (major >= 24 || (major === 22 && parseInt(version.split('.')[1]) >= 18)) {
+
+    if (
+      major >= 24 ||
+      (major === 22 && parseInt(version.split('.')[1]) >= 18)
+    ) {
       console.log('✅ Native TypeScript support enabled by default');
     } else if (major === 22) {
-      console.log('⚠️  Native TypeScript available with --experimental-strip-types');
+      console.log(
+        '⚠️  Native TypeScript available with --experimental-strip-types'
+      );
     } else {
       console.log('📦 Using jiti transformation (no native TS support)');
     }
@@ -118,11 +126,113 @@ describe('Config Loader - Node.js Version Compatibility', () => {
     // Create jiti instance with tryNative
     const jiti = createJiti(import.meta.url, {
       tryNative: true,
-      fsCache: true
+      fsCache: true,
     });
-    
+
     expect(jiti).toBeDefined();
     expect(jiti.import).toBeDefined();
     expect(jiti.esmResolve).toBeDefined();
+  });
+});
+
+describe('loadConfig', () => {
+  it('should load config from explicit path', async () => {
+    const configPath = join(__dirname, '../examples/anygpt.config.ts');
+    const config = await loadConfig({ configPath });
+
+    expect(config).toBeDefined();
+    expect(config.providers).toBeDefined();
+    expect(Object.keys(config.providers).length).toBeGreaterThan(0);
+  });
+
+  it('should return default config when no file found', async () => {
+    const config = await loadConfig({
+      configPath: '/nonexistent/path.ts',
+    }).catch(() => null);
+
+    // Should throw or return default - let's test the default path
+    const defaultConfig = await loadConfig();
+    expect(defaultConfig).toBeDefined();
+    expect(defaultConfig.providers).toBeDefined();
+    expect(
+      defaultConfig.providers.openai || defaultConfig.providers.mock
+    ).toBeDefined();
+  });
+
+  it('should throw ConfigParseError for invalid JSON', async () => {
+    const invalidPath = join(__dirname, '../examples/invalid.json');
+
+    await expect(loadConfig({ configPath: invalidPath })).rejects.toThrow();
+  });
+
+  it('should merge defaults when requested', async () => {
+    const configPath = join(__dirname, '../examples/anygpt.config.ts');
+    const config = await loadConfig({ configPath, mergeDefaults: true });
+
+    expect(config).toBeDefined();
+    expect(config.providers).toBeDefined();
+  });
+});
+
+describe('validateConfig', () => {
+  it('should validate config with providers', () => {
+    const validConfig: AnyGPTConfig = {
+      version: '1.0',
+      providers: {
+        test: {
+          name: 'Test',
+          connector: {
+            connector: '@anygpt/mock',
+          },
+        },
+      },
+    };
+
+    expect(() => validateConfig(validConfig)).not.toThrow();
+  });
+
+  it('should throw ConfigValidationError for missing providers', () => {
+    const invalidConfig = {
+      version: '1.0',
+      providers: {},
+    } as AnyGPTConfig;
+
+    expect(() => validateConfig(invalidConfig)).toThrow(ConfigValidationError);
+  });
+
+  it('should throw ConfigValidationError for provider without connector', () => {
+    const invalidConfig = {
+      version: '1.0',
+      providers: {
+        test: {
+          name: 'Test',
+          connector: {} as any,
+        },
+      },
+    } as AnyGPTConfig;
+
+    expect(() => validateConfig(invalidConfig)).toThrow(ConfigValidationError);
+  });
+
+  it('should validate multiple providers', () => {
+    const validConfig: AnyGPTConfig = {
+      version: '1.0',
+      providers: {
+        openai: {
+          name: 'OpenAI',
+          connector: {
+            connector: '@anygpt/openai',
+          },
+        },
+        mock: {
+          name: 'Mock',
+          connector: {
+            connector: '@anygpt/mock',
+          },
+        },
+      },
+    };
+
+    expect(() => validateConfig(validConfig)).not.toThrow();
   });
 });

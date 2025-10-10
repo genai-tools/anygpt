@@ -1,6 +1,7 @@
 import type { CLIContext } from '../utils/cli-context.js';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
+import { resolveModel, resolveModelConfig } from '@anygpt/config';
 
 interface BenchmarkOptions {
   provider?: string;
@@ -11,6 +12,9 @@ interface BenchmarkOptions {
   iterations?: number;
   json?: boolean;
   output?: string;
+  all?: boolean;
+  stdin?: boolean;
+  filterTags?: string; // Comma-separated tags, use ! prefix for exclusion
 }
 
 interface BenchmarkResult {
@@ -29,22 +33,40 @@ interface BenchmarkResult {
   response?: string;
 }
 
-export async function benchmarkCommand(context: CLIContext, options: BenchmarkOptions) {
+export async function benchmarkCommand(
+  context: CLIContext,
+  options: BenchmarkOptions
+) {
   const { router, providers } = context;
 
-  // Get prompt
-  const prompt = options.prompt || 'What is 2+2? Answer in one sentence.';
-  
+  // Get prompt from stdin, option, or default
+  let prompt = options.prompt;
+
+  // Auto-detect stdin if it's piped (not a TTY) or if --stdin flag is set
+  const hasStdin = options.stdin || (!process.stdin.isTTY && !options.prompt);
+
+  if (hasStdin) {
+    const chunks: Buffer[] = [];
+    for await (const chunk of process.stdin) {
+      chunks.push(chunk);
+    }
+    prompt = Buffer.concat(chunks).toString('utf-8').trim();
+  }
+
+  if (!prompt) {
+    prompt = 'What is 2+2? Answer in one sentence.';
+  }
+
   // Get models to benchmark
   let modelsToTest: Array<{ provider: string; model: string }> = [];
-  
+
   if (options.models) {
     // If --provider is also specified, treat --models as comma-separated model IDs for that provider
     if (options.provider) {
-      const modelIds = options.models.split(',').map(m => m.trim());
-      modelsToTest = modelIds.map(modelId => ({
+      const modelIds = options.models.split(',').map((m) => m.trim());
+      modelsToTest = modelIds.map((modelId) => ({
         provider: options.provider!,
-        model: modelId
+        model: modelId,
       }));
     } else {
       // Parse comma-separated list of model specs: "provider:model,provider:model"
@@ -65,28 +87,160 @@ export async function benchmarkCommand(context: CLIContext, options: BenchmarkOp
     // Single model specified
     modelsToTest.push({ provider: options.provider, model: options.model });
   } else if (options.provider) {
-    // All models from a provider
+    // All models from a provider (filtered by modelRules enabled flag)
     try {
       const models = await router.listModels(options.provider);
+      const providerConfig = providers[options.provider];
+      const globalRules = context.defaults?.modelRules;
+
       // IMPORTANT: Use the provider from options, not from parsing the model ID
       // Model IDs may contain colons (e.g., ml-asset:static-model/gpt-5)
-      modelsToTest = models.map((m: any) => ({
-        provider: options.provider!,
-        model: m.id
-      }));
+      modelsToTest = models
+        .filter((m: any) => {
+          const config = resolveModelConfig(
+            m.id,
+            options.provider!,
+            providerConfig,
+            globalRules
+          );
+          // enabled is true by default (undefined means enabled)
+          if (config.enabled === false) return false;
+
+          // Apply tag filtering if specified
+          if (options.filterTags) {
+            const filters = options.filterTags.split(',').map((t) => t.trim());
+            const includeTags = filters
+              .filter((t) => !t.startsWith('!'))
+              .map((t) => t.toLowerCase());
+            const excludeTags = filters
+              .filter((t) => t.startsWith('!'))
+              .map((t) => t.substring(1).toLowerCase());
+            const modelTags = (config.tags || []).map((t) => t.toLowerCase());
+
+            // Check exclusions first
+            for (const excludeTag of excludeTags) {
+              if (modelTags.includes(excludeTag)) {
+                return false; // Exclude this model
+              }
+            }
+
+            // If there are include filters, model must have at least one
+            if (includeTags.length > 0) {
+              return includeTags.some((includeTag) =>
+                modelTags.includes(includeTag)
+              );
+            }
+          }
+
+          return true;
+        })
+        .map((m: any) => ({
+          provider: options.provider!,
+          model: m.id,
+        }));
+
+      if (!options.json) {
+        const filterMsg = options.filterTags
+          ? ` (filtered by tags: ${options.filterTags})`
+          : '';
+        console.log(
+          `🔍 Filtered to ${modelsToTest.length} enabled models${filterMsg}`
+        );
+      }
     } catch (error) {
-      console.error(`Error listing models for provider ${options.provider}:`, error);
+      console.error(
+        `Error listing models for provider ${options.provider}:`,
+        error
+      );
       process.exit(1);
+    }
+  } else if (options.all) {
+    // Benchmark ALL models from ALL providers (filtered by modelRules enabled flag)
+    const providerNames = Object.keys(providers);
+    const globalRules = context.defaults?.modelRules;
+
+    for (const provider of providerNames) {
+      try {
+        const models = await router.listModels(provider);
+        const providerConfig = providers[provider];
+
+        for (const model of models) {
+          // Check if model is enabled via modelRules
+          const config = resolveModelConfig(
+            model.id,
+            provider,
+            providerConfig,
+            globalRules
+          );
+          if (config.enabled === false) continue;
+
+          // Apply tag filtering if specified
+          if (options.filterTags) {
+            const filters = options.filterTags.split(',').map((t) => t.trim());
+            const includeTags = filters
+              .filter((t) => !t.startsWith('!'))
+              .map((t) => t.toLowerCase());
+            const excludeTags = filters
+              .filter((t) => t.startsWith('!'))
+              .map((t) => t.substring(1).toLowerCase());
+            const modelTags = (config.tags || []).map((t) => t.toLowerCase());
+
+            // Check exclusions first
+            let excluded = false;
+            for (const excludeTag of excludeTags) {
+              if (modelTags.includes(excludeTag)) {
+                excluded = true;
+                break;
+              }
+            }
+            if (excluded) continue;
+
+            // If there are include filters, model must have at least one
+            if (includeTags.length > 0) {
+              if (
+                !includeTags.some((includeTag) =>
+                  modelTags.includes(includeTag)
+                )
+              ) {
+                continue;
+              }
+            }
+          }
+
+          modelsToTest.push({ provider, model: model.id });
+        }
+      } catch (error) {
+        console.error(`Skipping provider ${provider}: ${error}`);
+      }
     }
   } else {
     // Benchmark all providers with their default models
     const providerNames = Object.keys(providers);
     for (const provider of providerNames) {
       const defaultModel = context.defaults?.providers?.[provider]?.model;
-      
+
       if (defaultModel) {
-        // Use default model
-        modelsToTest.push({ provider, model: defaultModel });
+        // Resolve tag to actual model ID if needed
+        const resolution = resolveModel(
+          defaultModel,
+          {
+            providers: context.providers,
+            aliases: context.defaults?.aliases,
+            defaultProvider: context.defaults?.provider,
+          },
+          provider
+        );
+
+        if (resolution) {
+          // Use resolved model
+          modelsToTest.push({
+            provider: resolution.provider,
+            model: resolution.model,
+          });
+        } else {
+          // Use as-is (might be a direct model ID)
+          modelsToTest.push({ provider, model: defaultModel });
+        }
       } else {
         // Use first available model
         try {
@@ -103,12 +257,14 @@ export async function benchmarkCommand(context: CLIContext, options: BenchmarkOp
   }
 
   if (modelsToTest.length === 0) {
-    console.error('No models to benchmark. Specify --provider, --model, or --models');
+    console.error(
+      'No models to benchmark. Specify --provider, --model, --models, or --all'
+    );
     process.exit(1);
   }
 
   const iterations = options.iterations || 1;
-  const maxTokens = options.maxTokens || 100;
+  const maxTokens = options.maxTokens; // Don't default to 100 - some models don't support max_tokens
 
   // Create output directory if specified
   let outputDir: string | undefined;
@@ -123,9 +279,14 @@ export async function benchmarkCommand(context: CLIContext, options: BenchmarkOp
   }
 
   if (!options.json) {
-    console.log(`🔬 Benchmarking ${modelsToTest.length} model(s) with ${iterations} iteration(s)\n`);
+    console.log(
+      `🔬 Benchmarking ${modelsToTest.length} model(s) with ${iterations} iteration(s)\n`
+    );
     console.log(`Prompt: "${prompt}"`);
-    console.log(`Max tokens: ${maxTokens}\n`);
+    if (maxTokens !== undefined) {
+      console.log(`Max tokens: ${maxTokens}`);
+    }
+    console.log();
   }
 
   const results: BenchmarkResult[] = [];
@@ -135,29 +296,47 @@ export async function benchmarkCommand(context: CLIContext, options: BenchmarkOp
 
     for (let i = 0; i < iterations; i++) {
       if (!options.json && iterations > 1) {
-        process.stdout.write(`Testing ${provider}:${model} (${i + 1}/${iterations})... `);
+        process.stdout.write(`⏳ ${model} (${i + 1}/${iterations}) `);
       } else if (!options.json) {
-        process.stdout.write(`Testing ${provider}:${model}... `);
+        process.stdout.write(`⏳ ${model} `);
       }
 
       const startTime = Date.now();
       let result: BenchmarkResult;
 
       try {
+        // Resolve model configuration using rule matching
+        const providerConfig = providers[provider];
+        const globalRules = context.defaults?.modelRules;
+        const modelConfig = resolveModelConfig(
+          model,
+          provider,
+          providerConfig,
+          globalRules
+        );
+
+        // CLI flag takes precedence over model config for max_tokens
+        const effectiveMaxTokens = maxTokens ?? modelConfig.max_tokens;
+
         // Debug logging
         if (process.env.DEBUG_BENCHMARK) {
           console.log(`\n[DEBUG] Calling router.chatCompletion with:`);
           console.log(`  provider: ${provider}`);
           console.log(`  model: ${model}`);
           console.log(`  prompt: ${prompt}`);
-          console.log(`  max_tokens: ${maxTokens}`);
+          console.log(`  max_tokens: ${effectiveMaxTokens}`);
+          console.log(`  reasoning: ${JSON.stringify(modelConfig?.reasoning)}`);
         }
-        
+
         const response = await router.chatCompletion({
           provider,
           model,
           messages: [{ role: 'user', content: prompt }],
-          max_tokens: maxTokens
+          ...(effectiveMaxTokens !== undefined && {
+            max_tokens: effectiveMaxTokens,
+          }),
+          ...(modelConfig.reasoning && { reasoning: modelConfig.reasoning }),
+          ...(modelConfig.extra_body && { extra_body: modelConfig.extra_body }),
         });
 
         const responseTime = Date.now() - startTime;
@@ -170,24 +349,31 @@ export async function benchmarkCommand(context: CLIContext, options: BenchmarkOp
           status: 'success',
           responseTime,
           responseSize,
-          tokenUsage: response.usage ? {
-            prompt: response.usage.prompt_tokens,
-            completion: response.usage.completion_tokens,
-            total: response.usage.total_tokens
-          } : undefined,
+          tokenUsage: response.usage
+            ? {
+                prompt: response.usage.prompt_tokens,
+                completion: response.usage.completion_tokens,
+                total: response.usage.total_tokens,
+              }
+            : undefined,
           finishReason: response.choices[0]?.finish_reason,
-          response: responseContent
+          response: responseContent,
         };
 
         if (!options.json) {
-          console.log(`✅ ${responseTime}ms (${responseSize} chars)`);
+          // Clear the line and rewrite with success
+          process.stdout.clearLine(0);
+          process.stdout.cursorTo(0);
+          console.log(`✅ ${model} ${responseTime}ms (${responseSize} chars)`);
         }
 
         // Save response to file if output directory specified
         if (outputDir) {
           const sanitizedProvider = provider.replace(/[^a-z0-9]/gi, '_');
           const sanitizedModel = model.replace(/[^a-z0-9]/gi, '_');
-          const filename = `${sanitizedProvider}_${sanitizedModel}_${i + 1}.txt`;
+          const filename = `${sanitizedProvider}_${sanitizedModel}_${
+            i + 1
+          }.txt`;
           const filepath = join(outputDir, filename);
           const fileContent = `# Benchmark Result
 Provider: ${provider}
@@ -196,7 +382,11 @@ Iteration: ${i + 1}/${iterations}
 Response Time: ${responseTime}ms
 Response Size: ${responseSize} chars
 Finish Reason: ${result.finishReason}
-${result.tokenUsage ? `Token Usage: ${result.tokenUsage.prompt} prompt + ${result.tokenUsage.completion} completion = ${result.tokenUsage.total} total` : ''}
+${
+  result.tokenUsage
+    ? `Token Usage: ${result.tokenUsage.prompt} prompt + ${result.tokenUsage.completion} completion = ${result.tokenUsage.total} total`
+    : ''
+}
 
 ## Prompt
 ${prompt}
@@ -214,11 +404,18 @@ ${responseContent}
           status: 'error',
           responseTime,
           responseSize: 0,
-          error: error instanceof Error ? error.message : String(error)
+          error: error instanceof Error ? error.message : String(error),
         };
 
         if (!options.json) {
-          console.log(`❌ ${error instanceof Error ? error.message : String(error)}`);
+          // Clear the line and rewrite with error
+          process.stdout.clearLine(0);
+          process.stdout.cursorTo(0);
+          console.log(
+            `❌ ${model} ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
         }
       }
 
@@ -227,15 +424,38 @@ ${responseContent}
 
     // Calculate average if multiple iterations
     if (iterations > 1) {
-      const successfulRuns = iterationResults.filter(r => r.status === 'success');
+      const successfulRuns = iterationResults.filter(
+        (r) => r.status === 'success'
+      );
       if (successfulRuns.length > 0) {
-        const avgTime = successfulRuns.reduce((sum, r) => sum + r.responseTime, 0) / successfulRuns.length;
-        const avgSize = successfulRuns.reduce((sum, r) => sum + r.responseSize, 0) / successfulRuns.length;
-        const avgTokens = successfulRuns[0].tokenUsage ? {
-          prompt: Math.round(successfulRuns.reduce((sum, r) => sum + (r.tokenUsage?.prompt || 0), 0) / successfulRuns.length),
-          completion: Math.round(successfulRuns.reduce((sum, r) => sum + (r.tokenUsage?.completion || 0), 0) / successfulRuns.length),
-          total: Math.round(successfulRuns.reduce((sum, r) => sum + (r.tokenUsage?.total || 0), 0) / successfulRuns.length)
-        } : undefined;
+        const avgTime =
+          successfulRuns.reduce((sum, r) => sum + r.responseTime, 0) /
+          successfulRuns.length;
+        const avgSize =
+          successfulRuns.reduce((sum, r) => sum + r.responseSize, 0) /
+          successfulRuns.length;
+        const avgTokens = successfulRuns[0].tokenUsage
+          ? {
+              prompt: Math.round(
+                successfulRuns.reduce(
+                  (sum, r) => sum + (r.tokenUsage?.prompt || 0),
+                  0
+                ) / successfulRuns.length
+              ),
+              completion: Math.round(
+                successfulRuns.reduce(
+                  (sum, r) => sum + (r.tokenUsage?.completion || 0),
+                  0
+                ) / successfulRuns.length
+              ),
+              total: Math.round(
+                successfulRuns.reduce(
+                  (sum, r) => sum + (r.tokenUsage?.total || 0),
+                  0
+                ) / successfulRuns.length
+              ),
+            }
+          : undefined;
 
         results.push({
           provider,
@@ -245,7 +465,7 @@ ${responseContent}
           responseSize: Math.round(avgSize),
           tokenUsage: avgTokens,
           finishReason: successfulRuns[0].finishReason,
-          response: successfulRuns[0].response
+          response: successfulRuns[0].response,
         });
       } else {
         results.push(iterationResults[0]); // Use first error
@@ -265,9 +485,9 @@ ${responseContent}
       maxTokens,
       iterations,
       totalModels: results.length,
-      successful: results.filter(r => r.status === 'success').length,
-      failed: results.filter(r => r.status === 'error').length,
-      results: results.map(r => ({
+      successful: results.filter((r) => r.status === 'success').length,
+      failed: results.filter((r) => r.status === 'error').length,
+      results: results.map((r) => ({
         provider: r.provider,
         model: r.model,
         status: r.status,
@@ -277,8 +497,8 @@ ${responseContent}
         finishReason: r.finishReason,
         error: r.error,
         // Include first 200 chars of response for preview
-        responsePreview: r.response ? r.response.substring(0, 200) : undefined
-      }))
+        responsePreview: r.response ? r.response.substring(0, 200) : undefined,
+      })),
     };
     writeFileSync(summaryFile, JSON.stringify(summary, null, 2), 'utf-8');
     if (!options.json) {
@@ -291,7 +511,7 @@ ${responseContent}
     console.log(JSON.stringify(results, null, 2));
   } else {
     console.log('\n📊 Benchmark Results:\n');
-    
+
     // Sort by response time (successful ones first)
     const sortedResults = [...results].sort((a, b) => {
       if (a.status === 'success' && b.status === 'error') return -1;
@@ -299,37 +519,86 @@ ${responseContent}
       return a.responseTime - b.responseTime;
     });
 
-    // Print table
-    console.log('┌─────────────────────────────────────────────────────────────────────────┐');
-    console.log('│ Provider:Model                    │ Status  │ Time    │ Size  │ Tokens │');
-    console.log('├─────────────────────────────────────────────────────────────────────────┤');
-    
+    // Calculate column widths dynamically
+    const maxProviderLen = Math.max(
+      ...sortedResults.map((r) => r.provider.length),
+      8
+    );
+    const maxModelLen = Math.max(
+      ...sortedResults.map((r) => r.model.length),
+      5
+    );
+    const providerWidth = Math.min(maxProviderLen, 20);
+    const modelWidth = Math.min(maxModelLen, 60);
+    const totalWidth = providerWidth + modelWidth + 40; // +40 for other columns and padding
+
+    // Print table header
+    const headerLine = '─'.repeat(totalWidth);
+    console.log(`┌${headerLine}┐`);
+    console.log(
+      `│ ${'Provider'.padEnd(providerWidth)} │ ${'Model'.padEnd(
+        modelWidth
+      )} │ Status │  Time   │  Size │ Tokens │`
+    );
+    console.log(`├${headerLine}┤`);
+
     for (const result of sortedResults) {
-      const modelName = `${result.provider}:${result.model}`.substring(0, 32).padEnd(32);
-      const status = result.status === 'success' ? '✅ OK  ' : '❌ ERR ';
+      const provider = result.provider
+        .substring(0, providerWidth)
+        .padEnd(providerWidth);
+      const model = result.model.substring(0, modelWidth).padEnd(modelWidth);
+      const status = result.status === 'success' ? '✅ OK ' : '❌ ERR';
       const time = `${result.responseTime}ms`.padEnd(7);
       const size = `${result.responseSize}ch`.padEnd(5);
-      const tokens = result.tokenUsage ? `${result.tokenUsage.total}`.padEnd(6) : '-'.padEnd(6);
-      
-      console.log(`│ ${modelName} │ ${status} │ ${time} │ ${size} │ ${tokens} │`);
-      
-      if (result.status === 'error' && result.error) {
-        console.log(`│   Error: ${result.error.substring(0, 60).padEnd(60)} │`);
-      }
+      const tokens = result.tokenUsage
+        ? `${result.tokenUsage.total}`.padEnd(6)
+        : '-'.padEnd(6);
+
+      console.log(
+        `│ ${provider} │ ${model} │ ${status} │ ${time} │ ${size} │ ${tokens} │`
+      );
     }
-    
-    console.log('└─────────────────────────────────────────────────────────────────────────┘');
+
+    console.log(`└${headerLine}┘`);
 
     // Summary statistics
-    const successful = results.filter(r => r.status === 'success');
+    const successful = results.filter((r) => r.status === 'success');
+    const failed = results.filter((r) => r.status === 'error');
+
     if (successful.length > 0) {
+      const fastest = successful.reduce((min, r) =>
+        r.responseTime < min.responseTime ? r : min
+      );
+      const slowest = successful.reduce((max, r) =>
+        r.responseTime > max.responseTime ? r : max
+      );
+
       console.log('\n📈 Summary:');
       console.log(`  Total: ${results.length} models`);
       console.log(`  Successful: ${successful.length}`);
-      console.log(`  Failed: ${results.length - successful.length}`);
-      console.log(`  Fastest: ${Math.min(...successful.map(r => r.responseTime))}ms`);
-      console.log(`  Slowest: ${Math.max(...successful.map(r => r.responseTime))}ms`);
-      console.log(`  Average: ${Math.round(successful.reduce((sum, r) => sum + r.responseTime, 0) / successful.length)}ms`);
+      console.log(`  Failed: ${failed.length}`);
+      console.log(
+        `  Fastest: ${fastest.responseTime}ms (${fastest.provider}:${fastest.model})`
+      );
+      console.log(
+        `  Slowest: ${slowest.responseTime}ms (${slowest.provider}:${slowest.model})`
+      );
+      console.log(
+        `  Average: ${Math.round(
+          successful.reduce((sum, r) => sum + r.responseTime, 0) /
+            successful.length
+        )}ms`
+      );
+    }
+
+    // Error report (if any failures)
+    if (failed.length > 0) {
+      console.log('\n❌ Error Report:\n');
+      for (const result of failed) {
+        console.log(`  ${result.provider}:${result.model}`);
+        console.log(`    ${result.error}`);
+        console.log('');
+      }
     }
   }
 }

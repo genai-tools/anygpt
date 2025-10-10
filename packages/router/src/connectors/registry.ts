@@ -8,7 +8,6 @@ export interface ConnectorFactory {
 
 export class ConnectorRegistry {
   private factories = new Map<string, ConnectorFactory>();
-  private instances = new Map<string, IConnector>();
 
   registerConnector(factory: ConnectorFactory): void {
     const connectorType = factory.getProviderId(); // This is actually the connector type, not provider ID
@@ -18,34 +17,21 @@ export class ConnectorRegistry {
     }
   }
 
-  createConnector(providerId: string, config: ConnectorConfig = {}): IConnector {
+  createConnector(
+    providerId: string,
+    config: ConnectorConfig = {}
+  ): IConnector {
     const factory = this.factories.get(providerId);
     if (!factory) {
       throw new Error(`No connector registered for provider: ${providerId}`);
     }
 
-    // Create new instance
-    const connector = factory.create(config);
-    
-    // Store instance for reuse if needed
-    const instanceKey = `${providerId}_${JSON.stringify(config)}`;
-    this.instances.set(instanceKey, connector);
-    
-    return connector;
+    return factory.create(config);
   }
 
   getConnector(providerId: string, config: ConnectorConfig = {}): IConnector {
-    const instanceKey = `${providerId}_${JSON.stringify(config)}`;
-    
-    // Return existing instance if available
-    if (this.instances.has(instanceKey)) {
-      const existing = this.instances.get(instanceKey);
-      if (existing) {
-        return existing;
-      }
-    }
-
-    // Create new instance
+    // Connectors are stateless, just create a new instance
+    // For factory configs, the factory returns the pre-instantiated connector
     return this.createConnector(providerId, config);
   }
 
@@ -58,27 +44,19 @@ export class ConnectorRegistry {
   }
 
   unregisterConnector(providerId: string): boolean {
-    // Remove factory
-    const hadFactory = this.factories.delete(providerId);
-    
-    // Remove all instances for this provider
-    const instancesToRemove = Array.from(this.instances.keys())
-      .filter(key => key.startsWith(`${providerId}_`));
-    
-    instancesToRemove.forEach(key => this.instances.delete(key));
-    
-    return hadFactory;
+    return this.factories.delete(providerId);
   }
 
   clear(): void {
     this.factories.clear();
-    this.instances.clear();
   }
 
   // Utility method to get all models from all registered providers
-  async getAllModels(): Promise<Array<{ provider: string; models: unknown[] }>> {
+  async getAllModels(): Promise<
+    Array<{ provider: string; models: unknown[] }>
+  > {
     const results = [];
-    
+
     for (const [providerId, factory] of this.factories) {
       try {
         const connector = factory.create({});
@@ -88,7 +66,7 @@ export class ConnectorRegistry {
         console.warn(`Failed to get models from ${providerId}:`, error);
       }
     }
-    
+
     return results;
   }
 }

@@ -1,3 +1,18 @@
+## 1.0.1 (2025-10-09)
+
+### 📖 Documentation
+
+- **mcp:** update workflow documentation ([ce0d422](https://github.com/genai-tools/anygpt/commit/ce0d422))
+
+### 🧱 Updated Dependencies
+
+- Updated config to 1.1.0
+- Updated types to 1.1.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.5.1 (2025-10-09)
 
 ### 🧱 Updated Dependencies

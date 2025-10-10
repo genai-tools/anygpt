@@ -92,6 +92,7 @@ export default async function runExecutor(
       'packages/connectors/*/CHANGELOG.md',
     ],
     aiCommand,
+    aiTitleCommand,
     model,
     maxLinesPerFile = 150,
     diffPaths = ['packages/*/src/**', 'packages/connectors/*/src/**'],
@@ -102,6 +103,8 @@ export default async function runExecutor(
     model && aiCommand
       ? aiCommand.replace(/--model\s+\S+/, `--model ${model}`)
       : aiCommand;
+  
+  const finalAiTitleCommand = aiTitleCommand || finalAiCommand;
 
   try {
     console.log('🔄 Updating release PR...\n');
@@ -161,6 +164,8 @@ export default async function runExecutor(
       );
       try {
         const prDiff = await getPRDiff(existingPR);
+
+        // Step 1: Generate summary
         const aiSummary = await generateAISummary(
           changelog,
           releases,
@@ -171,13 +176,35 @@ export default async function runExecutor(
           }
         );
 
-        // Update PR with AI summary
+        console.log(`📝 AI Summary length: ${aiSummary.length} chars`);
+        if (aiSummary) {
+          console.log(
+            `📝 AI Summary preview: ${aiSummary.substring(0, 200)}...`
+          );
+        }
+
+        // Step 2: Build PR body with summary
         const prBodyWithAI = buildPRBody(aiSummary, releases);
-        await updatePR(existingPR, prBodyWithAI);
-        console.log('✅ PR description updated with AI summary');
+        console.log(`📄 PR Body length: ${prBodyWithAI.length} chars`);
+
+        // Step 3: Generate title from summary
+        console.log('🎯 Generating AI title from summary...');
+        const { generateAITitle } = await import('../../lib/ai-summary.js');
+        const aiTitle = await generateAITitle(
+          aiSummary,
+          changelog,
+          releases,
+          finalAiTitleCommand
+        );
+
+        // Step 4: Update PR with both title and body in one call
+        await updatePR(existingPR, prBodyWithAI, aiTitle || prTitle);
+        console.log(
+          `✅ PR updated with AI summary and title: "${aiTitle || prTitle}"`
+        );
       } catch (error) {
-        console.warn('⚠️  Failed to generate AI summary:', error);
-        console.log('   PR updated without AI summary');
+        console.warn('⚠️  Failed to generate AI content:', error);
+        console.log('   PR updated without AI enhancements');
       }
     }
 

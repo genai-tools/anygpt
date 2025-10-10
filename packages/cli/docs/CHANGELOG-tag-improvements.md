@@ -15,7 +15,7 @@ Improved tag-to-model resolution with better discoverability, clearer semantics,
 ```
 🏷️  Tags (showing unique tags with provider mappings):
   • sonnet          → [2 providers]
-      - Booking GenAI Gateway: ml-asset:static-model/claude-sonnet-4-5
+      - OpenAI: claude-sonnet-4-5
       - Sourcegraph Cody: anthropic::2024-10-22::claude-sonnet-4-latest
   • opus            → Sourcegraph Cody: anthropic::2024-10-22::claude-opus-4-latest
 ```
@@ -60,14 +60,14 @@ anygpt chat --model "anthropic::2024-10-22::claude-opus-4-latest" "Hello"
 **Solution**: Helpful error messages with troubleshooting steps:
 
 ```
-Error: Model 'nonexistent-model' not found or not supported by provider 'booking'.
+Error: Model 'nonexistent-model' not found or not supported by provider 'openai'.
 
 Troubleshooting:
-  1. Run 'anygpt list-tags --provider booking' to see available tags
-  2. Run 'anygpt list-models --provider booking' to see available models
+  1. Run 'anygpt list-tags --provider openai' to see available tags
+  2. Run 'anygpt list-models --provider openai' to see available models
   3. Use --tag instead of --model if you want tag resolution
 
-Original error: Chat completion failed for provider booking: booking chat completion failed: 422 status code (no body)
+Original error: Chat completion failed for provider openai: openai chat completion failed: 422 status code (no body)
 ```
 
 **Also handles**:

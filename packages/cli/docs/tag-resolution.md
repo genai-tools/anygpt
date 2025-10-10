@@ -48,7 +48,7 @@ anygpt chat --tag sonnet "Hello"
 anygpt chat --tag opus "Explain quantum computing"
 
 # Use provider:tag syntax (recommended for clarity)
-anygpt chat --tag booking:gemini "Hello"
+anygpt chat --tag openai:gemini "Hello"
 anygpt chat --tag cody:opus "Hello"
 
 # Or specify provider separately
@@ -122,7 +122,7 @@ export default config({
   },
   providers: {
     provider1: {
-      name: 'Company GenAI Gateway',
+      name: 'Custom Gateway',
       connector: openai({ baseURL: '...' }),
       models: {
         'ml-asset:static-model/claude-sonnet-4-5': {

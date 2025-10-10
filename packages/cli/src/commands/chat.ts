@@ -1,4 +1,5 @@
 import type { CLIContext } from '../utils/cli-context.js';
+import { resolveModel, resolveModelConfig } from '@anygpt/config';
 
 interface ChatOptions {
   provider?: string;
@@ -11,9 +12,6 @@ interface ChatOptions {
   usage?: boolean;
   stdin?: boolean;
 }
-
-// Import shared model resolution from config
-import { resolveModel as resolveModelShared } from '@anygpt/config';
 
 export async function chatCommand(
   context: CLIContext,
@@ -54,8 +52,8 @@ export async function chatCommand(
   let modelId: string;
 
   if (options.tag) {
-    // --tag: Resolve tag to model (explicit tag resolution)
-    // Support provider:tag syntax (e.g., "booking:gemini", "cody:sonnet")
+    // --tag: Resolve tag to model using tag registry
+    // Support provider:tag syntax (e.g., "openai:gemini", "cody:sonnet")
     let tagToResolve = options.tag;
     let explicitProvider: string | undefined;
 
@@ -70,25 +68,41 @@ export async function chatCommand(
       }
     }
 
-    const resolution = resolveModelShared(
-      tagToResolve,
-      {
-        providers: context.providers,
-        aliases: context.defaults.aliases,
-        defaultProvider: context.defaults.provider,
-      },
-      providerId
-    );
+    // Use tag registry if available (fast lookup)
+    if (context.tagRegistry) {
+      const resolution = context.tagRegistry.resolve(tagToResolve, providerId);
 
-    if (!resolution) {
-      throw new Error(
-        `Tag '${tagToResolve}' not found in provider '${providerId}'. ` +
-          `Run 'anygpt list-tags --provider ${providerId}' to see available tags.`
+      if (!resolution) {
+        throw new Error(
+          `Tag '${tagToResolve}' not found in provider '${providerId}'. ` +
+            `Run 'anygpt list-tags --provider ${providerId}' to see available tags.`
+        );
+      }
+
+      providerId = resolution.provider;
+      modelId = resolution.model;
+    } else {
+      // Fallback to old resolution method (for non-factory configs)
+      const resolution = resolveModel(
+        tagToResolve,
+        {
+          providers: context.providers,
+          aliases: context.defaults.aliases,
+          defaultProvider: context.defaults.provider,
+        },
+        providerId
       );
-    }
 
-    providerId = resolution.provider;
-    modelId = resolution.model;
+      if (!resolution) {
+        throw new Error(
+          `Tag '${tagToResolve}' not found in provider '${providerId}'. ` +
+            `Run 'anygpt list-tags --provider ${providerId}' to see available tags.`
+        );
+      }
+
+      providerId = resolution.provider;
+      modelId = resolution.model;
+    }
 
     if (explicitProvider) {
       context.logger.info(`🔗 Resolved tag '${options.tag}' → ${modelId}`);
@@ -124,16 +138,48 @@ export async function chatCommand(
   try {
     const startTime = Date.now();
 
-    const response = await context.router.chatCompletion({
+    // Resolve model configuration using rule matching
+    const providers = context.config?.providers || {};
+    const providerConfig = providers[providerId];
+    const globalRules = context.defaults?.modelRules;
+    const modelConfig = resolveModelConfig(
+      modelId,
+      providerId,
+      providerConfig,
+      globalRules
+    );
+
+    context.logger.debug('Model config:', {
+      model: modelId,
+      provider: providerId,
+      max_tokens: modelConfig.max_tokens,
+      useLegacyMaxTokens: modelConfig.useLegacyMaxTokens,
+    });
+
+    const requestParams = {
       provider: providerId,
       model: modelId,
       messages: [{ role: 'user', content: actualMessage }],
-      ...(options.maxTokens && { max_tokens: options.maxTokens }),
-    });
+      // CLI flag takes precedence over model config
+      ...((options.maxTokens || modelConfig.max_tokens) && {
+        max_tokens: options.maxTokens || modelConfig.max_tokens,
+        useLegacyMaxTokens: modelConfig.useLegacyMaxTokens, // Pass capability flag
+      }),
+      ...(modelConfig.reasoning && { reasoning: modelConfig.reasoning }),
+      ...(modelConfig.extra_body && { extra_body: modelConfig.extra_body }),
+    };
+
+    const response = await context.router.chatCompletion(requestParams);
 
     const duration = Date.now() - startTime;
 
     const reply = response.choices[0]?.message?.content;
+    const finishReason = response.choices[0]?.finish_reason;
+
+    // Debug: Log finish reason if response seems truncated
+    if (finishReason && finishReason !== 'stop') {
+      context.logger.debug(`⚠️  Finish reason: ${finishReason}`);
+    }
 
     // Print the actual response (clearly visible)
     if (reply) {
@@ -158,7 +204,10 @@ export async function chatCommand(
     }
 
     // Show usage info only if --usage flag is provided (for non-verbose mode)
-    if (options.usage && response.usage && !context.logger.info) {
+    // In verbose mode, usage is already shown above via context.logger.info
+    const isVerbose =
+      process.argv.includes('--verbose') || process.argv.includes('-v');
+    if (options.usage && response.usage && !isVerbose) {
       console.log('');
       console.log(
         `📊 Usage: ${response.usage.prompt_tokens} input + ${response.usage.completion_tokens} output = ${response.usage.total_tokens} tokens`
