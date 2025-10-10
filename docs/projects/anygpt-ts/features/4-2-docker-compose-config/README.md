@@ -8,6 +8,8 @@
 | **Use Case** | [Docker MCP Toolkit](../../../../products/anygpt/cases/docker-mcp-toolkit.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
+| **Technical Design** | [design.md](./design.md) |
+| **Testing Strategy** | [tests.md](./tests.md) |
 
 ---
 
@@ -30,25 +32,6 @@ Depends on: 4-1-docker-mcp-container
 - [ ] Volume mounts for config
 - [ ] Test deployment
 - [ ] Documentation
-
-## Technical Design
-
-**Compose Configuration**:
-- Single service: anygpt-mcp
-- Volumes: Config file mount
-- Environment: Provider API keys
-- Ports: Expose if needed
-
-**See [design.md](./design.md)** for detailed design.
-
-## Tests
-
-**Key tests**:
-- Deployment works with docker-compose up
-- MCP clients can connect
-- All examples from spec work
-
-**See [tests.md](./tests.md)** for detailed test scenarios.
 
 ## Dependencies
 
