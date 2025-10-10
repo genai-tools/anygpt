@@ -420,13 +420,19 @@ Create: `docs/projects/[project-name]/architecture.md`
   2. Write failing tests
   3. Implement to make tests pass
   4. Refactor with confidence
-- **Design before implementation** - Phase 0 is critical
-- **Specs are contracts** - Tests verify spec compliance
-- Roadmap is a living document - update as work progresses
+- **Feature folder naming**: `[phase]-[order]-[feature-name]` (e.g., `1-1-config-loader`, `3-5-cli-benchmark`)
+- **Feature title naming**: Clean, readable names (e.g., "Configuration Loader", "CLI: Benchmark Command")
+- **Benefits**:
+  - Folders sort in implementation order in file explorer
+  - Titles are professional and readable
+  - Phase dependencies are visually clear
+  - Easy to identify what comes next
+  - CLI features prefixed with "CLI:"
+  - Docker features prefixed with "Docker:"
+- roadmap is a living document - update as work progresses
 - Dependencies may change as implementation reveals new requirements
 - Phases can overlap if dependencies allow parallel work
 - Focus on WHAT and SEQUENCE, not WHO or WHEN
 - Use specs as source of truth for acceptance criteria
-- Link everything back to use cases to maintain focus on business value
 - Document architectural decisions in ADRs when significant
 - Code coverage threshold: 80% minimum
