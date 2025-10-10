@@ -8,7 +8,7 @@
 
 ## Overview
 
-Configuration loader that searches multiple locations, supports multiple formats (TypeScript, JavaScript, JSON, TOML), validates configuration, and dynamically loads connectors at runtime.
+Configuration loader that searches multiple locations, supports multiple formats (TypeScript, JavaScript, JSON), validates configuration, and dynamically loads connectors at runtime.
 
 **Implementation**: `packages/config/src/`  
 **Package**: `@anygpt/config`
@@ -25,7 +25,6 @@ Configuration loader that searches multiple locations, supports multiple formats
 - ✅ `loadConfigFile(path)` - Parse file based on extension
 - ✅ `loadTSConfig(path)` - TypeScript/JavaScript via jiti (Node.js 22+ native support)
 - ✅ `loadJSONConfig(path)` - JSON.parse
-- ✅ `loadTOMLConfig(path)` - TOML parsing for Codex compatibility
 - ✅ `resolvePath(path)` - Tilde expansion
 - ✅ `mergeConfigs()` - Deep merge with defaults
 
@@ -41,7 +40,6 @@ Configuration loader that searches multiple locations, supports multiple formats
 **defaults.ts** - Default Configuration
 
 - ✅ `getDefaultConfig()` - Returns default config (OpenAI + Mock)
-- ✅ `convertCodexToAnyGPTConfig()` - Codex TOML migration
 - ✅ Smart provider selection (OpenAI if API key, else Mock)
 
 **setup.ts** - Convenience Utilities
@@ -84,15 +82,6 @@ Configuration loader that searches multiple locations, supports multiple formats
 - ✅ Wildcard support (\*, \*\*, ?, [abc], {a,b,c})
 - ✅ Negation support (!pattern)
 
-**migrate.ts** - Codex Migration
-
-- ✅ `migrateFromCodex()` - Convert Codex TOML to AnyGPT config
-- ✅ `runMigration()` - CLI migration support
-
-**codex-parser.ts** - TOML Parsing
-
-- ✅ `parseCodexToml()` - Parse Codex TOML format
-
 ### Data Structures
 
 Uses types from `@anygpt/types` package:
@@ -129,7 +118,7 @@ interface ConnectorConfig {
 **Configuration Search Algorithm** (Implemented):
 
 1. If explicit path provided, use it
-2. Otherwise search in order (13 locations):
+2. Otherwise search in order (12 locations):
    - `./.anygpt/anygpt.config.ts` (private project, git-ignored)
    - `./.anygpt/anygpt.config.js`
    - `./.anygpt/anygpt.config.json`
@@ -139,7 +128,6 @@ interface ConnectorConfig {
    - `~/.anygpt/anygpt.config.ts` (user home)
    - `~/.anygpt/anygpt.config.js`
    - `~/.anygpt/anygpt.config.json`
-   - `~/.codex/config.toml` (Codex compatibility)
    - `/etc/anygpt/anygpt.config.ts` (system-wide)
    - `/etc/anygpt/anygpt.config.js`
    - `/etc/anygpt/anygpt.config.json`
@@ -150,7 +138,6 @@ interface ConnectorConfig {
 
 - `.ts`, `.js`, `.mjs` → jiti with tryNative (Node.js 22+ native TS support)
 - `.json` → JSON.parse
-- `.toml` → TOML parser (Codex compatibility)
 - ~~`.yaml`, `.yml`~~ → Not implemented (dropped)
 
 **Connector Loading** (Implemented):
@@ -172,7 +159,6 @@ interface ConnectorConfig {
 ### External Dependencies
 
 - ✅ `jiti` - TypeScript/JavaScript loading with Node.js 22+ native support
-- ✅ `@iarna/toml` - TOML parsing (Codex compatibility)
 - ❌ ~~`zod`~~ - Dropped (using basic validation)
 - ❌ ~~`yaml`~~ - Dropped (not needed)
 - ❌ ~~`cosmiconfig`~~ - Custom search logic implemented
@@ -266,7 +252,6 @@ All errors include:
 ### Phase 2: Format Support ✅
 
 - [x] Add TypeScript config support (jiti with tryNative) - `loader.ts:loadTSConfig()`
-- [x] Add TOML support (Codex compatibility) - `codex-parser.ts`
 - [x] Add format auto-detection - `loader.ts:loadConfigFile()`
 - ~~Add YAML support~~ - Dropped
 

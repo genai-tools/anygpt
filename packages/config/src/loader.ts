@@ -6,8 +6,7 @@ import { readFile, access } from 'fs/promises';
 import { join, resolve } from 'path';
 import { homedir } from 'os';
 import type { AnyGPTConfig, ConfigLoadOptions } from '@anygpt/types';
-import { getDefaultConfig, convertCodexToAnyGPTConfig } from './defaults.js';
-import { parseCodexToml } from './codex-parser.js';
+import { getDefaultConfig } from './defaults.js';
 import { ConfigParseError, ConfigValidationError } from './errors.js';
 
 /**
@@ -28,9 +27,6 @@ const DEFAULT_CONFIG_PATHS = [
   '~/.anygpt/anygpt.config.ts',
   '~/.anygpt/anygpt.config.js',
   '~/.anygpt/anygpt.config.json',
-
-  // Codex compatibility
-  '~/.codex/config.toml',
 
   // System config
   '/etc/anygpt/anygpt.config.ts',
@@ -102,19 +98,6 @@ async function loadTSConfig(path: string): Promise<AnyGPTConfig> {
 }
 
 /**
- * Load TOML config file (Codex compatibility)
- */
-async function loadTOMLConfig(path: string): Promise<AnyGPTConfig> {
-  try {
-    const content = await readFile(path, 'utf-8');
-    const codexConfig = parseCodexToml(content);
-    return convertCodexToAnyGPTConfig(codexConfig);
-  } catch (error) {
-    throw new ConfigParseError(path, error);
-  }
-}
-
-/**
  * Load JSON config file
  */
 async function loadJSONConfig(path: string): Promise<AnyGPTConfig> {
@@ -138,8 +121,6 @@ async function loadConfigFile(path: string): Promise<AnyGPTConfig> {
 
   if (path.endsWith('.json')) {
     return loadJSONConfig(resolvedPath);
-  } else if (path.endsWith('.toml')) {
-    return loadTOMLConfig(resolvedPath);
   } else {
     return loadTSConfig(resolvedPath);
   }
