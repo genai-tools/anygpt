@@ -25,9 +25,6 @@ Configuration loader that searches multiple locations, supports multiple formats
 ### Recent Updates
 - 2025-01-10: Created feature documentation, ready to start
 
-### Blockers
-None
-
 ## Implementation Plan
 
 ### Setup
@@ -68,8 +65,11 @@ None
 
 ## Dependencies
 
-**Internal**: `@anygpt/types`  
-**External**: `zod`, `yaml`
+| Type | Dependency | Description |
+|------|------------|-------------|
+| 📦 **Internal** | [@anygpt/types](../../packages/types/) | Shared type definitions |
+| 🌐 **External** | [zod](https://www.npmjs.com/package/zod) | Schema validation |
+| 🌐 **External** | [yaml](https://www.npmjs.com/package/yaml) | YAML parsing |
 
 ## Error Handling
 

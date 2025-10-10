@@ -22,8 +22,8 @@ Provider router that abstracts multiple AI providers, handles routing strategies
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
-### Blockers
-Depends on: 1-1-config-loader
+### Recent Updates
+- 2025-01-10: Feature documentation created
 
 ## Implementation Plan
 
@@ -69,5 +69,8 @@ Depends on: 1-1-config-loader
 
 ## Dependencies
 
-**Internal**: @anygpt/types, @anygpt/config  
-**External**: None
+| Type | Dependency | Description |
+|------|------------|-------------|
+| 🚫 **Blocks** | [Configuration Loader](../1-1-config-loader/) | Need config system first |
+| 📦 **Internal** | [@anygpt/types](../../packages/types/) | Shared type definitions |
+| 📦 **Internal** | [@anygpt/config](../../packages/config/) | Configuration management |

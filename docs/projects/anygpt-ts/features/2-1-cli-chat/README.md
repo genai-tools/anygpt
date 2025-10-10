@@ -22,9 +22,6 @@ Stateless single-turn AI interaction via CLI. Simple command for quick AI querie
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
-### Blockers
-Depends on: 1-1-config-loader, 1-2-provider-router, 1-3-connector-mock, 1-4-connector-openai
-
 ## Implementation Plan
 
 - [ ] Parse arguments (prompt, provider, model, options)

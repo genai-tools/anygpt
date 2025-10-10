@@ -22,9 +22,6 @@ Integration with Docker Desktop MCP Toolkit for multiple client support. Enables
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
-### Blockers
-Depends on: 4-2-docker-compose-config
-
 ## Implementation Plan
 
 - [ ] Docker MCP Toolkit compatibility testing

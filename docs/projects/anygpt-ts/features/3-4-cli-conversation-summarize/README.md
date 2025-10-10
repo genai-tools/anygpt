@@ -22,9 +22,6 @@ Reduce context length while preserving meaning using AI summarization. Compress 
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
-### Blockers
-Depends on: 3-2-cli-conversation
-
 ## Implementation Plan
 
 - [ ] Implement summarize subcommand

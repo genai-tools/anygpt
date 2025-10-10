@@ -22,9 +22,6 @@ Compare model performance across providers with detailed metrics. Helps users ch
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
-### Blockers
-Depends on: 1-2-provider-router, 1-3-connector-mock, 1-4-connector-openai
-
 ## Implementation Plan
 
 - [ ] Implement command parser

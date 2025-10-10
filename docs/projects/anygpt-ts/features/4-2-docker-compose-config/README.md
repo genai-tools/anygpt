@@ -22,9 +22,6 @@ Docker Compose configuration for easy deployment. Simplifies running AnyGPT MCP 
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
-### Blockers
-Depends on: 4-1-docker-mcp-container
-
 ## Implementation Plan
 
 - [ ] Create docker-compose.yml

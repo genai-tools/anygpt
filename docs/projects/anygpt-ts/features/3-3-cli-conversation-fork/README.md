@@ -22,9 +22,6 @@ Branch conversations to explore alternatives. Create a copy of conversation at s
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
-### Blockers
-Depends on: 3-2-cli-conversation
-
 ## Implementation Plan
 
 - [ ] Implement fork subcommand

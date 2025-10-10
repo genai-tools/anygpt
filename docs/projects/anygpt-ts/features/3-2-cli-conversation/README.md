@@ -22,9 +22,6 @@ Stateful multi-turn conversations with context management. Maintains conversatio
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
-### Blockers
-Depends on: 3-1-conversation-storage
-
 ## Implementation Plan
 
 - [ ] Implement start subcommand

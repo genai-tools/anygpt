@@ -22,9 +22,6 @@ Persistent conversation storage infrastructure. Stores conversation history for 
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
-### Blockers
-Depends on: 2-1-cli-chat
-
 ## Implementation Plan
 
 - [ ] Design storage format (JSON-based)

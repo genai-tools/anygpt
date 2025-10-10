@@ -348,9 +348,6 @@ Create: `docs/projects/[project-name]/features/[phase]-[order]-[feature-name]/RE
 ### Recent Updates
 - [Date]: [What was done]
 
-### Blockers
-[List blockers or "None"]
-
 ## Implementation Plan
 
 **Important**: Extract detailed tasks from design.md "Implementation Strategy" section.
@@ -382,8 +379,25 @@ Create: `docs/projects/[project-name]/features/[phase]-[order]-[feature-name]/RE
 
 ## Dependencies
 
-**Internal**: [List internal dependencies]  
-**External**: [List external dependencies]
+| Type | Dependency | Description |
+|------|------------|-------------|
+| 🚫 **Blocks** | [Feature Name](../[phase]-[order]-[feature-name]/) | Must be completed first |
+| 📦 **Internal** | [@org/package](../../packages/package/) | Internal package/module |
+| 🌐 **External** | [package-name](https://www.npmjs.com/package/package-name) | What it's used for |
+
+**Emoji Guide**:
+- 🚫 **Blocks** - Feature cannot start until this is complete (blocker)
+- 📦 **Internal** - Internal packages/modules from this monorepo
+- 🌐 **External** - External npm packages (link to npmjs.com)
+
+**Example**:
+```markdown
+| Type | Dependency | Description |
+|------|------------|-------------|
+| 🚫 **Blocks** | [Configuration Loader](../1-1-config-loader/) | Need config system first |
+| 📦 **Internal** | [@anygpt/types](../../packages/types/) | Shared type definitions |
+| 🌐 **External** | [zod](https://www.npmjs.com/package/zod) | Schema validation |
+```
 ```
 
 ## Quality Checklist
@@ -423,6 +437,13 @@ Before marking feature as complete:
 - Use checkboxes for tracking progress
 - Keep tasks actionable and specific
 - Update progress counts in project README
+
+### Dependency Management
+- Use emoji indicators: 🚫 Blocks, 📦 Internal, 🌐 External
+- Link to feature READMEs for blockers
+- Link to package folders for internal deps
+- Link to npmjs.com for external deps
+- Consolidate blockers into Dependencies table (no separate Blockers section)
 
 ### Naming Conventions
 - **Folders**: Phase-prefixed (e.g., `1-1-config-loader`)
