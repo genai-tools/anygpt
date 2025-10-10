@@ -22,9 +22,6 @@ Container image for MCP server deployment. Enables easy deployment of AnyGPT MCP
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
-### Blockers
-Depends on: 2-3-mcp-server-core
-
 ## Implementation Plan
 
 - [ ] Create Dockerfile (Node.js base)
