@@ -57,13 +57,24 @@ export const createNodesV2: CreateNodesV2 = [
           command: 'npx tsdown',
           cwd: projectRoot,
         },
-        outputs: [`{projectRoot}/dist`],
+        outputs: [
+          // All build artifacts in dist directory
+          `{projectRoot}/dist`,
+          // Explicitly list key outputs for better cache granularity
+          `{projectRoot}/dist/**/*.js`,
+          `{projectRoot}/dist/**/*.d.ts`,
+          `{projectRoot}/dist/**/*.map`,
+        ],
         cache: true,
         inputs: [
+          // Project source files
           `{projectRoot}/src/**/*.ts`,
           `{projectRoot}/tsconfig.lib.json`,
           `{projectRoot}/tsdown.config.ts`,
           `{projectRoot}/package.json`,
+          // Include dependency source files to invalidate cache when dependencies change
+          // This ensures that changes in @anygpt/types, @anygpt/router, etc. invalidate dependent packages
+          `^production`,
           { externalDependencies: ['tsdown'] },
         ],
         dependsOn: ['^build'],
@@ -102,4 +113,3 @@ export const createNodesV2: CreateNodesV2 = [
     });
   },
 ];
-
