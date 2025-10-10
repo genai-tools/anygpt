@@ -15,12 +15,42 @@ TypeScript implementation of AnyGPT - a comprehensive ecosystem for building AI-
 
 ## Status
 
-- **Phase 1**: ❌ Not Started (0/4 features) - Foundation
-- **Phase 2**: ❌ Not Started (0/3 features) - Core Applications
-- **Phase 3**: ❌ Not Started (0/5 features) - Advanced Features
-- **Phase 4**: ❌ Not Started (0/3 features) - Integrations
-
 **Overall**: 0/15 features (0%)
+
+### Phase 1: Foundation (0/4)
+
+| Feature | Status | Progress |
+|---------|--------|----------|
+| [1-1-config-loader](./features/1-1-config-loader/) | ❌ Not Started | 0/23 tasks |
+| [1-2-provider-router](./features/1-2-provider-router/) | ❌ Not Started | 0/15 tasks |
+| [1-3-connector-mock](./features/1-3-connector-mock/) | ❌ Not Started | 0/5 tasks |
+| [1-4-connector-openai](./features/1-4-connector-openai/) | ❌ Not Started | 0/6 tasks |
+
+### Phase 2: Core Applications (0/3)
+
+| Feature | Status | Progress |
+|---------|--------|----------|
+| [2-1-cli-chat](./features/2-1-cli-chat/) | ❌ Not Started | 0/8 tasks |
+| [2-2-cli-config](./features/2-2-cli-config/) | ❌ Not Started | 0/6 tasks |
+| [2-3-mcp-server-core](./features/2-3-mcp-server-core/) | ❌ Not Started | 0/10 tasks |
+
+### Phase 3: Advanced Features (0/5)
+
+| Feature | Status | Progress |
+|---------|--------|----------|
+| [3-1-conversation-storage](./features/3-1-conversation-storage/) | ❌ Not Started | 0/7 tasks |
+| [3-2-cli-conversation](./features/3-2-cli-conversation/) | ❌ Not Started | 0/12 tasks |
+| [3-3-cli-conversation-fork](./features/3-3-cli-conversation-fork/) | ❌ Not Started | 0/5 tasks |
+| [3-4-cli-conversation-summarize](./features/3-4-cli-conversation-summarize/) | ❌ Not Started | 0/6 tasks |
+| [3-5-cli-benchmark](./features/3-5-cli-benchmark/) | ❌ Not Started | 0/10 tasks |
+
+### Phase 4: Integrations (0/3)
+
+| Feature | Status | Progress |
+|---------|--------|----------|
+| [4-1-docker-mcp-container](./features/4-1-docker-mcp-container/) | ❌ Not Started | 0/6 tasks |
+| [4-2-docker-compose-config](./features/4-2-docker-compose-config/) | ❌ Not Started | 0/5 tasks |
+| [4-3-docker-mcp-toolkit-integration](./features/4-3-docker-mcp-toolkit-integration/) | ❌ Not Started | 0/4 tasks |
 
 ## Quick Start
 
