@@ -4,8 +4,8 @@
 |---|---|
 | **Status** | ❌ Not Started |
 | **Progress** | 0/10 tasks |
-| **Spec** | [Benchmark Command](../../../../../products/anygpt/specs/anygpt/cli/benchmark.md) |
-| **Use Case** | [Model Benchmarking](../../../../../products/anygpt/cases/model-benchmarking.md) |
+| **Spec** | [Benchmark Command](../../../../products/anygpt/specs/anygpt/cli/benchmark.md) |
+| **Use Case** | [Model Benchmarking](../../../../products/anygpt/cases/model-benchmarking.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
 

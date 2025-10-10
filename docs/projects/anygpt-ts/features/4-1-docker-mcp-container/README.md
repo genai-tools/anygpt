@@ -4,8 +4,8 @@
 |---|---|
 | **Status** | ❌ Not Started |
 | **Progress** | 0/6 tasks |
-| **Spec** | [Docker MCP Toolkit](../../../../../products/anygpt/specs/anygpt/docker-mcp-toolkit.md) |
-| **Use Case** | [Docker MCP Toolkit](../../../../../products/anygpt/cases/docker-mcp-toolkit.md) |
+| **Spec** | [Docker MCP Toolkit](../../../../products/anygpt/specs/anygpt/docker-mcp-toolkit.md) |
+| **Use Case** | [Docker MCP Toolkit](../../../../products/anygpt/cases/docker-mcp-toolkit.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
 
