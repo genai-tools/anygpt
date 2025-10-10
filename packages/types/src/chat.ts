@@ -17,7 +17,12 @@ export interface ChatCompletionRequest {
   messages: ChatMessage[];
   model?: string;
   temperature?: number;
+  // Maximum tokens for completion
+  // Will be sent as max_tokens or max_completion_tokens based on useLegacyMaxTokens
   max_tokens?: number;
+  // Capability flag from config - determines parameter name
+  // Internal use only, not sent to API
+  useLegacyMaxTokens?: boolean;
   top_p?: number;
   frequency_penalty?: number;
   presence_penalty?: number;
