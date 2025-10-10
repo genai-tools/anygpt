@@ -1,0 +1,100 @@
+# AnyGPT TypeScript
+
+**Status**: Planning  
+**Technology**: TypeScript, Node.js, Nx
+
+## Overview
+
+TypeScript implementation of AnyGPT - a comprehensive ecosystem for building AI-powered applications with support for multiple providers, flexible configuration, CLI tools, and MCP protocol integration.
+
+## Documentation
+
+- [Architecture](./architecture.md) - System design, components, and key decisions
+- [Roadmap](./roadmap.md) - Feature list and implementation phases
+- [Features](./features/) - Individual feature designs
+
+## Status
+
+- **Phase 1**: ❌ Not Started (0/4 features) - Foundation
+- **Phase 2**: ❌ Not Started (0/3 features) - Core Applications
+- **Phase 3**: ❌ Not Started (0/5 features) - Advanced Features
+- **Phase 4**: ❌ Not Started (0/3 features) - Integrations
+
+**Overall**: 0/15 features (0%)
+
+## Quick Start
+
+### For Developers
+
+1. Review the [Architecture](./architecture.md) to understand the system design
+2. Check the [Roadmap](./roadmap.md) for feature priorities
+3. Start with Phase 1 features in order:
+   - `1-1-config-loader` - Configuration loading
+   - `1-2-provider-router` - Provider abstraction
+   - `1-3-connector-mock` - Mock connector for testing
+   - `1-4-connector-openai` - OpenAI connector
+
+### For Contributors
+
+Each feature has complete documentation:
+- `design.md` - Technical design and implementation approach
+- `tests.md` - Test scenarios (TDD approach)
+- `status.md` - Progress tracking and task list
+
+## Structure
+
+```
+anygpt-ts/
+├── README.md           # This file
+├── architecture.md     # System design
+├── roadmap.md         # Feature roadmap
+└── features/          # Feature designs
+    ├── 1-1-config-loader/
+    │   ├── design.md
+    │   ├── tests.md
+    │   └── status.md
+    ├── 1-2-provider-router/
+    ├── 1-3-connector-mock/
+    ├── 1-4-connector-openai/
+    ├── 2-1-cli-chat/
+    ├── 2-2-cli-config/
+    ├── 2-3-mcp-server-core/
+    ├── 3-1-conversation-storage/
+    ├── 3-2-cli-conversation/
+    ├── 3-3-cli-conversation-fork/
+    ├── 3-4-cli-conversation-summarize/
+    ├── 3-5-cli-benchmark/
+    ├── 4-1-docker-mcp-container/
+    ├── 4-2-docker-compose-config/
+    └── 4-3-docker-mcp-toolkit-integration/
+```
+
+## Implementation Approach
+
+1. **TDD**: Write tests before implementation
+2. **Phased**: Complete Phase 1 before Phase 2
+3. **Documented**: Update status.md as you progress
+4. **Reviewed**: Architecture consistency checks
+
+## Technology Stack
+
+### Core
+- **Language**: TypeScript
+- **Runtime**: Node.js 18+
+- **Build**: Nx monorepo, tsdown
+- **Package Manager**: npm/pnpm
+
+### CLI
+- **Framework**: commander
+- **Validation**: zod
+- **Testing**: Vitest
+
+### MCP
+- **Protocol**: JSON-RPC 2.0
+- **Transport**: stdin/stdout
+
+## Related Documentation
+
+- **Product Specs**: [../../products/anygpt/specs/](../../products/anygpt/specs/)
+- **Use Cases**: [../../products/anygpt/cases/](../../products/anygpt/cases/)
+- **Workflows**: [../../../.windsurf/workflows/docs/](../../../.windsurf/workflows/docs/)

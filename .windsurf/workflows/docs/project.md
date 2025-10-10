@@ -82,7 +82,62 @@ Before diving into features, create high-level architecture document:
 
 **Optional**: Architecture Decision Records (ADRs) in `docs/projects/[project-name]/decisions/`
 
-## Step 10: Create Phased Roadmap
+## Step 6: Create Project README
+
+Create project overview document:
+
+**Output**: `docs/projects/[project-name]/README.md`
+
+**README must include**:
+- **Project name and description**: What is this project?
+- **Technology stack**: Languages, frameworks, tools
+- **Status**: Planning, In Progress, Complete
+- **Documentation links**: Architecture, Roadmap, Features
+- **Quick start**: How to get started with this project
+- **Structure**: Brief overview of project organization
+
+**Template**:
+```markdown
+# [Project Name]
+
+**Status**: Planning | In Progress | Complete  
+**Technology**: [e.g., TypeScript, Node.js, Nx]
+
+## Overview
+
+[Brief description of what this project implements]
+
+## Documentation
+
+- [Architecture](./architecture.md) - System design and components
+- [Roadmap](./roadmap.md) - Feature list and implementation phases
+- [Features](./features/) - Individual feature designs
+
+## Status
+
+- **Phase 1**: ❌ Not Started (0/N features)
+- **Phase 2**: ❌ Not Started (0/N features)
+- **Phase 3**: ❌ Not Started (0/N features)
+- **Phase 4**: ❌ Not Started (0/N features)
+
+## Quick Start
+
+[How to start working on this project]
+
+## Structure
+
+\`\`\`
+[project-name]/
+├── architecture.md    # System design
+├── roadmap.md        # Feature roadmap
+└── features/         # Feature designs
+    ├── 1-1-[name]/
+    ├── 1-2-[name]/
+    └── ...
+\`\`\`
+```
+
+## Step 7: Create Phased Roadmap
 
 Organize into phases based on dependencies:
 
@@ -93,7 +148,7 @@ Organize into phases based on dependencies:
 - **Phase 3**: Advanced features (depends on core)
 - **Phase 4**: Integrations (depends on advanced)
 
-## Step 10: Define Test Scenarios (TDD)
+## Step 8: Define Test Scenarios (TDD)
 
 For each unimplemented item, define test scenarios **before** implementation:
 
