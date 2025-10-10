@@ -4,6 +4,8 @@
 
 This document specifies the MCP server component implementation requirements, protocol compliance, and configuration interface.
 
+**Related Use Case**: [MCP Server for Cross-Component Agents](../use-cases/mcp-server.md) - See business value and expected outcomes.
+
 ## MCP Protocol Implementation
 
 ### Supported MCP Methods

@@ -1,39 +1,43 @@
-{{ ... }}
+# AnyGPT Technical Specifications
 
-## Documentation Structure
+Technical specifications defining **WHAT** we build and **HOW** it works.
 
-This specification documents the AnyGPT ecosystem architecture:
+## 📋 Specifications
 
-- **[CLI Interface](./cli/README.md)** - Command-line interface design and concepts
-- **[Components Design](./components.md)** - System architecture and component specifications *(Legacy - needs update)*
-- **[Client Configuration](./client.md)** - MCP client setup and configuration
-- **[MCP Server](./mcp-server.md)** - MCP server implementation details
-- **[Docker Integration](./docker.md)** - Containerization and deployment *(Legacy - needs update)*
+### Core Components
+- **[CLI Interface](./cli/README.md)** - Command-line interface design ([Use Case: Conversations](../use-cases/conversations.md))
+- **[MCP Server](./mcp-server.md)** - MCP protocol implementation ([Use Case: Cross-Component Agents](../use-cases/mcp-server.md))
+- **[Components Design](./components.md)** - System architecture *(Legacy - needs update)*
+- **[Client Configuration](./client.md)** - MCP client setup ([Use Case: Flexible Configuration](../use-cases/flexible-configuration.md))
+- **[Docker Integration](./docker.md)** - Containerization *(Legacy - needs update)*
 
-### CLI Command Specifications
-
-- **[Chat Command](./cli/chat.md)** - Stateless AI interaction model
-- **[Conversation Command](./cli/conversation.md)** - Stateful interaction with advanced features  
-- **[Config Command](./cli/config.md)** - Configuration management system
+### CLI Commands
+- **[Chat Command](./cli/chat.md)** - Stateless AI interaction
+- **[Conversation Command](./cli/conversation.md)** - Stateful interaction ([Use Case: Context Optimization](../use-cases/context-optimization.md))
+- **[Config Command](./cli/config.md)** - Configuration management
 
 ## 1. Introduction
 
 ### Goal
 Create a comprehensive TypeScript ecosystem for building AI-powered applications with support for multiple providers, flexible configuration, CLI tools, and MCP protocol integration.
 
-### Problem
-- **Complex AI Integration**: Different provider APIs, authentication methods, and response formats
-- **Configuration Management**: Need for flexible, dynamic connector loading without hardcoded dependencies
-- **Protocol Translation**: MCP clients need bridge to AI provider APIs
-- **Developer Experience**: Need unified interface for AI interactions across different use cases
+### Problems Solved
 
-### Solution
-Develop a **modular AnyGPT ecosystem** that provides:
-- **Type-safe foundation**: Pure type definitions with zero runtime overhead
-- **Flexible router system**: Provider abstraction with connector pattern
-- **Dynamic configuration**: Runtime connector loading based on configuration
-- **CLI interface**: Command-line tool for AI interactions and conversation management
-- **MCP server**: Protocol translator for MCP clients
+See [Use Cases](../use-cases/) for detailed problem statements and business value:
+- **[Provider Lock-in](../use-cases/provider-agnostic-chat.md)**: Vendor-specific APIs require code rewrites
+- **[Configuration Complexity](../use-cases/flexible-configuration.md)**: Hardcoded settings, no type safety
+- **[MCP Limitations](../use-cases/mcp-server.md)**: MCP clients locked to single providers
+- **[Cost Management](../use-cases/cost-optimization.md)**: No intelligent model routing
+- **[Testing Challenges](../use-cases/rapid-prototyping.md)**: Expensive, slow, non-deterministic tests
+
+### Solution Architecture
+
+**Modular ecosystem** with:
+- **Type-safe foundation**: Zero runtime overhead
+- **Provider abstraction**: Unified interface for any AI provider
+- **Dynamic configuration**: Runtime connector loading
+- **CLI tools**: Chat and conversation management
+- **MCP server**: Protocol bridge for MCP clients
 
 ## 2. Objectives
 

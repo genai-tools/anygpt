@@ -44,3 +44,14 @@ const provider = isComplexTask ? 'premium' : 'cheap';
 - Save ~$20,000/month (68% cost reduction)
 - Maintain quality where it matters
 - Simple queries still get instant, accurate responses
+
+## Real-World Example
+
+See our [Chess Game Exercise](./cross_agent_interaction/chess-game-exercise.md) for a detailed case study on cost optimization through intelligent model routing. The exercise demonstrates:
+
+- **Orchestrator + Specialist pattern**: Fast model (Gemini Flash) handles 80% of decisions, expensive model (Claude Sonnet) only for critical moves
+- **Stateless context compression**: Using FEN notation keeps context constant (~50 chars) regardless of game length
+- **Token reduction**: 80-90% reduction compared to traditional conversation history approach
+- **Cost savings**: Significant reduction in API costs while maintaining strategic quality
+
+This pattern applies to any multi-step workflow where some decisions are routine and others require deep reasoning.
