@@ -4,8 +4,8 @@
 |---|---|
 | **Status** | ❌ Not Started |
 | **Progress** | 0/6 tasks |
-| **Spec** | [OpenAI Connector](../../../../../products/anygpt/specs/README.md#provider-connectors) |
-| **Use Case** | [Provider Agnostic Chat](../../../../../products/anygpt/cases/provider-agnostic-chat.md) |
+| **Spec** | [OpenAI Connector](../../../../products/anygpt/specs/README.md#provider-connectors) |
+| **Use Case** | [Provider Agnostic Chat](../../../../products/anygpt/cases/provider-agnostic-chat.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
 

@@ -4,8 +4,8 @@
 |---|---|
 | **Status** | ❌ Not Started |
 | **Progress** | 0/6 tasks |
-| **Spec** | [Conversation Summarize](../../../../../products/anygpt/specs/anygpt/cli/conversation.md) |
-| **Use Case** | [Context Optimization](../../../../../products/anygpt/cases/context-optimization.md) |
+| **Spec** | [Conversation Summarize](../../../../products/anygpt/specs/anygpt/cli/conversation.md) |
+| **Use Case** | [Context Optimization](../../../../products/anygpt/cases/context-optimization.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
 

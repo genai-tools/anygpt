@@ -4,8 +4,8 @@
 |---|---|
 | **Status** | ❌ Not Started |
 | **Progress** | 0/12 tasks |
-| **Spec** | [Conversation Command](../../../../../products/anygpt/specs/anygpt/cli/conversation.md) |
-| **Use Case** | [Conversations](../../../../../products/anygpt/cases/conversations.md) |
+| **Spec** | [Conversation Command](../../../../products/anygpt/specs/anygpt/cli/conversation.md) |
+| **Use Case** | [Conversations](../../../../products/anygpt/cases/conversations.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
 

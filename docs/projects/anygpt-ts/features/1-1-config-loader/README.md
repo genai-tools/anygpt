@@ -4,8 +4,8 @@
 |---|---|
 | **Status** | ❌ Not Started |
 | **Progress** | 0/24 tasks |
-| **Spec** | [Configuration Loader](../../../../../products/anygpt/specs/README.md#configuration-loader) |
-| **Use Case** | [Flexible Configuration](../../../../../products/anygpt/cases/flexible-configuration.md) |
+| **Spec** | [Configuration Loader](../../../../products/anygpt/specs/README.md#configuration-loader) |
+| **Use Case** | [Flexible Configuration](../../../../products/anygpt/cases/flexible-configuration.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
 

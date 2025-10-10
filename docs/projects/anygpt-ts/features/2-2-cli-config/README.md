@@ -4,8 +4,8 @@
 |---|---|
 | **Status** | ❌ Not Started |
 | **Progress** | 0/6 tasks |
-| **Spec** | [Config Command](../../../../../products/anygpt/specs/anygpt/cli/config.md) |
-| **Use Case** | [Flexible Configuration](../../../../../products/anygpt/cases/flexible-configuration.md) |
+| **Spec** | [Config Command](../../../../products/anygpt/specs/anygpt/cli/config.md) |
+| **Use Case** | [Flexible Configuration](../../../../products/anygpt/cases/flexible-configuration.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
 
