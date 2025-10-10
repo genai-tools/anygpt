@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
@@ -10,8 +10,12 @@ import {
   ReadResourceRequestSchema,
   ListPromptsRequestSchema,
   GetPromptRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
-import { setupRouterFromFactory, type FactoryProviderConfig, type ModelAlias } from "@anygpt/config";
+} from '@modelcontextprotocol/sdk/types.js';
+import {
+  setupRouterFromFactory,
+  type FactoryProviderConfig,
+  type ModelAlias,
+} from '@anygpt/config';
 import {
   listTools,
   handleChatCompletion,
@@ -20,10 +24,14 @@ import {
   handleListTags,
   type ChatCompletionToolArgs,
   type ListModelsToolArgs,
-} from "./lib/tools.js";
-import { listResources, listResourceTemplates, readResource } from "./lib/resources.js";
-import { listPrompts, getPrompt } from "./lib/prompts.js";
-import { logger } from "./lib/logger.js";
+} from './lib/tools.js';
+import {
+  listResources,
+  listResourceTemplates,
+  readResource,
+} from './lib/resources.js';
+import { listPrompts, getPrompt } from './lib/prompts.js';
+import { logger } from './lib/logger.js';
 
 // Application state
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -37,29 +45,39 @@ async function initializeRouter() {
   try {
     // Try to load config from standard location
     const configPath = process.env.CONFIG_PATH || './.anygpt/anygpt.config.ts';
-    const absoluteConfigPath = new URL(configPath, `file://${process.cwd()}/`).href;
+    const absoluteConfigPath = new URL(configPath, `file://${process.cwd()}/`)
+      .href;
     const module = await import(absoluteConfigPath);
     const config = module.default;
-    
-    const { router: r, config: c } = await setupRouterFromFactory(config);
+
+    // Pass the MCP logger to setup so it gets injected into all connectors
+    const { router: r, config: c } = await setupRouterFromFactory(
+      config,
+      logger
+    );
     router = r;
     defaultProvider = c.defaults?.provider;
     defaultModel = c.defaults?.model;
     configuredProviders = c.providers || {};
     aliases = c.defaults?.aliases;
-    
+
     const providersList = Object.keys(configuredProviders).join(', ') || 'none';
     const aliasesList = aliases ? Object.keys(aliases).join(', ') : 'none';
-    
+
     logger.info('Initialized successfully');
     logger.info(`Config: ${configPath}`);
     logger.info(`Providers: ${providersList}`);
-    logger.info(`Default: ${defaultProvider || 'none'}/${defaultModel || 'none'}`);
+    logger.info(
+      `Default: ${defaultProvider || 'none'}/${defaultModel || 'none'}`
+    );
     if (aliases) {
       logger.info(`Aliases: ${aliasesList}`);
     }
   } catch (error) {
-    logger.error('Failed to load config', error instanceof Error ? error : undefined);
+    logger.error(
+      'Failed to load config',
+      error instanceof Error ? error : undefined
+    );
     logger.error('Server cannot start without valid config');
     throw error;
   }
@@ -68,8 +86,8 @@ async function initializeRouter() {
 // Create MCP server instance
 const server = new Server(
   {
-    name: "@anygpt/mcp",
-    version: "0.0.1",
+    name: '@anygpt/mcp',
+    version: '0.0.1',
   },
   {
     capabilities: {
@@ -102,16 +120,22 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
     let result;
     switch (name) {
-      case "anygpt_chat_completion":
-        result = await handleChatCompletion((args ?? {}) as ChatCompletionToolArgs, context);
+      case 'anygpt_chat_completion':
+        result = await handleChatCompletion(
+          (args ?? {}) as ChatCompletionToolArgs,
+          context
+        );
         break;
-      case "anygpt_list_models":
-        result = await handleListModels((args ?? {}) as ListModelsToolArgs, context);
+      case 'anygpt_list_models':
+        result = await handleListModels(
+          (args ?? {}) as ListModelsToolArgs,
+          context
+        );
         break;
-      case "anygpt_list_providers":
+      case 'anygpt_list_providers':
         result = handleListProviders(context);
         break;
-      case "anygpt_list_tags":
+      case 'anygpt_list_tags':
         result = handleListTags((args ?? {}) as { provider?: string }, context);
         break;
       default:
@@ -121,7 +145,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     return {
       content: [
         {
-          type: "text",
+          type: 'text',
           text: JSON.stringify(result, null, 2),
         },
       ],
@@ -130,8 +154,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     return {
       content: [
         {
-          type: "text",
-          text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+          type: 'text',
+          text: `Error: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
         },
       ],
       isError: true,
@@ -171,13 +197,16 @@ async function main() {
   try {
     // Initialize router from config first
     await initializeRouter();
-    
+
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    
+
     logger.info('Server started and listening on stdio');
   } catch (error) {
-    logger.error('Failed to start server', error instanceof Error ? error : undefined);
+    logger.error(
+      'Failed to start server',
+      error instanceof Error ? error : undefined
+    );
     process.exit(1);
   }
 }
