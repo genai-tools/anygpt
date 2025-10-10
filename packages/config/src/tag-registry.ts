@@ -69,12 +69,9 @@ export async function buildTagRegistry(
       const connector = providerConfig.connector;
       const modelInfos = await connector.listModels();
       actualModels = modelInfos.map((m) => m.id);
-    } catch (error) {
-      console.warn(
-        `Failed to fetch models from provider '${providerId}':`,
-        error
-      );
-      // Continue with explicit models only
+    } catch {
+      // Failed to fetch models - continue with explicit models only
+      // Error will be visible when user tries to use the provider
     }
 
     // Step 3: Apply provider-level modelRules to actual models

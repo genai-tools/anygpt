@@ -81,6 +81,21 @@ function applyRule(
     }
   }
 
+  // Apply or override useLegacyMaxTokens capability
+  if (
+    rule.useLegacyMaxTokens !== undefined &&
+    !locked.has('useLegacyMaxTokens')
+  ) {
+    if (priority === 'provider') {
+      // Provider rules can override global rules
+      resolved.useLegacyMaxTokens = rule.useLegacyMaxTokens;
+      locked.add('useLegacyMaxTokens'); // Lock after first provider rule match
+    } else if (resolved.useLegacyMaxTokens === undefined) {
+      // Global rules only apply if not already set
+      resolved.useLegacyMaxTokens = rule.useLegacyMaxTokens;
+    }
+  }
+
   // Merge extra_body (later rules can add to it, never locked)
   if (rule.extra_body) {
     resolved.extra_body = { ...resolved.extra_body, ...rule.extra_body };
@@ -163,6 +178,10 @@ export function resolveModelConfig(
     if (modelMetadata.max_tokens !== undefined) {
       resolved.max_tokens = modelMetadata.max_tokens;
       locked.add('max_tokens'); // Lock max_tokens from model metadata
+    }
+    if (modelMetadata.useLegacyMaxTokens !== undefined) {
+      resolved.useLegacyMaxTokens = modelMetadata.useLegacyMaxTokens;
+      locked.add('useLegacyMaxTokens'); // Lock capability from model metadata
     }
     if (modelMetadata.extra_body !== undefined) {
       resolved.extra_body = { ...modelMetadata.extra_body };

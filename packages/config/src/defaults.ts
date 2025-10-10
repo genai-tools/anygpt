@@ -26,10 +26,10 @@ export interface CodexConfig {
 export function getDefaultConfig(): AnyGPTConfig {
   return {
     version: '1.0',
-    
+
     providers: {
       // OpenAI as primary provider
-      'openai': {
+      openai: {
         name: 'OpenAI',
         connector: {
           connector: '@anygpt/openai',
@@ -37,58 +37,60 @@ export function getDefaultConfig(): AnyGPTConfig {
             apiKey: process.env['OPENAI_API_KEY'],
             baseURL: 'https://api.openai.com/v1',
             timeout: 30000,
-            maxRetries: 3
-          }
+            maxRetries: 3,
+          },
         },
         settings: {
-          defaultModel: 'gpt-4o-mini'
-        }
+          defaultModel: 'gpt-4o-mini',
+        },
       },
-      
+
       // Mock provider for testing (always available)
-      'mock': {
+      mock: {
         name: 'Mock Provider (Testing)',
         connector: {
           connector: '@anygpt/mock',
           config: {
             delay: 100,
-            failureRate: 0
-          }
+            failureRate: 0,
+          },
         },
         settings: {
-          defaultModel: 'mock-gpt-4'
-        }
-      }
+          defaultModel: 'mock-gpt-4',
+        },
+      },
     },
-    
+
     settings: {
       defaultProvider: process.env['OPENAI_API_KEY'] ? 'openai' : 'mock',
       timeout: 30000,
       maxRetries: 3,
       logging: {
-        level: 'info'
-      }
-    }
+        level: 'info',
+      },
+    },
   };
 }
 
 /**
  * Convert codex-style config to AnyGPT config
  */
-export function convertCodexToAnyGPTConfig(codexConfig: CodexConfig): AnyGPTConfig {
+export function convertCodexToAnyGPTConfig(
+  codexConfig: CodexConfig
+): AnyGPTConfig {
   const providers: AnyGPTConfig['providers'] = {};
   const defaultModel = codexConfig.model ?? 'gpt-3.5-turbo';
 
   if (codexConfig.model_providers) {
-    for (const [providerId, providerConfig] of Object.entries(codexConfig.model_providers)) {
+    for (const [providerId, providerConfig] of Object.entries(
+      codexConfig.model_providers
+    )) {
       const normalizedConfig: CodexProviderConfig = providerConfig ?? {};
 
       let apiKey: string | undefined;
       if (normalizedConfig.env_key) {
         apiKey = process.env[normalizedConfig.env_key];
-        if (!apiKey) {
-          console.warn(`Warning: Environment variable ${normalizedConfig.env_key} not set for provider ${providerId}`);
-        }
+        // Note: Missing env var will cause auth errors when provider is used
       }
 
       let baseURL = normalizedConfig.base_url ?? 'https://api.openai.com/v1';
@@ -114,7 +116,8 @@ export function convertCodexToAnyGPTConfig(codexConfig: CodexConfig): AnyGPTConf
     }
   }
 
-  const defaultProvider = codexConfig.model_provider || Object.keys(providers)[0] || 'mock';
+  const defaultProvider =
+    codexConfig.model_provider || Object.keys(providers)[0] || 'mock';
 
   return {
     version: '1.0',
