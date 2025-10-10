@@ -2,21 +2,74 @@
 
 **Spec**: [Configuration Loader](../../../../../products/anygpt/specs/README.md#configuration-loader)  
 **Design**: [design.md](./design.md)  
-**Status**: ❌ Not Started
+**Status**: 🔄 In Progress  
+**Last Updated**: 2025-10-10
 
 ## Test Summary
 
-- **Total Tests**: 0
-- **Passing**: 0
+- **Total Tests**: 26 passing
+- **Passing**: 26 ✅
 - **Failing**: 0
-- **Not Started**: 0
-- **Coverage**: 0%
+- **Coverage**: 20.91% (target: >60%)
 
-## Unit Tests
+### Test Files
+
+- ✅ `loader.test.ts` - 6 tests (TypeScript loading)
+- ✅ `model-pattern-resolver.test.ts` - 17 tests (pattern matching)
+- ✅ `setup.test.ts` - 3 tests (router setup)
+- ❌ `connector-loader.test.ts` - Missing
+- ❌ Integration tests - Needs expansion
+
+### Coverage by File
+
+```
+File                          | % Stmts | % Branch | % Funcs | % Lines
+------------------------------|---------|----------|---------|----------
+loader.ts                     |   15.55 |      100 |       0 |   15.55  ← Needs tests
+connector-loader.ts           |    3.7  |      100 |       0 |    3.7   ← Needs tests
+setup.ts                      |      43 |       75 |      40 |      43  ← Needs tests
+model-pattern-resolver.ts     |   84.39 |    77.77 |     100 |   84.39  ✅ Good
+glob-matcher.ts               |   55.93 |    27.27 |      75 |   55.93  ← Needs tests
+model-resolver.ts             |       0 |      100 |     100 |       0  ← Needs tests
+tag-registry.ts               |       0 |      100 |     100 |       0  ← Needs tests
+codex-parser.ts               |    1.53 |      100 |       0 |    1.53  ← Needs tests
+```
+
+## Existing Tests (26 passing)
+
+### loader.test.ts ✅
+
+1. ✅ Should load TypeScript config with jiti tryNative
+2. ✅ Should handle TypeScript-specific syntax
+3. ✅ Should work with multiple providers
+4. ✅ Should cache subsequent imports
+5. ✅ Should report current Node.js version
+6. ✅ Should handle jiti tryNative option correctly
+
+### model-pattern-resolver.test.ts ✅
+
+17 tests covering:
+
+- ✅ Glob pattern matching
+- ✅ Regex pattern matching
+- ✅ Rule priority (provider > global)
+- ✅ Tag assignment
+- ✅ Reasoning configuration
+- ✅ Model filtering (enabled/disabled)
+- ✅ Multiple pattern types
+
+### setup.test.ts ✅
+
+1. ✅ Should setup router from config
+2. ✅ Should setup router from factory config
+3. ✅ Should inject logger into connectors
+
+## Unit Tests (Planned)
 
 ### ConfigSearcher
 
 #### Test: Find config in project root
+
 - **Given**: Config file exists at `./anygpt.config.ts`
 - **When**: `findConfig()` is called
 - **Then**: Returns `./anygpt.config.ts`
@@ -24,6 +77,7 @@
 - **Implementation**: `packages/config/src/searcher.test.ts`
 
 #### Test: Find config in private folder
+
 - **Given**: Config file exists at `./.anygpt/anygpt.config.ts`
 - **When**: `findConfig()` is called
 - **Then**: Returns `./.anygpt/anygpt.config.ts` (higher priority)
@@ -31,6 +85,7 @@
 - **Implementation**: `packages/config/src/searcher.test.ts`
 
 #### Test: Find config in user home
+
 - **Given**: No project config, config exists at `~/.anygpt/anygpt.config.ts`
 - **When**: `findConfig()` is called
 - **Then**: Returns `~/.anygpt/anygpt.config.ts`
@@ -38,6 +93,7 @@
 - **Implementation**: `packages/config/src/searcher.test.ts`
 
 #### Test: No config found
+
 - **Given**: No config files exist
 - **When**: `findConfig()` is called
 - **Then**: Returns `null`
@@ -45,6 +101,7 @@
 - **Implementation**: `packages/config/src/searcher.test.ts`
 
 #### Test: Explicit config path
+
 - **Given**: Explicit path provided: `/custom/path/config.ts`
 - **When**: `findConfig(['/custom/path'])` is called
 - **Then**: Returns `/custom/path/config.ts` (skips hierarchy)
@@ -54,6 +111,7 @@
 ### ConfigParser
 
 #### Test: Parse JSON config
+
 - **Given**: Valid JSON config file
 - **When**: `parse('config.json')` is called
 - **Then**: Returns parsed JavaScript object
@@ -61,6 +119,7 @@
 - **Implementation**: `packages/config/src/parser.test.ts`
 
 #### Test: Parse TypeScript config
+
 - **Given**: Valid TypeScript config file with default export
 - **When**: `parse('config.ts')` is called
 - **Then**: Returns exported config object
@@ -68,6 +127,7 @@
 - **Implementation**: `packages/config/src/parser.test.ts`
 
 #### Test: Parse YAML config
+
 - **Given**: Valid YAML config file
 - **When**: `parse('config.yaml')` is called
 - **Then**: Returns parsed JavaScript object
@@ -75,6 +135,7 @@
 - **Implementation**: `packages/config/src/parser.test.ts`
 
 #### Test: Invalid JSON
+
 - **Given**: Malformed JSON file
 - **When**: `parse('invalid.json')` is called
 - **Then**: Throws ConfigParseError with line number
@@ -82,6 +143,7 @@
 - **Implementation**: `packages/config/src/parser.test.ts`
 
 #### Test: TypeScript config with syntax error
+
 - **Given**: TypeScript file with syntax error
 - **When**: `parse('invalid.ts')` is called
 - **Then**: Throws ConfigParseError with error details
@@ -91,6 +153,7 @@
 ### ConfigValidator
 
 #### Test: Valid config
+
 - **Given**: Config object matching schema
 - **When**: `validate(config)` is called
 - **Then**: Returns `{ valid: true }`
@@ -98,6 +161,7 @@
 - **Implementation**: `packages/config/src/validator.test.ts`
 
 #### Test: Missing providers
+
 - **Given**: Config without providers field
 - **When**: `validate(config)` is called
 - **Then**: Returns `{ valid: false, errors: ['providers is required'] }`
@@ -105,6 +169,7 @@
 - **Implementation**: `packages/config/src/validator.test.ts`
 
 #### Test: Invalid provider config
+
 - **Given**: Provider missing connector field
 - **When**: `validate(config)` is called
 - **Then**: Returns validation error for missing connector
@@ -112,6 +177,7 @@
 - **Implementation**: `packages/config/src/validator.test.ts`
 
 #### Test: Invalid defaults
+
 - **Given**: Defaults references non-existent provider
 - **When**: `validate(config)` is called
 - **Then**: Returns error about invalid provider reference
@@ -121,6 +187,7 @@
 ### ConnectorLoader
 
 #### Test: Load connector from factory function
+
 - **Given**: Connector config with factory function
 - **When**: `loadConnector(config)` is called
 - **Then**: Returns connector instance from factory
@@ -128,6 +195,7 @@
 - **Implementation**: `packages/config/src/connector-loader.test.ts`
 
 #### Test: Load connector from module path
+
 - **Given**: Connector config with module path
 - **When**: `loadConnector(config)` is called
 - **Then**: Dynamically imports module and returns connector
@@ -135,6 +203,7 @@
 - **Implementation**: `packages/config/src/connector-loader.test.ts`
 
 #### Test: Module not found
+
 - **Given**: Connector config with invalid module path
 - **When**: `loadConnector(config)` is called
 - **Then**: Throws ConnectorLoadError with module name
@@ -142,6 +211,7 @@
 - **Implementation**: `packages/config/src/connector-loader.test.ts`
 
 #### Test: Module doesn't export connector
+
 - **Given**: Module exists but doesn't export connector
 - **When**: `loadConnector(config)` is called
 - **Then**: Throws ConnectorLoadError about missing export
@@ -153,9 +223,10 @@
 ### Full Config Loading Flow
 
 #### Test: Load valid TypeScript config
+
 - **Given**: Valid TypeScript config at `./anygpt.config.ts`
 - **When**: `loadConfig()` is called
-- **Then**: 
+- **Then**:
   - Returns LoadedConfig with parsed config
   - source is `./anygpt.config.ts`
   - connectors are loaded
@@ -163,6 +234,7 @@
 - **Implementation**: `packages/config/src/index.test.ts`
 
 #### Test: Load with explicit path
+
 - **Given**: Config at custom path
 - **When**: `loadConfig({ configPath: '/custom/config.ts' })` is called
 - **Then**: Loads from custom path, skips search
@@ -170,6 +242,7 @@
 - **Implementation**: `packages/config/src/index.test.ts`
 
 #### Test: Fallback to default config
+
 - **Given**: No config files exist
 - **When**: `loadConfig()` is called
 - **Then**: Returns default config with mock provider
@@ -177,6 +250,7 @@
 - **Implementation**: `packages/config/src/index.test.ts`
 
 #### Test: Config with multiple providers
+
 - **Given**: Config with openai and mock providers
 - **When**: `loadConfig()` is called
 - **Then**: Both connectors are loaded and available
@@ -184,6 +258,7 @@
 - **Implementation**: `packages/config/src/index.test.ts`
 
 #### Test: Invalid config fails validation
+
 - **Given**: Config file with invalid schema
 - **When**: `loadConfig()` is called
 - **Then**: Throws ConfigValidationError with details
@@ -195,10 +270,11 @@
 ### Real File System Tests
 
 #### Test: Load from project directory
+
 - **Given**: Real config file in test project directory
 - **When**: CLI or MCP server loads config
 - **Then**: Config is loaded correctly
-- **Command**: 
+- **Command**:
   ```bash
   cd test-project && node -e "require('@anygpt/config').loadConfig()"
   ```
@@ -208,6 +284,7 @@
 - **Implementation**: `e2e/config/load-config.test.ts`
 
 #### Test: Load from user home
+
 - **Given**: Config in `~/.anygpt/anygpt.config.ts`
 - **When**: CLI loads config from directory without project config
 - **Then**: User config is loaded
@@ -215,6 +292,7 @@
 - **Implementation**: `e2e/config/user-config.test.ts`
 
 #### Test: TypeScript config with factory
+
 - **Given**: TypeScript config using factory functions
 - **When**: Config is loaded
 - **Then**: Connectors are instantiated correctly
@@ -226,6 +304,7 @@
 ### Configuration Not Found
 
 #### Test: No config and no default
+
 - **Given**: No config files, default config disabled
 - **When**: `loadConfig({ useDefault: false })` is called
 - **Then**: Throws ConfigNotFoundError
@@ -236,6 +315,7 @@
 ### Parse Errors
 
 #### Test: Malformed JSON
+
 - **Given**: JSON file with syntax error
 - **When**: Config is loaded
 - **Then**: Throws ConfigParseError
@@ -246,6 +326,7 @@
 ### Validation Errors
 
 #### Test: Missing required fields
+
 - **Given**: Config without providers
 - **When**: Config is loaded
 - **Then**: Throws ConfigValidationError
@@ -256,6 +337,7 @@
 ### Connector Loading Errors
 
 #### Test: Connector module not found
+
 - **Given**: Config references non-existent module
 - **When**: Connectors are loaded
 - **Then**: Throws ConnectorLoadError
