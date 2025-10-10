@@ -34,8 +34,19 @@ Depends on: 2-3-mcp-server-core
 - [ ] Build and test container
 - [ ] Documentation
 
+## Technical Design
+
+**Container**: Node.js base, MCP server entrypoint, config via env vars, health check
+
+**See [design.md](./design.md)** for detailed design.
+
+## Tests
+
+**Key tests**: Container builds, runs MCP server, config via env vars works, health check works
+
+**See [tests.md](./tests.md)** for detailed test scenarios.
+
 ## Dependencies
 
 **Internal**: 2-3-mcp-server-core  
 **External**: Docker
-

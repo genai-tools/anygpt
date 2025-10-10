@@ -32,8 +32,19 @@ Depends on: 4-2-docker-compose-config
 - [ ] Test with various MCP clients (Claude, Cursor, etc.)
 - [ ] Documentation and examples
 
+## Technical Design
+
+**Integration**: Compatible with Docker MCP Toolkit, supports multiple concurrent clients, centralized configuration
+
+**See [design.md](./design.md)** for detailed design.
+
+## Tests
+
+**Key tests**: Multiple clients connect simultaneously, configuration centralized, all MCP clients work
+
+**See [tests.md](./tests.md)** for detailed test scenarios.
+
 ## Dependencies
 
 **Internal**: 4-2-docker-compose-config  
 **External**: Docker MCP Toolkit
-
