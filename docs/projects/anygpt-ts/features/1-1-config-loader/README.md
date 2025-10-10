@@ -66,95 +66,11 @@ None
 
 ## Technical Design
 
-### Components
+**See [design.md](./design.md)** for detailed design.
 
-**ConfigLoader** - Main entry point
-- `loadConfig(options?)` - Load configuration from hierarchy
-- `validateConfig(config)` - Validate configuration schema
+## Testing Strategy
 
-**ConfigSearcher** - Search for configuration files
-- Searches: `./.anygpt/`, `./`, `~/.anygpt/`
-- Supports: `.ts`, `.js`, `.json`, `.yaml`
-
-**ConfigParser** - Parse different formats
-- Auto-detects format by extension
-- Dynamic import for TS/JS, JSON.parse, YAML parser
-
-**ConfigValidator** - Validate with Zod
-- Schema validation
-- Detailed error messages
-
-**ConnectorLoader** - Load connector modules
-- Factory functions (preferred)
-- Dynamic module loading
-
-### Data Structures
-
-```typescript
-interface AnyGPTConfig {
-  defaults?: {
-    provider?: string;
-    model?: string;
-  };
-  providers: Record<string, ProviderConfig>;
-}
-
-interface LoadedConfig {
-  config: AnyGPTConfig;
-  source: string;
-  connectors: Map<string, Connector>;
-}
-```
-
-### Search Algorithm
-
-1. If explicit path provided, use it
-2. Otherwise search in order:
-   - `./.anygpt/anygpt.config.ts` (private project)
-   - `./anygpt.config.ts` (project root)
-   - `./anygpt.config.json`
-   - `~/.anygpt/anygpt.config.ts` (user home)
-3. Return first found
-4. If none found, return default config
-
-## Tests
-
-### Unit Tests
-
-**ConfigSearcher**
-- ✓ Find config in project root
-- ✓ Find config in private folder (higher priority)
-- ✓ Find config in user home
-- ✓ No config found returns null
-- ✓ Explicit config path skips hierarchy
-
-**ConfigParser**
-- ✓ Parse TypeScript config (dynamic import)
-- ✓ Parse JSON config
-- ✓ Parse YAML config
-- ✓ Handle parse errors with helpful messages
-
-**ConfigValidator**
-- ✓ Valid config passes
-- ✓ Invalid config returns detailed errors
-- ✓ Missing required fields caught
-- ✓ Type mismatches caught
-
-**ConnectorLoader**
-- ✓ Load connector from factory function
-- ✓ Load connector from module path
-- ✓ Handle load errors
-
-### Integration Tests
-- ✓ Load config from TypeScript file
-- ✓ Load config from JSON file
-- ✓ Load config with connectors
-- ✓ Fallback to default config when not found
-- ✓ All error types work correctly
-
-### Coverage
-- Target: >80% unit test coverage
-- Target: >70% integration test coverage
+**See [tests.md](./tests.md)** for detailed test scenarios.
 
 ## Dependencies
 
