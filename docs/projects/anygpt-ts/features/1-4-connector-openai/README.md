@@ -22,6 +22,9 @@ OpenAI connector supporting OpenAI API and OpenAI-compatible APIs (Ollama, Local
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
+### Recent Updates
+- 2025-01-10: Feature documentation created
+
 ## Implementation Plan
 
 - [ ] Implement Connector interface
@@ -48,5 +51,8 @@ OpenAI connector supporting OpenAI API and OpenAI-compatible APIs (Ollama, Local
 
 ## Dependencies
 
-**Internal**: @anygpt/types  
-**External**: openai (OpenAI SDK)
+| Type | Dependency | Description |
+|------|------------|-------------|
+| 🚫 **Blocked by** | [Provider Router](../1-2-provider-router/) | Need router to register connector with |
+| 📦 **Internal** | [@anygpt/types](../../packages/types/) | Shared type definitions |
+| 🌐 **External** | [openai](https://www.npmjs.com/package/openai) | OpenAI SDK |

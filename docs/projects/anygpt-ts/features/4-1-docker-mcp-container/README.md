@@ -22,6 +22,9 @@ Container image for MCP server deployment. Enables easy deployment of AnyGPT MCP
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
+### Recent Updates
+- 2025-01-10: Feature documentation created
+
 ## Implementation Plan
 
 - [ ] Create Dockerfile (Node.js base)
@@ -45,5 +48,7 @@ Container image for MCP server deployment. Enables easy deployment of AnyGPT MCP
 
 ## Dependencies
 
-**Internal**: 2-3-mcp-server-core  
-**External**: Docker
+| Type | Dependency | Description |
+|------|------------|-------------|
+| 🚫 **Blocked by** | [MCP Server Core](../2-3-mcp-server-core/) | Need MCP server to containerize |
+| 🌐 **External** | [Docker](https://www.docker.com/) | Container platform |
