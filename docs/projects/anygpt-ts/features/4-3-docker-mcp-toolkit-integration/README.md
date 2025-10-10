@@ -1,4 +1,4 @@
-# 4-3-docker-mcp-toolkit-integration
+# Docker: MCP Toolkit Integration
 
 | | |
 |---|---|
