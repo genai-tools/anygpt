@@ -106,7 +106,8 @@ export class OpenAIConnector extends BaseConnector {
           ...(validatedRequest.reasoning?.effort && {
             reasoning_effort: validatedRequest.reasoning.effort,
           }),
-          // Keep max_tokens as-is (some APIs use max_tokens, OpenAI uses max_completion_tokens)
+          // Handle max_tokens: Keep as max_tokens (Anthropic/Claude models use this)
+          // OpenAI models use max_completion_tokens, but gateways should handle conversion
           ...(validatedRequest.max_tokens !== undefined && {
             max_tokens: validatedRequest.max_tokens,
           }),
@@ -126,11 +127,23 @@ export class OpenAIConnector extends BaseConnector {
         }
       });
 
-      this.logger.debug(`[${this.providerId}] Chat request:`, chatRequest);
+      // Debug: Log request for truncation investigation
+      this.logger.info('[OpenAI Connector] Request:', {
+        model: chatRequest.model,
+        max_tokens: chatRequest.max_tokens,
+        max_completion_tokens: chatRequest.max_completion_tokens,
+      });
 
       let response;
       try {
         response = await this.client.chat.completions.create(chatRequest);
+
+        // Debug: Log response for truncation investigation
+        this.logger.info('[OpenAI Connector] Response:', {
+          finish_reason: response?.choices[0]?.finish_reason,
+          content_length: response?.choices[0]?.message?.content?.length,
+          usage: response?.usage,
+        });
       } catch (error) {
         // Try to extract the actual error body if available
         if (error && typeof error === 'object' && 'response' in error) {
