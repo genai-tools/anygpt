@@ -8,14 +8,15 @@ export type {
   ChatCompletionRequest as BaseChatCompletionRequest,
   ChatCompletionResponse as BaseChatCompletionResponse,
   ModelInfo,
-  ConnectorConfig
+  ConnectorConfig,
+  Logger,
 } from './base.js';
 
 // Connector types
 export type {
   IConnector,
   ConnectorFactory,
-  IConnectorRegistry
+  IConnectorRegistry,
 } from './connector.js';
 
 // Router types
@@ -32,7 +33,7 @@ export type {
   Tool,
   ToolChoice,
   IRouter,
-  IGateway
+  IGateway,
 } from './router.js';
 
 // Provider-specific types
@@ -40,5 +41,5 @@ export type {
   OpenAIConnectorConfig,
   MockConnectorConfig,
   AnthropicConnectorConfig,
-  LocalModelConfig
+  LocalModelConfig,
 } from './providers.js';
