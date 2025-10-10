@@ -1,4 +1,5 @@
 import { ConnectorRegistry } from '../connectors/registry.js';
+import { ErrorHandler, createErrorHandler } from '../error-handler.js';
 import type {
   RouterConfig,
   ChatCompletionRequest,
@@ -17,6 +18,7 @@ import type { IConnector, ConnectorFactory } from '../types/connector.js';
 export class GenAIRouter implements IRouter {
   private config: RouterConfig;
   private registry: ConnectorRegistry;
+  private errorHandler: ErrorHandler;
 
   constructor(config: RouterConfig) {
     this.config = config;
@@ -24,7 +26,13 @@ export class GenAIRouter implements IRouter {
     // Initialize registry - connectors will be registered externally
     this.registry = new ConnectorRegistry();
 
-    // TODO: Connectors should be registered by the application using this router
+    // Initialize error handler with retry configuration
+    this.errorHandler = createErrorHandler({
+      maxRetries: config.maxRetries ?? 3,
+      backoffType: 'exponential',
+      baseDelay: 1000,
+      jitter: true,
+    });
   }
 
   async chatCompletion(
@@ -51,40 +59,37 @@ export class GenAIRouter implements IRouter {
       extra_body: request.extra_body,
     };
 
-    try {
-      const response = await connector.chatCompletion(baseRequest);
-
-      // Convert base response to router response
-      return {
-        id: response.id,
-        object: response.object,
-        created: response.created,
-        model: response.model,
-        provider: connector.getProviderId(),
-        choices: response.choices.map((choice) => ({
-          index: choice.index,
-          message: {
-            role: choice.message.role,
-            content: choice.message.content,
-          },
-          finish_reason: choice.finish_reason,
-        })),
-        usage: {
-          prompt_tokens: response.usage.prompt_tokens,
-          completion_tokens: response.usage.completion_tokens,
-          total_tokens: response.usage.total_tokens,
-        },
-      };
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(
-          `Chat completion failed for provider ${request.provider}: ${error.message}`
-        );
+    // Execute with automatic retry logic
+    const response = await this.errorHandler.executeWithRetry(
+      () => connector.chatCompletion(baseRequest),
+      {
+        providerId: request.provider,
+        operation: 'chatCompletion',
+        metadata: { model: request.model },
       }
-      throw new Error(
-        `Unknown chat completion error for provider ${request.provider}`
-      );
-    }
+    );
+
+    // Convert base response to router response
+    return {
+      id: response.id,
+      object: response.object,
+      created: response.created,
+      model: response.model,
+      provider: connector.getProviderId(),
+      choices: response.choices.map((choice) => ({
+        index: choice.index,
+        message: {
+          role: choice.message.role,
+          content: choice.message.content,
+        },
+        finish_reason: choice.finish_reason,
+      })),
+      usage: {
+        prompt_tokens: response.usage.prompt_tokens,
+        completion_tokens: response.usage.completion_tokens,
+        total_tokens: response.usage.total_tokens,
+      },
+    };
   }
 
   async response(request: ResponseRequest): Promise<ResponseResponse> {
@@ -95,24 +100,21 @@ export class GenAIRouter implements IRouter {
     // Get connector from registry based on provider type
     const connector = this.getConnector(type, normalizedConfig);
 
-    try {
-      const response = await connector.response(request);
-
-      // Add provider to response
-      return {
-        ...response,
-        provider: connector.getProviderId(),
-      };
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(
-          `Response failed for provider ${request.provider}: ${error.message}`
-        );
+    // Execute with automatic retry logic
+    const response = await this.errorHandler.executeWithRetry(
+      () => connector.response(request),
+      {
+        providerId: request.provider,
+        operation: 'response',
+        metadata: { model: request.model },
       }
-      throw new Error(
-        `Unknown response error for provider ${request.provider}`
-      );
-    }
+    );
+
+    // Add provider to response
+    return {
+      ...response,
+      provider: connector.getProviderId(),
+    };
   }
 
   async listModels(provider: string): Promise<ModelInfo[]> {
@@ -122,16 +124,14 @@ export class GenAIRouter implements IRouter {
     // Get connector from registry based on provider type
     const connector = this.getConnector(type, normalizedConfig);
 
-    try {
-      return await connector.listModels();
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(
-          `Failed to list models for provider ${provider}: ${error.message}`
-        );
+    // Execute with automatic retry logic
+    return await this.errorHandler.executeWithRetry(
+      () => connector.listModels(),
+      {
+        providerId: provider,
+        operation: 'listModels',
       }
-      throw new Error(`Unknown error listing models for provider ${provider}`);
-    }
+    );
   }
 
   private normalizeProviderConfig(provider: string): {
