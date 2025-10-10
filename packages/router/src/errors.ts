@@ -103,3 +103,26 @@ export class TimeoutError extends RouterError {
     this.name = 'TimeoutError';
   }
 }
+
+/**
+ * Error thrown when max retries are exceeded
+ */
+export class MaxRetriesExceededError extends RouterError {
+  constructor(
+    public readonly providerId: string,
+    public readonly operation: string,
+    public readonly maxRetries: number,
+    public readonly originalError: Error
+  ) {
+    super(
+      `Max retries (${maxRetries}) exceeded for ${operation} on provider ${providerId}: ${originalError.message}`,
+      'MAX_RETRIES_EXCEEDED'
+    );
+    this.name = 'MaxRetriesExceededError';
+    
+    // Preserve original error stack
+    if (originalError?.stack) {
+      this.stack = `${this.stack}\nCaused by: ${originalError.stack}`;
+    }
+  }
+}
