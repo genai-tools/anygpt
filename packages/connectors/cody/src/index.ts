@@ -148,8 +148,6 @@ export class CodyConnector extends BaseConnector implements IConnector {
       messages: transformedMessages,
     };
 
-    // Request will be logged by OpenAI connector
-
     const connector = await this.getConnector();
     return connector.chatCompletion(transformedRequest);
   }
