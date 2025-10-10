@@ -34,8 +34,19 @@ Depends on: 3-2-cli-conversation
 - [ ] Write tests
 - [ ] Documentation
 
+## Technical Design
+
+**Summarization Strategy**: Use AI to summarize old messages, preserve recent N messages, create new conversation with summary + recent
+
+**See [design.md](./design.md)** for detailed design.
+
+## Tests
+
+**Key tests**: Creates new conversation, reduces tokens, preserves meaning, recent messages intact
+
+**See [tests.md](./tests.md)** for detailed test scenarios.
+
 ## Dependencies
 
 **Internal**: 3-2-cli-conversation, 1-2-provider-router  
 **External**: None
-

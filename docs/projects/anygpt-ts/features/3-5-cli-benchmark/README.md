@@ -38,8 +38,20 @@ Depends on: 1-2-provider-router, 1-3-connector-mock, 1-4-connector-openai
 - [ ] E2E tests
 - [ ] Documentation
 
+## Technical Design
+
+**Metrics**: Latency (TTFT, total), token usage, cost estimation, success rate  
+**Output Formats**: Table, JSON, CSV
+
+**See [design.md](./design.md)** for detailed design.
+
+## Tests
+
+**Key tests**: All output formats, metrics accurate, parallel execution
+
+**See [tests.md](./tests.md)** for detailed test scenarios.
+
 ## Dependencies
 
 **Internal**: 1-2-provider-router, connectors  
 **External**: commander
-

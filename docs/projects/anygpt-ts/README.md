@@ -21,8 +21,8 @@ TypeScript implementation of AnyGPT - a comprehensive ecosystem for building AI-
 
 | Feature | Status | Progress |
 |---------|--------|----------|
-| [Configuration Loader](./features/1-1-config-loader/) | ❌ Not Started | 0/23 tasks |
-| [Provider Router](./features/1-2-provider-router/) | ❌ Not Started | 0/15 tasks |
+| [Configuration Loader](./features/1-1-config-loader/) | ❌ Not Started | 0/24 tasks |
+| [Provider Router](./features/1-2-provider-router/) | ❌ Not Started | 0/17 tasks |
 | [Mock Connector](./features/1-3-connector-mock/) | ❌ Not Started | 0/5 tasks |
 | [OpenAI Connector](./features/1-4-connector-openai/) | ❌ Not Started | 0/6 tasks |
 

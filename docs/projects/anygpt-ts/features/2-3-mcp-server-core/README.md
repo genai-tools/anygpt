@@ -38,8 +38,24 @@ Depends on: 1-1-config-loader, 1-2-provider-router, 1-3-connector-mock, 1-4-conn
 - [ ] MCP protocol compliance tests
 - [ ] Documentation
 
+## Technical Design
+
+**Components**:
+- **JSON-RPC transport** - stdin/stdout communication
+- **MCP methods**: initialize, models/list, completion/complete
+- **Error handling** - MCP-compliant error codes
+
+**See [design.md](./design.md)** for detailed design.
+
+## Tests
+
+**Unit Tests**: Parse JSON-RPC, format responses, handle all methods  
+**Integration Tests**: MCP client can connect, all methods work  
+**Contract Tests**: MCP protocol compliance
+
+**See [tests.md](./tests.md)** for detailed test scenarios.
+
 ## Dependencies
 
 **Internal**: 1-1-config-loader, 1-2-provider-router, connectors  
 **External**: JSON-RPC library
-

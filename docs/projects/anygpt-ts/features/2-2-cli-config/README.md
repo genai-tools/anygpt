@@ -34,8 +34,22 @@ Depends on: 1-1-config-loader
 - [ ] Error handling with helpful messages
 - [ ] Documentation
 
+## Technical Design
+
+**Subcommands**:
+- `show` - Display current configuration
+- `validate` - Check configuration file for errors
+- `list` - Show all configuration search paths
+
+**See [design.md](./design.md)** for detailed design.
+
+## Tests
+
+**E2E Tests**: All subcommands work, exit codes correct
+
+**See [tests.md](./tests.md)** for detailed test scenarios.
+
 ## Dependencies
 
 **Internal**: 1-1-config-loader  
 **External**: commander
-

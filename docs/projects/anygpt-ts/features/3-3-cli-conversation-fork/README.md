@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Status** | ❌ Not Started |
-| **Progress** | 0/6 tasks |
+| **Progress** | 0/5 tasks |
 | **Spec** | [Conversation Fork](../../../../products/anygpt/specs/anygpt/cli/conversation.md) |
 | **Use Case** | [Context Optimization](../../../../products/anygpt/cases/context-optimization.md) |
 | **Architecture** | [System Design](../../architecture.md) |
@@ -32,10 +32,20 @@ Depends on: 3-2-cli-conversation
 - [ ] Track fork relationships (parent/child)
 - [ ] Both conversations remain independent
 - [ ] Write tests
-- [ ] Documentation
+
+## Technical Design
+
+**Fork Logic**: Copy conversation at specific message, create new ID, track parent, both independent after fork
+
+**See [design.md](./design.md)** for detailed design.
+
+## Tests
+
+**Key tests**: Fork creates independent copy, both work independently, relationship tracked
+
+**See [tests.md](./tests.md)** for detailed test scenarios.
 
 ## Dependencies
 
 **Internal**: 3-2-cli-conversation  
 **External**: None
-

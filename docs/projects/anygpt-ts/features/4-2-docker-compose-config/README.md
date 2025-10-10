@@ -33,8 +33,19 @@ Depends on: 4-1-docker-mcp-container
 - [ ] Test deployment
 - [ ] Documentation
 
+## Technical Design
+
+**Compose**: Single service (anygpt-mcp), volumes for config, env for API keys
+
+**See [design.md](./design.md)** for detailed design.
+
+## Tests
+
+**Key tests**: Deployment works with docker-compose up, MCP clients can connect
+
+**See [tests.md](./tests.md)** for detailed test scenarios.
+
 ## Dependencies
 
 **Internal**: 4-1-docker-mcp-container  
 **External**: Docker Compose
-
