@@ -4,8 +4,8 @@
 |---|---|
 | **Status** | ❌ Not Started |
 | **Progress** | 0/8 tasks |
-| **Spec** | [Chat Command](../../../../../products/anygpt/specs/anygpt/cli/chat.md) |
-| **Use Case** | [Provider Agnostic Chat](../../../../../products/anygpt/cases/provider-agnostic-chat.md) |
+| **Spec** | [Chat Command](../../../../products/anygpt/specs/anygpt/cli/chat.md) |
+| **Use Case** | [Provider Agnostic Chat](../../../../products/anygpt/cases/provider-agnostic-chat.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
 
