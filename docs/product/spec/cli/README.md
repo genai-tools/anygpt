@@ -1,14 +1,14 @@
 # AnyGPT CLI Specification
 
-This directory contains RFC-style specifications for the AnyGPT CLI, focusing on concepts, design principles, and architectural decisions rather than detailed usage instructions.
+RFC-style specifications for the AnyGPT CLI, focusing on concepts, design principles, and architectural decisions.
 
 ## Specifications
 
-| Specification | Purpose | Status |
-|---------------|---------|--------|
-| **[Chat Command](./chat.md)** | Stateless interaction model | ✅ Implemented |
-| **[Conversation Command](./conversation.md)** | Stateful interaction model with advanced features | ✅ Implemented |
-| **[Config Command](./config.md)** | Configuration management and inspection | ✅ Implemented |
+| Specification | Purpose | Status | Related Use Case |
+|---------------|---------|--------|------------------|
+| **[Chat Command](./chat.md)** | Stateless interaction model | ✅ Implemented | [Provider Agnostic](../../use-cases/provider-agnostic-chat.md) |
+| **[Conversation Command](./conversation.md)** | Stateful interaction with advanced features | ✅ Implemented | [Conversations](../../use-cases/conversations.md), [Context Optimization](../../use-cases/context-optimization.md) |
+| **[Config Command](./config.md)** | Configuration management | ✅ Implemented | [Flexible Configuration](../../use-cases/flexible-configuration.md) |
 
 ## Design Principles
 
