@@ -10,6 +10,8 @@
 | **Roadmap** | [Feature List](../../roadmap.md) |
 | **Technical Design** | [design.md](./design.md) |
 | **Testing Strategy** | [tests.md](./tests.md) |
+| **Progress Tracking** | [PROGRESS.md](./PROGRESS.md) |
+| **Audit Report** | [AUDIT.md](./AUDIT.md) |
 
 ---
 
