@@ -22,9 +22,6 @@ OpenAI connector supporting OpenAI API and OpenAI-compatible APIs (Ollama, Local
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
-### Blockers
-Depends on: 1-2-provider-router
-
 ## Implementation Plan
 
 - [ ] Implement Connector interface

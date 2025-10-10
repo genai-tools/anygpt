@@ -22,9 +22,6 @@ Mock connector for testing and offline development. Provides configurable respon
 **Last Updated**: 2025-01-10  
 **Current Phase**: Not Started
 
-### Blockers
-Depends on: 1-2-provider-router
-
 ## Implementation Plan
 
 - [ ] Implement Connector interface
