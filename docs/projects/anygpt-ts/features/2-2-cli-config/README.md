@@ -1,9 +1,15 @@
 # 2-2-cli-config
 
-**Spec**: [Config Command](../../../../../products/anygpt/specs/anygpt/cli/config.md)  
-**Use Case**: [Flexible Configuration](../../../../../products/anygpt/use-cases/flexible-configuration.md)  
-**Status**: ❌ Not Started  
-**Progress**: 0/6 tasks
+| | |
+|---|---|
+| **Status** | ❌ Not Started |
+| **Progress** | 0/6 tasks |
+| **Spec** | [Config Command](../../../../../products/anygpt/specs/anygpt/cli/config.md) |
+| **Use Case** | [Flexible Configuration](../../../../../products/anygpt/use-cases/flexible-configuration.md) |
+| **Architecture** | [System Design](../../architecture.md) |
+| **Roadmap** | [Feature List](../../roadmap.md) |
+
+---
 
 ## Overview
 

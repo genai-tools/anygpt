@@ -1,9 +1,15 @@
 # 3-5-cli-benchmark
 
-**Spec**: [Benchmark Command](../../../../../products/anygpt/specs/anygpt/cli/benchmark.md)  
-**Use Case**: [Model Benchmarking](../../../../../products/anygpt/use-cases/model-benchmarking.md)  
-**Status**: ❌ Not Started  
-**Progress**: 0/10 tasks
+| | |
+|---|---|
+| **Status** | ❌ Not Started |
+| **Progress** | 0/10 tasks |
+| **Spec** | [Benchmark Command](../../../../../products/anygpt/specs/anygpt/cli/benchmark.md) |
+| **Use Case** | [Model Benchmarking](../../../../../products/anygpt/use-cases/model-benchmarking.md) |
+| **Architecture** | [System Design](../../architecture.md) |
+| **Roadmap** | [Feature List](../../roadmap.md) |
+
+---
 
 ## Overview
 

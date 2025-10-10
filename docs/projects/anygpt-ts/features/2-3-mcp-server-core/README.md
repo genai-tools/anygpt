@@ -1,9 +1,15 @@
 # 2-3-mcp-server-core
 
-**Spec**: [MCP Server](../../../../../products/anygpt/specs/anygpt/mcp-server.md)  
-**Use Case**: [MCP Server for Cross-Component Agents](../../../../../products/anygpt/use-cases/mcp-server.md)  
-**Status**: ❌ Not Started  
-**Progress**: 0/10 tasks
+| | |
+|---|---|
+| **Status** | ❌ Not Started |
+| **Progress** | 0/10 tasks |
+| **Spec** | [MCP Server](../../../../../products/anygpt/specs/anygpt/mcp-server.md) |
+| **Use Case** | [MCP Server](../../../../../products/anygpt/use-cases/mcp-server.md) |
+| **Architecture** | [System Design](../../architecture.md) |
+| **Roadmap** | [Feature List](../../roadmap.md) |
+
+---
 
 ## Overview
 

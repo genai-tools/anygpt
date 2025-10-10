@@ -1,9 +1,15 @@
 # 3-3-cli-conversation-fork
 
-**Spec**: [Conversation Command - Fork](../../../../../products/anygpt/specs/anygpt/cli/conversation.md)  
-**Use Case**: [Context Optimization](../../../../../products/anygpt/use-cases/context-optimization.md)  
-**Status**: ❌ Not Started  
-**Progress**: 0/5 tasks
+| | |
+|---|---|
+| **Status** | ❌ Not Started |
+| **Progress** | 0/6 tasks |
+| **Spec** | [Conversation Fork](../../../../../products/anygpt/specs/anygpt/cli/conversation.md) |
+| **Use Case** | [Context Optimization](../../../../../products/anygpt/use-cases/context-optimization.md) |
+| **Architecture** | [System Design](../../architecture.md) |
+| **Roadmap** | [Feature List](../../roadmap.md) |
+
+---
 
 ## Overview
 

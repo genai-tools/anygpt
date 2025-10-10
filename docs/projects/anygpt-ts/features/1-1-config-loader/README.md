@@ -1,9 +1,15 @@
 # 1-1-config-loader
 
-**Spec**: [Configuration Loader](../../../../../products/anygpt/specs/README.md#configuration-loader)  
-**Use Case**: [Flexible Configuration](../../../../../products/anygpt/use-cases/flexible-configuration.md)  
-**Status**: ❌ Not Started  
-**Progress**: 0/23 tasks (0%)
+| | |
+|---|---|
+| **Status** | ❌ Not Started |
+| **Progress** | 0/24 tasks |
+| **Spec** | [Configuration Loader](../../../../../products/anygpt/specs/README.md#configuration-loader) |
+| **Use Case** | [Flexible Configuration](../../../../../products/anygpt/use-cases/flexible-configuration.md) |
+| **Architecture** | [System Design](../../architecture.md) |
+| **Roadmap** | [Feature List](../../roadmap.md) |
+
+---
 
 ## Overview
 

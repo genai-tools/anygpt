@@ -1,9 +1,15 @@
 # 4-1-docker-mcp-container
 
-**Spec**: [Docker MCP Toolkit Integration](../../../../../products/anygpt/specs/anygpt/docker-mcp-toolkit.md)  
-**Use Case**: [Docker MCP Toolkit Integration](../../../../../products/anygpt/use-cases/docker-mcp-toolkit.md)  
-**Status**: ❌ Not Started  
-**Progress**: 0/6 tasks
+| | |
+|---|---|
+| **Status** | ❌ Not Started |
+| **Progress** | 0/6 tasks |
+| **Spec** | [Docker MCP Toolkit](../../../../../products/anygpt/specs/anygpt/docker-mcp-toolkit.md) |
+| **Use Case** | [Docker MCP Toolkit](../../../../../products/anygpt/use-cases/docker-mcp-toolkit.md) |
+| **Architecture** | [System Design](../../architecture.md) |
+| **Roadmap** | [Feature List](../../roadmap.md) |
+
+---
 
 ## Overview
 
