@@ -153,20 +153,23 @@ export async function chatCommand(
       model: modelId,
       provider: providerId,
       max_tokens: modelConfig.max_tokens,
-      extra_body: modelConfig.extra_body,
+      useLegacyMaxTokens: modelConfig.useLegacyMaxTokens,
     });
 
-    const response = await context.router.chatCompletion({
+    const requestParams = {
       provider: providerId,
       model: modelId,
       messages: [{ role: 'user', content: actualMessage }],
       // CLI flag takes precedence over model config
       ...((options.maxTokens || modelConfig.max_tokens) && {
         max_tokens: options.maxTokens || modelConfig.max_tokens,
+        useLegacyMaxTokens: modelConfig.useLegacyMaxTokens, // Pass capability flag
       }),
       ...(modelConfig.reasoning && { reasoning: modelConfig.reasoning }),
       ...(modelConfig.extra_body && { extra_body: modelConfig.extra_body }),
-    });
+    };
+
+    const response = await context.router.chatCompletion(requestParams);
 
     const duration = Date.now() - startTime;
 
