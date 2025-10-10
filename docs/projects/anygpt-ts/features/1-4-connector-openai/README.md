@@ -1,4 +1,4 @@
-# 1-4-connector-openai
+# OpenAI Connector
 
 | | |
 |---|---|

@@ -1,4 +1,4 @@
-# 2-2-cli-config
+# CLI: Config Command
 
 | | |
 |---|---|

@@ -1,4 +1,4 @@
-# 2-1-cli-chat
+# CLI: Chat Command
 
 | | |
 |---|---|

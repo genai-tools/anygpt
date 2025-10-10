@@ -1,4 +1,4 @@
-# 3-5-cli-benchmark
+# CLI: Benchmark Command
 
 | | |
 |---|---|

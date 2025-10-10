@@ -1,4 +1,4 @@
-# 3-2-cli-conversation
+# CLI: Conversation Command
 
 | | |
 |---|---|

@@ -1,4 +1,4 @@
-# 2-3-mcp-server-core
+# MCP Server Core
 
 | | |
 |---|---|
