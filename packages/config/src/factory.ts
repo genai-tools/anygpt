@@ -26,7 +26,12 @@ export interface BaseModelConfig {
   // Reasoning configuration for OpenAI o1/o3 models
   reasoning?: ReasoningEffort | ReasoningConfig;
   // Maximum tokens for completion
+  // The actual parameter name used depends on useLegacyMaxTokens capability
   max_tokens?: number;
+  // Capability flag: use legacy max_tokens parameter (Anthropic-style)
+  // - true: use max_tokens parameter (for Cody/Anthropic models)
+  // - false/undefined: use max_completion_tokens parameter (OpenAI-style, default)
+  useLegacyMaxTokens?: boolean;
   // Provider-specific extra parameters (e.g., Anthropic's thinking parameter)
   extra_body?: ExtraBodyParams;
   // Enable/disable models
