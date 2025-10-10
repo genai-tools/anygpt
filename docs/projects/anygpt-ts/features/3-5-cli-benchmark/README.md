@@ -5,7 +5,7 @@
 | **Status** | ❌ Not Started |
 | **Progress** | 0/10 tasks |
 | **Spec** | [Benchmark Command](../../../../../products/anygpt/specs/anygpt/cli/benchmark.md) |
-| **Use Case** | [Model Benchmarking](../../../../../products/anygpt/use-cases/model-benchmarking.md) |
+| **Use Case** | [Model Benchmarking](../../../../../products/anygpt/cases/model-benchmarking.md) |
 | **Architecture** | [System Design](../../architecture.md) |
 | **Roadmap** | [Feature List](../../roadmap.md) |
 
@@ -23,7 +23,7 @@ Compare model performance across providers with detailed metrics. Helps users ch
 ### Blockers
 Depends on: 1-2-provider-router, 1-3-connector-mock, 1-4-connector-openai
 
-## Tasks
+## Implementation Plan
 
 - [ ] Implement command parser
 - [ ] Execute benchmarks (sequential/parallel)
@@ -36,7 +36,7 @@ Depends on: 1-2-provider-router, 1-3-connector-mock, 1-4-connector-openai
 - [ ] E2E tests
 - [ ] Documentation
 
-## Design
+## Technical Design
 
 **Metrics Collected**:
 - Latency (time to first token, total time)
@@ -63,8 +63,3 @@ Depends on: 1-2-provider-router, 1-3-connector-mock, 1-4-connector-openai
 **Internal**: 1-2-provider-router, connectors  
 **External**: commander
 
-## References
-
-- [Architecture](../../architecture.md)
-- [Roadmap](../../roadmap.md)
-- [Spec](../../../../../products/anygpt/specs/anygpt/cli/benchmark.md)
