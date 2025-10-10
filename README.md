@@ -304,8 +304,8 @@ npx nx run-many -t lint
 ### Getting Started
 
 - **[CLI Documentation](./packages/cli/docs/README.md)** - Complete command-line interface guide
-- **[Configuration Guide](./docs/configuration.md)** - Complete configuration setup and examples
-- **[Troubleshooting Guide](./docs/troubleshooting.md)** - Common issues, recent fixes, and debugging
+- **[Configuration Guide](./docs/product/features/configuration.md)** - Complete configuration setup and examples
+- **[Troubleshooting Guide](./docs/workspace/troubleshooting.md)** - Common issues, recent fixes, and debugging
 
 ### Integration Examples
 
@@ -314,11 +314,11 @@ npx nx run-many -t lint
 
 ### Development Guidelines
 
-- **[Testing Guide](./docs/guidelines/testing.md)** - Comprehensive testing strategy, patterns, and coverage goals
+- **[Testing Guide](./docs/workspace/guidelines/testing.md)** - Comprehensive testing strategy, patterns, and coverage goals
 - **[E2E Testing Guide](./e2e/README.md)** - End-to-end test suite documentation and patterns
-- **[Release Workflow](./docs/release-workflow.md)** - Automated Release PR workflow documentation
-- **[Release Quick Reference](./docs/release-quick-reference.md)** - Quick reference for releasing packages
-- **[Release Setup](./docs/release-setup.md)** - Release infrastructure documentation
+- **[Release Workflow](./docs/workspace/release-workflow.md)** - Automated Release PR workflow documentation
+- **[Release Quick Reference](./docs/workspace/release-quick-reference.md)** - Quick reference for releasing packages
+- **[Release Setup](./docs/workspace/release-setup.md)** - Release infrastructure documentation
 
 ### CLI Commands
 
