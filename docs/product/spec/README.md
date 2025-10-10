@@ -102,28 +102,37 @@ graph TD
 
 **Requirements**:
 
-- Support multiple configuration formats (TypeScript, JSON, YAML)
 - Search hierarchy: project → user home → system-wide
 - Runtime connector loading based on configuration
 - Type validation and error reporting
 
 ### Provider Router
-
 **Responsibility**: Route requests to appropriate AI provider connectors
 
 **Requirements**:
-
 - Provider abstraction layer
 - Connector registry pattern
 - Request/response normalization
 - Error handling and retry logic
+
+**Routing Strategies** ([Use Case: Cost Optimization](../use-cases/cost-optimization.md)):
+- Route by explicit provider selection
+- Route by model name pattern matching
+- Route by cost/quality tradeoffs
+- Route by custom rules (complexity, user tier, etc.)
+
+**Failover Strategy** ([Use Case: Resilience & Failover](../use-cases/resilience-failover.md)):
+- Automatic retry on transient failures
+- Fallback to backup provider on primary failure
+- Circuit breaker pattern for failing providers
+- Configurable retry policies (max attempts, backoff)
 
 ### Provider Connectors
 
 **Responsibility**: Implement provider-specific API integration
 
 **Requirements**:
-
+{{ ... }}
 - Unified interface for all providers
 - Chat completion support
 - Model listing support

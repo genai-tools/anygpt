@@ -9,6 +9,7 @@ RFC-style specifications for the AnyGPT CLI, focusing on concepts, design princi
 | **[Chat Command](./chat.md)** | Stateless interaction model | ✅ Implemented | [Provider Agnostic](../../use-cases/provider-agnostic-chat.md) |
 | **[Conversation Command](./conversation.md)** | Stateful interaction with advanced features | ✅ Implemented | [Conversations](../../use-cases/conversations.md), [Context Optimization](../../use-cases/context-optimization.md) |
 | **[Config Command](./config.md)** | Configuration management | ✅ Implemented | [Flexible Configuration](../../use-cases/flexible-configuration.md) |
+| **[Benchmark Command](./benchmark.md)** | Model performance comparison | 📋 Planned | [Model Benchmarking](../../use-cases/model-benchmarking.md) |
 
 ## Key Design Decisions
 
