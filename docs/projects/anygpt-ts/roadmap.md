@@ -8,7 +8,6 @@
 
 Implementation roadmap for AnyGPT TypeScript ecosystem. Features are organized by dependency phases and will be implemented using the `/feature` workflow.
 
-
 See [architecture.md](./architecture.md) for high-level system design, component overview, and key design decisions.
 
 ## Feature List
@@ -16,17 +15,20 @@ See [architecture.md](./architecture.md) for high-level system design, component
 **Total features**: 15 (+ 2 future)
 
 ### Phase 1: Foundation (4 features)
+
 - 1-1-config-loader
 - 1-2-provider-router
 - 1-3-connector-mock
 - 1-4-connector-openai
 
 ### Phase 2: Core Applications (3 features)
+
 - 2-1-cli-chat
 - 2-2-cli-config
 - 2-3-mcp-server-core
 
 ### Phase 3: Advanced Features (5 features)
+
 - 3-1-conversation-storage
 - 3-2-cli-conversation
 - 3-3-cli-conversation-fork
@@ -34,40 +36,51 @@ See [architecture.md](./architecture.md) for high-level system design, component
 - 3-5-cli-benchmark
 
 ### Phase 4: Integrations (3 features)
+
 - 4-1-docker-mcp-container
 - 4-2-docker-compose-config
 - 4-3-docker-mcp-toolkit-integration
 
 ### Future (not prioritized)
+
 - mcp-server-tools
 - mcp-server-resources
 
 ## Implementation Phases
 
 ### Phase 1: Foundation
+
 **Goal**: Build core infrastructure that everything depends on
 
-**Status**: ❌ Not Started
+**Status**: 🔄 In Progress (1/4 complete)
 
-#### 1-1-config-loader
+#### 1-1-config-loader ✅ COMPLETE
+
 - **Spec**: [Configuration Loader](../../../products/anygpt/specs/README.md#configuration-loader)
 - **Use Case**: [Flexible Configuration](../../../products/anygpt/use-cases/flexible-configuration.md)
 - **Purpose**: Load and validate configuration from multiple sources
 - **Dependencies**: None (foundation)
+- **Status**: ✅ Complete (2025-10-10)
 - **Key Features**:
-  - Search hierarchy (project → user → system)
-  - Support TypeScript, JSON, YAML formats
-  - Runtime connector loading
-  - Type validation
-- **Acceptance**: 
-  - [ ] Loads config from all sources
-  - [ ] Validates configuration schema
-  - [ ] Supports dynamic connector loading
-  - [ ] All examples from spec work
+  - ✅ Search hierarchy (project → user → system)
+  - ✅ Support TypeScript, JSON formats
+  - ✅ Runtime connector loading
+  - ✅ Custom error types with validation
+  - ✅ Factory config pattern with model rules
+- **Acceptance**:
+  - [x] Loads config from all sources
+  - [x] Validates configuration schema
+  - [x] Supports dynamic connector loading
+  - [x] All examples from spec work
+- **Metrics**:
+  - 49 tests passing
+  - 43% coverage (core files 85%+)
+  - Custom error types: 100% coverage
 
 #### 1-2-provider-router
+
 - **Spec**: [Provider Router](../../../products/anygpt/specs/README.md#provider-router)
-- **Use Cases**: 
+- **Use Cases**:
   - [Provider Agnostic Chat](../../../products/anygpt/use-cases/provider-agnostic-chat.md)
   - [Cost Optimization](../../../products/anygpt/use-cases/cost-optimization.md)
   - [Resilience & Failover](../../../products/anygpt/use-cases/resilience-failover.md)
@@ -86,6 +99,7 @@ See [architecture.md](./architecture.md) for high-level system design, component
   - [ ] All connectors can register
 
 #### 1-3-connector-mock
+
 - **Spec**: [Mock Connector](../../../products/anygpt/specs/README.md#provider-connectors)
 - **Use Case**: [Rapid Prototyping](../../../products/anygpt/use-cases/rapid-prototyping.md)
 - **Purpose**: Testing and development without real API calls
@@ -102,6 +116,7 @@ See [architecture.md](./architecture.md) for high-level system design, component
   - [ ] Enables offline development
 
 #### 1-4-connector-openai
+
 - **Spec**: [Provider Connectors](../../../products/anygpt/specs/README.md#provider-connectors)
 - **Use Case**: [Provider Agnostic Chat](../../../products/anygpt/use-cases/provider-agnostic-chat.md)
 - **Purpose**: OpenAI and OpenAI-compatible API integration
@@ -120,12 +135,14 @@ See [architecture.md](./architecture.md) for high-level system design, component
 ---
 
 ### Phase 2: Core Applications
+
 **Goal**: Implement essential user-facing functionality
 
 **Status**: ❌ Not Started  
 **Depends on**: Phase 1 complete
 
 #### 2-1-cli-chat
+
 - **Spec**: [Chat Command](../../../products/anygpt/specs/cli/chat.md)
 - **Use Case**: [Provider Agnostic Chat](../../../products/anygpt/use-cases/provider-agnostic-chat.md)
 - **Purpose**: Stateless single-turn AI interaction
@@ -143,6 +160,7 @@ See [architecture.md](./architecture.md) for high-level system design, component
   - [ ] All examples from spec work
 
 #### 2-2-cli-config
+
 - **Spec**: [Config Command](../../../products/anygpt/specs/cli/config.md)
 - **Use Case**: [Flexible Configuration](../../../products/anygpt/use-cases/flexible-configuration.md)
 - **Purpose**: Configuration inspection and validation
@@ -158,6 +176,7 @@ See [architecture.md](./architecture.md) for high-level system design, component
   - [ ] All examples from spec work
 
 #### 2-3-mcp-server-core
+
 - **Spec**: [MCP Server](../../../products/anygpt/specs/mcp-server.md)
 - **Use Case**: [MCP Server for Cross-Component Agents](../../../products/anygpt/use-cases/mcp-server.md)
 - **Purpose**: MCP protocol server for IDE/tool integration
@@ -176,12 +195,14 @@ See [architecture.md](./architecture.md) for high-level system design, component
 ---
 
 ### Phase 3: Advanced Features
+
 **Goal**: Add sophisticated capabilities
 
 **Status**: ❌ Not Started  
 **Depends on**: Phase 2 complete
 
 #### 3-1-conversation-storage
+
 - **Spec**: Implied by [Conversation Command](../../../products/anygpt/specs/cli/conversation.md)
 - **Use Case**: [Conversations](../../../products/anygpt/use-cases/conversations.md)
 - **Purpose**: Persistent conversation storage
@@ -198,8 +219,9 @@ See [architecture.md](./architecture.md) for high-level system design, component
   - [ ] Efficient retrieval
 
 #### 3-2-cli-conversation
+
 - **Spec**: [Conversation Command](../../../products/anygpt/specs/cli/conversation.md)
-- **Use Cases**: 
+- **Use Cases**:
   - [Conversations](../../../products/anygpt/use-cases/conversations.md)
   - [Context Optimization](../../../products/anygpt/use-cases/context-optimization.md)
 - **Purpose**: Stateful multi-turn AI interaction
@@ -217,6 +239,7 @@ See [architecture.md](./architecture.md) for high-level system design, component
   - [ ] All examples from spec work
 
 #### 3-3-cli-conversation-fork
+
 - **Spec**: [Conversation Command - Fork](../../../products/anygpt/specs/cli/conversation.md)
 - **Use Case**: [Context Optimization](../../../products/anygpt/use-cases/context-optimization.md)
 - **Purpose**: Branch conversations to explore alternatives
@@ -231,6 +254,7 @@ See [architecture.md](./architecture.md) for high-level system design, component
   - [ ] Fork relationship tracked
 
 #### 3-4-cli-conversation-summarize
+
 - **Spec**: [Conversation Command - Summarize](../../../products/anygpt/specs/cli/conversation.md)
 - **Use Case**: [Context Optimization](../../../products/anygpt/use-cases/context-optimization.md)
 - **Purpose**: Reduce context length while preserving meaning
@@ -245,6 +269,7 @@ See [architecture.md](./architecture.md) for high-level system design, component
   - [ ] Reduces token usage
 
 #### 3-5-cli-benchmark
+
 - **Spec**: [Benchmark Command](../../../products/anygpt/specs/cli/benchmark.md)
 - **Use Case**: [Model Benchmarking](../../../products/anygpt/use-cases/model-benchmarking.md)
 - **Purpose**: Compare model performance across providers
@@ -261,6 +286,7 @@ See [architecture.md](./architecture.md) for high-level system design, component
   - [ ] All examples from spec work
 
 #### mcp-server-tools
+
 - **Spec**: [MCP Server - Tools](../../../products/anygpt/specs/mcp-server.md)
 - **Status**: 📋 Future
 - **Purpose**: Tools support in MCP server
@@ -273,12 +299,14 @@ See [architecture.md](./architecture.md) for high-level system design, component
 ---
 
 ### Phase 4: Integrations
+
 **Goal**: External integrations and deployment
 
 **Status**: ❌ Not Started  
 **Depends on**: Phase 3 complete
 
 #### 4-1-docker-mcp-container
+
 - **Spec**: [Docker MCP Toolkit Integration](../../../products/anygpt/specs/docker-mcp-toolkit.md)
 - **Use Case**: [Docker MCP Toolkit Integration](../../../products/anygpt/use-cases/docker-mcp-toolkit.md)
 - **Purpose**: Container image for MCP server
@@ -295,6 +323,7 @@ See [architecture.md](./architecture.md) for high-level system design, component
   - [ ] Health check works
 
 #### 4-2-docker-compose-config
+
 - **Spec**: [Docker MCP Toolkit Integration](../../../products/anygpt/specs/docker-mcp-toolkit.md)
 - **Use Case**: [Docker MCP Toolkit Integration](../../../products/anygpt/use-cases/docker-mcp-toolkit.md)
 - **Purpose**: Docker Compose configuration
@@ -311,6 +340,7 @@ See [architecture.md](./architecture.md) for high-level system design, component
   - [ ] All examples from spec work
 
 #### 4-3-docker-mcp-toolkit-integration
+
 - **Spec**: [Docker MCP Toolkit Integration](../../../products/anygpt/specs/docker-mcp-toolkit.md)
 - **Use Case**: [Docker MCP Toolkit Integration](../../../products/anygpt/use-cases/docker-mcp-toolkit.md)
 - **Purpose**: Integration with Docker Desktop MCP Toolkit
@@ -325,6 +355,7 @@ See [architecture.md](./architecture.md) for high-level system design, component
   - [ ] Configuration is centralized
 
 #### mcp-server-resources
+
 - **Spec**: [MCP Server - Resources](../../../products/anygpt/specs/mcp-server.md)
 - **Status**: 📋 Future
 - **Purpose**: Resources support in MCP server
@@ -347,6 +378,7 @@ Each feature will be developed using the `/feature` workflow:
 5. **Status**: Track progress
 
 Feature documentation will be in:
+
 ```
 docs/projects/anygpt-ts/features/[feature-name]/
 ├── design.md
@@ -357,12 +389,16 @@ docs/projects/anygpt-ts/features/[feature-name]/
 
 ## Progress Tracking
 
-- **Phase 1**: 0/4 features (0%)
+- **Phase 1**: 1/4 features (25%) 🔄
 - **Phase 2**: 0/3 features (0%)
 - **Phase 3**: 0/6 features (0%)
 - **Phase 4**: 0/4 features (0%)
 
-**Overall**: 0/17 features (0%)
+**Overall**: 1/17 features (6%)
+
+### Completed Features
+
+- ✅ 1-1-config-loader (2025-10-10)
 
 ## Next Steps
 
