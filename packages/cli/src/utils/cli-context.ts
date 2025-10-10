@@ -103,29 +103,11 @@ export async function setupCLIContext(
       );
 
     if (hasConnectorInstances) {
-      // It's a factory config - use setupRouterFromFactory
-      const { router, config } = await setupRouterFromFactory(loadedConfig);
-
-      // Inject the CLI logger into all connectors
-      if (config.providers) {
-        for (const providerConfig of Object.values(config.providers)) {
-          if (
-            (providerConfig as any).connector &&
-            typeof (providerConfig as any).connector === 'object'
-          ) {
-            const connector = (providerConfig as any).connector;
-            // Inject logger by setting the protected logger property
-            if (connector.logger) {
-              Object.defineProperty(connector, 'logger', {
-                value: consoleLogger,
-                writable: true,
-                enumerable: false,
-                configurable: true,
-              });
-            }
-          }
-        }
-      }
+      // It's a factory config - use setupRouterFromFactory with logger
+      const { router, config } = await setupRouterFromFactory(
+        loadedConfig,
+        consoleLogger
+      );
 
       // Build tag registry (async, fetches models from providers)
       consoleLogger.debug('Building tag registry...');
