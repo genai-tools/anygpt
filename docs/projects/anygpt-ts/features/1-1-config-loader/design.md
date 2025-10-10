@@ -3,46 +3,95 @@
 **Spec**: [Configuration Loader](../../../../../products/anygpt/specs/README.md#configuration-loader)  
 **Use Case**: [Flexible Configuration](../../../../../products/anygpt/use-cases/flexible-configuration.md)  
 **Project**: anygpt-ts  
-**Status**: 🔄 Design Phase
+**Status**: ✅ Implemented (80% complete)  
+**Last Updated**: 2025-10-10
 
 ## Overview
 
-Configuration loader that searches multiple locations, supports multiple formats (TypeScript, JSON, YAML), validates configuration, and dynamically loads connectors at runtime.
+Configuration loader that searches multiple locations, supports multiple formats (TypeScript, JavaScript, JSON, TOML), validates configuration, and dynamically loads connectors at runtime.
+
+**Implementation**: `packages/config/src/`  
+**Package**: `@anygpt/config`
 
 ## Architecture
 
-### Components
+### Core Components (Implemented)
 
-**ConfigLoader**
-- **Responsibility**: Main entry point for loading configuration
-- **Public API**:
-  - `loadConfig(options?)` - Load configuration from hierarchy
-  - `validateConfig(config)` - Validate configuration schema
-- **Internal**: Orchestrates search, parse, validate, load connectors
+**loader.ts** - Configuration Loading
 
-**ConfigSearcher**
-- **Responsibility**: Search for configuration files in hierarchy
-- **Public API**:
-  - `findConfig(searchPaths?)` - Search all locations, return first found
-- **Internal**: File system operations, path resolution
+- ✅ `loadConfig(options?)` - Load configuration from hierarchy
+- ✅ `validateConfig(config)` - Basic validation (checks providers exist)
+- ✅ `findConfigFile()` - Search all locations, return first found
+- ✅ `loadConfigFile(path)` - Parse file based on extension
+- ✅ `loadTSConfig(path)` - TypeScript/JavaScript via jiti (Node.js 22+ native support)
+- ✅ `loadJSONConfig(path)` - JSON.parse
+- ✅ `loadTOMLConfig(path)` - TOML parsing for Codex compatibility
+- ✅ `resolvePath(path)` - Tilde expansion
+- ✅ `mergeConfigs()` - Deep merge with defaults
 
-**ConfigParser**
-- **Responsibility**: Parse different configuration formats
-- **Public API**:
-  - `parse(filePath)` - Auto-detect format and parse
-- **Internal**: Format-specific parsers (TS via import, JSON, YAML)
+**connector-loader.ts** - Dynamic Connector Loading
 
-**ConfigValidator**
-- **Responsibility**: Validate configuration against schema
-- **Public API**:
-  - `validate(config)` - Validate, return errors if invalid
-- **Internal**: Zod schema validation
+- ✅ `loadConnectors(router, config)` - Load all connectors in parallel
+- ✅ `loadConnectorFactory(packageName)` - Dynamic import with caching
+- ✅ `getConnectorConfig(config, providerId)` - Extract connector config
+- ✅ `clearConnectorCache()` - Testing utility
+- ✅ Connector caching for performance
+- ✅ Multiple export patterns supported (default, named)
 
-**ConnectorLoader**
-- **Responsibility**: Dynamically load connector modules
-- **Public API**:
-  - `loadConnector(connectorConfig)` - Load and instantiate connector
-- **Internal**: Dynamic import, factory function execution
+**defaults.ts** - Default Configuration
+
+- ✅ `getDefaultConfig()` - Returns default config (OpenAI + Mock)
+- ✅ `convertCodexToAnyGPTConfig()` - Codex TOML migration
+- ✅ Smart provider selection (OpenAI if API key, else Mock)
+
+**setup.ts** - Convenience Utilities
+
+- ✅ `setupRouter(options?)` - Load config + create router + register connectors
+- ✅ `setupRouterFromFactory(factoryConfig)` - Factory config support
+- ✅ Logger injection support
+- ✅ Automatic connector registration
+
+### Bonus Components (Not in Original Design)
+
+**factory.ts** - Factory Config Pattern
+
+- ✅ `config(factoryConfig)` - Type-safe factory function
+- ✅ Direct connector instance support
+- ✅ Model rules, reasoning config, tags
+
+**model-pattern-resolver.ts** - Pattern-Based Model Configuration
+
+- ✅ `resolveModelConfig()` - Apply rules to models
+- ✅ Glob pattern matching
+- ✅ Regex pattern matching
+- ✅ Rule priority (provider > global)
+- ✅ Tag assignment, reasoning config, model filtering
+
+**model-resolver.ts** - Model Resolution
+
+- ✅ `resolveModel()` - Resolve by tag, alias, or direct name
+- ✅ `findModelByTag()` - Find models with specific tag
+- ✅ `listAvailableTags()` - List all available tags
+
+**tag-registry.ts** - Tag Registry
+
+- ✅ `buildTagRegistry()` - Pre-compute tag mappings
+- ✅ Performance optimization for tag lookups
+
+**glob-matcher.ts** - Glob Pattern Matching
+
+- ✅ `matchesGlobPatterns()` - Match model IDs against patterns
+- ✅ Wildcard support (\*, \*\*, ?, [abc], {a,b,c})
+- ✅ Negation support (!pattern)
+
+**migrate.ts** - Codex Migration
+
+- ✅ `migrateFromCodex()` - Convert Codex TOML to AnyGPT config
+- ✅ `runMigration()` - CLI migration support
+
+**codex-parser.ts** - TOML Parsing
+
+- ✅ `parseCodexToml()` - Parse Codex TOML format
 
 ### Data Structures
 
@@ -68,7 +117,7 @@ interface ProviderConfig {
 interface ConnectorConfig {
   // Factory function (preferred)
   factory?: ConnectorFactory;
-  
+
   // Or module path (dynamic loading)
   module?: string;
   config?: Record<string, unknown>;
@@ -77,39 +126,56 @@ interface ConnectorConfig {
 
 ### Algorithms
 
-**Configuration Search Algorithm**:
+**Configuration Search Algorithm** (Implemented):
+
 1. If explicit path provided, use it
-2. Otherwise search in order:
-   - `./.anygpt/anygpt.config.ts` (private project)
-   - `./anygpt.config.ts` (project root)
+2. Otherwise search in order (13 locations):
+   - `./.anygpt/anygpt.config.ts` (private project, git-ignored)
+   - `./.anygpt/anygpt.config.js`
+   - `./.anygpt/anygpt.config.json`
+   - `./anygpt.config.ts` (project root, for examples)
    - `./anygpt.config.js`
    - `./anygpt.config.json`
    - `~/.anygpt/anygpt.config.ts` (user home)
    - `~/.anygpt/anygpt.config.js`
    - `~/.anygpt/anygpt.config.json`
+   - `~/.codex/config.toml` (Codex compatibility)
+   - `/etc/anygpt/anygpt.config.ts` (system-wide)
+   - `/etc/anygpt/anygpt.config.js`
+   - `/etc/anygpt/anygpt.config.json`
 3. Return first found file
-4. If none found, return default config (mock provider)
+4. If none found, return default config (OpenAI + Mock)
 
-**Format Detection**:
-- `.ts`, `.js`, `.mjs` → Dynamic import
+**Format Detection** (Implemented):
+
+- `.ts`, `.js`, `.mjs` → jiti with tryNative (Node.js 22+ native TS support)
 - `.json` → JSON.parse
-- `.yaml`, `.yml` → YAML parser
+- `.toml` → TOML parser (Codex compatibility)
+- ~~`.yaml`, `.yml`~~ → Not implemented (dropped)
 
-**Connector Loading**:
-1. Check if factory function provided → use directly
-2. Otherwise, check if module path provided → dynamic import
-3. Instantiate connector with config
-4. Return connector instance
+**Connector Loading** (Implemented):
+
+1. Factory config: Direct connector instance → use as-is
+2. Legacy config: Module path → dynamic import
+3. Try default export, then named exports ending with 'Factory'
+4. Instantiate factory, validate interface (getProviderId, create)
+5. Cache factory for performance
+6. Register with router
 
 ## Dependencies
 
 ### Internal Dependencies
-- `@anygpt/types` - Type definitions
+
+- ✅ `@anygpt/types` - Type definitions
+- ✅ `@anygpt/router` - Router for connector registration
 
 ### External Dependencies
-- `zod` - Schema validation
-- `yaml` - YAML parsing
-- `cosmiconfig` or custom search logic
+
+- ✅ `jiti` - TypeScript/JavaScript loading with Node.js 22+ native support
+- ✅ `@iarna/toml` - TOML parsing (Codex compatibility)
+- ❌ ~~`zod`~~ - Dropped (using basic validation)
+- ❌ ~~`yaml`~~ - Dropped (not needed)
+- ❌ ~~`cosmiconfig`~~ - Custom search logic implemented
 
 ## Interfaces
 
@@ -119,23 +185,21 @@ interface ConnectorConfig {
 // Main entry point
 export async function loadConfig(
   options?: LoadConfigOptions
-): Promise<LoadedConfig>
+): Promise<LoadedConfig>;
 
-export function validateConfig(
-  config: unknown
-): config is AnyGPTConfig
+export function validateConfig(config: unknown): config is AnyGPTConfig;
 
 // Options
 interface LoadConfigOptions {
-  configPath?: string;      // Explicit config file
-  searchPaths?: string[];   // Custom search paths
+  configPath?: string; // Explicit config file
+  searchPaths?: string[]; // Custom search paths
   skipValidation?: boolean; // Skip validation (dangerous)
 }
 
 // Result
 interface LoadedConfig {
   config: AnyGPTConfig;
-  source: string;           // Which file was loaded
+  source: string; // Which file was loaded
   connectors: Map<string, Connector>;
 }
 ```
@@ -166,53 +230,87 @@ interface ConnectorLoader {
 
 ## Error Handling
 
-### Error Types
-- **ConfigNotFoundError**: No configuration file found
-- **ConfigParseError**: Failed to parse configuration file
-- **ConfigValidationError**: Configuration doesn't match schema
-- **ConnectorLoadError**: Failed to load connector module
+### Error Types (TODO)
 
-### Error Flow
-1. Search errors → ConfigNotFoundError (or use default)
-2. Parse errors → ConfigParseError with file path and reason
-3. Validation errors → ConfigValidationError with detailed messages
-4. Connector errors → ConnectorLoadError with module name and reason
+- ❌ **ConfigNotFoundError**: No configuration file found (TODO)
+- ❌ **ConfigParseError**: Failed to parse configuration file (TODO)
+- ❌ **ConfigValidationError**: Configuration doesn't match schema (TODO)
+- ❌ **ConnectorLoadError**: Failed to load connector module (TODO)
+
+**Current**: Using generic `Error` with descriptive messages
+
+### Error Flow (Implemented)
+
+1. Search errors → Returns default config (no error thrown)
+2. Parse errors → Generic Error with file path and reason
+3. Validation errors → Generic Error with validation details
+4. Connector errors → Generic Error with module name and reason
 
 All errors include:
-- Clear message
-- File path (if applicable)
-- Suggestions for fixing
+
+- ✅ Clear message
+- ✅ File path (if applicable)
+- ⚠️ Suggestions for fixing (partial)
+
+**Next Step**: Implement custom error types in `errors.ts`
 
 ## Implementation Strategy
 
-### Phase 1: Basic Loading
-- [ ] Implement ConfigSearcher (file system search)
-- [ ] Implement ConfigParser (JSON only initially)
-- [ ] Implement basic validation
-- [ ] Return parsed config
+### Phase 1: Basic Loading ✅
 
-### Phase 2: Format Support
-- [ ] Add TypeScript config support (dynamic import)
-- [ ] Add YAML support
-- [ ] Add format auto-detection
+- [x] Implement ConfigSearcher (file system search) - `loader.ts`
+- [x] Implement ConfigParser (JSON, TS/JS, TOML) - `loader.ts`
+- [x] Implement basic validation - `loader.ts:validateConfig()`
+- [x] Return parsed config
 
-### Phase 3: Connector Loading
-- [ ] Implement ConnectorLoader
-- [ ] Support factory functions
-- [ ] Support dynamic module loading
-- [ ] Return loaded connectors
+### Phase 2: Format Support ✅
 
-### Phase 4: Error Handling
-- [ ] Add custom error types
-- [ ] Add helpful error messages
-- [ ] Add error recovery (default config)
+- [x] Add TypeScript config support (jiti with tryNative) - `loader.ts:loadTSConfig()`
+- [x] Add TOML support (Codex compatibility) - `codex-parser.ts`
+- [x] Add format auto-detection - `loader.ts:loadConfigFile()`
+- ~~Add YAML support~~ - Dropped
 
-## Open Questions
+### Phase 3: Connector Loading ✅
 
-- [ ] Use cosmiconfig or custom search logic?
-- [ ] How to handle TypeScript config compilation?
-- [ ] Should we cache loaded configuration?
-- [ ] How to handle configuration reloading?
+- [x] Implement ConnectorLoader - `connector-loader.ts`
+- [x] Support factory functions - Factory config pattern
+- [x] Support dynamic module loading - Dynamic import with caching
+- [x] Return loaded connectors - Via setupRouter
+
+### Phase 4: Error Handling ⚠️
+
+- [ ] Add custom error types - **TODO**
+- [x] Add helpful error messages - Partial
+- [x] Add error recovery (default config) - `defaults.ts`
+
+## Implementation Decisions
+
+- ✅ **Search logic**: Custom implementation (no cosmiconfig)
+- ✅ **TypeScript compilation**: jiti with tryNative (Node.js 22+ native support)
+- ✅ **Caching**: Connector factories cached, config not cached
+- ❌ **Configuration reloading**: Not implemented (restart required)
+
+## Remaining Work
+
+### Critical
+
+1. **Custom Error Types** (2-3 hours)
+
+   - Create `errors.ts` with 4 error classes
+   - Update all throw sites
+
+2. **Test Coverage** (6-8 hours)
+   - Expand `loader.test.ts`
+   - Create `connector-loader.test.ts`
+   - Add integration tests
+   - Target: >60% coverage (currently 21%)
+
+### Optional
+
+- Zod validation (dropped)
+- YAML support (dropped)
+- Configuration reloading
+- E2E tests
 
 ## References
 
