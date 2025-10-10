@@ -14,13 +14,17 @@ export interface CLIOptions {
   configPath?: string;
   cwd?: string;
   env?: Record<string, string>;
+  stdin?: string;
 }
 
 /**
  * Run a CLI command and capture output
  */
-export async function runCLI(args: string[], options: CLIOptions = {}): Promise<CLIResult> {
-  const { configPath, cwd = process.cwd(), env = {} } = options;
+export async function runCLI(
+  args: string[],
+  options: CLIOptions = {}
+): Promise<CLIResult> {
+  const { configPath, cwd = process.cwd(), env = {}, stdin } = options;
 
   const fullArgs = configPath ? ['--config', configPath, ...args] : args;
 
@@ -29,20 +33,21 @@ export async function runCLI(args: string[], options: CLIOptions = {}): Promise<
       cwd,
       env: { ...process.env, ...env },
       reject: false, // Don't throw on non-zero exit
-      timeout: 30000 // 30 second timeout
+      timeout: 30000, // 30 second timeout
+      input: stdin,
     });
 
     return {
       exitCode: result.exitCode ?? 0,
       stdout: result.stdout,
-      stderr: result.stderr
+      stderr: result.stderr,
     };
   } catch (error) {
     if (error && typeof error === 'object' && 'exitCode' in error) {
       return {
         exitCode: (error as { exitCode: number }).exitCode,
         stdout: (error as { stdout?: string }).stdout || '',
-        stderr: (error as { stderr?: string }).stderr || ''
+        stderr: (error as { stderr?: string }).stderr || '',
       };
     }
     throw new Error(`Failed to run CLI: ${error}`);
