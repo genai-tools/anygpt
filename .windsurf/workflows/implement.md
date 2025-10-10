@@ -907,6 +907,49 @@ git add packages/config
 
 ---
 
+## When to Mark Complete vs Continue
+
+**Use this decision framework when feature is "working"**:
+
+### ✅ Mark Complete If:
+1. **Core functionality works** - Feature does what it's supposed to
+2. **Critical tests pass** - Core paths have >60% coverage
+3. **Production ready** - Can be used safely in real scenarios
+4. **Dependencies unblocked** - Other features can build on this
+
+### 🟡 Mark "Complete (Core)" If:
+- Core features done but advanced features deferred
+- Example: Router with retry logic but no cost optimization
+- Document what's deferred and why
+
+### ❌ Continue If:
+- Core functionality broken or incomplete
+- Critical error handling missing
+- Test coverage <40% on core files
+- Blocking other features
+
+### 💡 Quick Decision Guide:
+```
+Q: Does it work for basic use cases?
+   YES → Check coverage
+
+Q: Is coverage >60% on core files?
+   YES → Mark complete, move on
+
+Q: Are missing features blocking others?
+   NO → Defer, document, move on
+   YES → Implement now
+```
+
+**Example from Router (1-2)**:
+- ✅ Core routing works
+- ✅ Retry logic complete (critical)
+- ✅ 67% coverage
+- ❌ Strategies deferred (not critical)
+- **Decision**: Mark "Complete (Core)", proceed to Mock Connector
+
+---
+
 ## Notes
 
 - This workflow assumes TDD approach - tests before code
@@ -928,3 +971,7 @@ git add packages/config
   - Update design.md when reality differs
   - Document why changes were made
   - Keep all docs synchronized
+- **Pragmatic completion** beats perfectionism:
+  - Ship working features, iterate later
+  - Defer non-critical enhancements
+  - Unblock dependent features quickly
