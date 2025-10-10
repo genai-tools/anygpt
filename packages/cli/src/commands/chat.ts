@@ -204,7 +204,10 @@ export async function chatCommand(
     }
 
     // Show usage info only if --usage flag is provided (for non-verbose mode)
-    if (options.usage && response.usage && !context.logger.info) {
+    // In verbose mode, usage is already shown above via context.logger.info
+    const isVerbose =
+      process.argv.includes('--verbose') || process.argv.includes('-v');
+    if (options.usage && response.usage && !isVerbose) {
       console.log('');
       console.log(
         `📊 Usage: ${response.usage.prompt_tokens} input + ${response.usage.completion_tokens} output = ${response.usage.total_tokens} tokens`
