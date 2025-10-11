@@ -1,3 +1,12 @@
 {
-  "name": "anthropic"
+  "name": "anthropic",
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx tsc --noEmit --project tsconfig.lib.json",
+        "cwd": "packages/connectors/anthropic"
+      }
+    }
+  }
 }
