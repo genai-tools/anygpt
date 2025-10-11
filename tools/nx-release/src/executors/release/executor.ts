@@ -27,7 +27,6 @@ import {
   openPRInBrowser,
   getRepoName,
   addUpdateComment,
-  getPRDiff,
   markPRReady,
 } from '../../lib/pr-creation.js';
 
@@ -56,7 +55,7 @@ export default async function runExecutor(
     model && aiCommand
       ? aiCommand.replace(/--model\s+\S+/, `--model ${model}`)
       : aiCommand;
-  
+
   const finalAiTitleCommand = aiTitleCommand || finalAiCommand;
 
   try {
@@ -77,9 +76,11 @@ export default async function runExecutor(
       return { success: false };
     }
 
-    // Pull latest
+    // Pull latest and fetch target branch
     console.log(`📥 Pulling latest changes from ${baseBranch}...`);
     await pullLatest(baseBranch);
+    console.log(`📥 Fetching ${targetBranch} from remote...`);
+    await execa('git', ['fetch', 'origin', targetBranch]);
 
     // Get current commit SHA before release
     const beforeSha = await getCurrentCommitSha();
@@ -245,14 +246,17 @@ export default async function runExecutor(
         const prBodyWithAI = buildPRBody(aiSummary, releases);
 
         // Step 3: Generate title from summary
-        console.log('🎯 Generating AI title from summary...');
-        const { generateAITitle } = await import('../../lib/ai-summary.js');
-        const aiTitle = await generateAITitle(
-          aiSummary,
-          changelog,
-          releases,
-          finalAiTitleCommand
-        );
+        let aiTitle: string | undefined;
+        if (finalAiTitleCommand) {
+          console.log('🎯 Generating AI title from summary...');
+          const { generateAITitle } = await import('../../lib/ai-summary.js');
+          aiTitle = await generateAITitle(
+            aiSummary,
+            changelog,
+            releases,
+            finalAiTitleCommand
+          );
+        }
 
         // Step 4: Create PR with AI-generated title and summary
         const finalTitle = aiTitle || prTitle;
@@ -311,19 +315,24 @@ export default async function runExecutor(
         `✅ PR updated: https://github.com/${repoName}/pull/${existingPR}`
       );
 
-      // For existing PR, generate AI summary from actual PR diff
+      // For existing PR, generate AI summary from branch diff
       if (finalAiCommand) {
         console.log(
-          `\n🤖 Generating AI summary from PR diff${
+          `\n🤖 Generating AI summary from branch diff${
             model ? ` with model: ${model}` : ''
           }...`
         );
         try {
-          const prDiff = await getPRDiff(prNumber);
+          // Use git diff directly (same as for new PRs)
+          const branchDiff = await getDiff(
+            `origin/${targetBranch}`,
+            afterSha,
+            diffPaths
+          );
           const aiSummary = await generateAISummary(
             changelog,
             releases,
-            prDiff,
+            branchDiff,
             finalAiCommand,
             {
               maxLinesPerFile,

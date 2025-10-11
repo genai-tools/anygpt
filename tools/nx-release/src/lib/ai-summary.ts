@@ -112,7 +112,7 @@ export async function generateAITitle(
       .map((r) => `${r.name}@${r.version}`)
       .join(', ');
 
-    const prompt = `Generate a concise PR title (max 80 characters) for this release.
+    const prompt = `Generate a concise PR title (max 100 characters) for this monorepo release.
 
 Packages being released:
 ${releasesList}
@@ -120,10 +120,17 @@ ${releasesList}
 Summary of changes:
 ${summary}
 
-Changelog:
-${changelog}
+Guidelines:
+- Start with "Release:" followed by the main theme
+- Focus on the 1-2 most significant changes across all packages
+- Examples:
+  * "Release: New Anthropic connector and enhanced error handling"
+  * "Release: Model rules system and parallel benchmarks"
+  * "Release: Breaking changes in router and new CLI features"
+- Avoid listing multiple features separated by commas
+- Be specific about what's new/changed, not generic
 
-Provide ONLY the title text, nothing else. Make it descriptive but concise.`;
+Provide ONLY the title text, nothing else.`;
 
     const [cmd, ...args] = command.split(' ');
 

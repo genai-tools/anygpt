@@ -184,21 +184,12 @@ export async function getPRBaseCommit(
   return stdout.trim();
 }
 
-export async function getPRDiff(
-  prNumber: string,
-  paths?: string[]
-): Promise<string> {
-  // Note: gh pr diff doesn't support path filtering, so we get the full diff
-  const { stdout } = await execa('gh', ['pr', 'diff', prNumber]);
-  return stdout;
-}
-
 export async function markPRReady(prNumber: string): Promise<void> {
   console.log('Converting draft PR to ready...');
   try {
     await execa('gh', ['pr', 'ready', prNumber]);
     console.log('PR marked as ready for review');
-  } catch (error) {
+  } catch {
     // Ignore error if PR is already ready
     console.log('PR is already ready (not a draft)');
   }
