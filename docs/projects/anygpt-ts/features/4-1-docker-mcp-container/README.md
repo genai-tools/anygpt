@@ -1,0 +1,56 @@
+# Docker: MCP Container
+
+|                      |                                                                                  |
+| -------------------- | -------------------------------------------------------------------------------- |
+| **Status**           | ❌ Not Started                                                                   |
+| **Progress**         | 0/6 tasks                                                                        |
+| **Spec**             | [Docker Container](../../../../products/anygpt/specs/anygpt/docker-container.md) |
+| **Use Case**         | [Docker MCP Toolkit](../../../../products/anygpt/cases/docker-mcp-toolkit.md)    |
+| **Architecture**     | [System Design](../../architecture.md)                                           |
+| **Roadmap**          | [Feature List](../../roadmap.md)                                                 |
+| **Technical Design** | [design.md](./design.md)                                                         |
+| **Testing Strategy** | [tests.md](./tests.md)                                                           |
+
+---
+
+## Overview
+
+Container image for MCP server deployment. Enables easy deployment of AnyGPT MCP server in containerized environments.
+
+## Status
+
+**Last Updated**: 2025-01-10  
+**Current Phase**: Not Started
+
+### Recent Updates
+
+- 2025-01-10: Feature documentation created
+- 2025-01-10: Docker container spec created with detailed requirements
+
+## Implementation Plan
+
+- [ ] Create Dockerfile (Node.js base)
+- [ ] Container entrypoint (start MCP server)
+- [ ] Environment variable configuration
+- [ ] Health check endpoint
+- [ ] Build and test container
+- [ ] Documentation
+
+## Technical Design
+
+**Container**: Node.js base, MCP server entrypoint, config via env vars, health check
+
+**See [design.md](./design.md)** for detailed design.
+
+## Tests
+
+**Key tests**: Container builds, runs MCP server, config via env vars works, health check works
+
+**See [tests.md](./tests.md)** for detailed test scenarios.
+
+## Dependencies
+
+| Type              | Dependency                                 | Description                     |
+| ----------------- | ------------------------------------------ | ------------------------------- |
+| 🚫 **Blocked by** | [MCP Server Core](../2-3-mcp-server-core/) | Need MCP server to containerize |
+| 🌐 **External**   | [Docker](https://www.docker.com/)          | Container platform              |

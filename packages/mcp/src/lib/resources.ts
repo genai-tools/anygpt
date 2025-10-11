@@ -2,15 +2,16 @@
  * MCP Resources - Documentation that AI agents can read
  */
 
-import { readFileSync } from "fs";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-import type { 
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import type {
   ListResourceTemplatesResult,
   ListResourcesResult,
   ReadResourceResult,
-} from "@modelcontextprotocol/sdk/types.js";
-import type { FactoryProviderConfig } from "@anygpt/config";
+} from '@modelcontextprotocol/sdk/types.js';
+import type { FactoryProviderConfig } from '@anygpt/config';
+import { logger } from './logger.js';
 
 // Get the directory for loading docs
 const __filename = fileURLToPath(import.meta.url);
@@ -25,7 +26,10 @@ function readDoc(filename: string): string {
   try {
     return readFileSync(join(docsDir, filename), 'utf-8');
   } catch (error) {
-    console.error(`Failed to read doc file ${filename}:`, error);
+    logger.error(
+      `Failed to read doc file ${filename}`,
+      error instanceof Error ? error : undefined
+    );
     return `# Error\n\nFailed to load documentation: ${filename}`;
   }
 }
@@ -37,16 +41,17 @@ export function listResourceTemplates(): ListResourceTemplatesResult {
   return {
     resourceTemplates: [
       {
-        uriTemplate: "anygpt://docs/{section}",
-        name: "Documentation",
-        description: "Access documentation sections. Type one of: overview, workflow, providers",
-        mimeType: "text/markdown",
+        uriTemplate: 'anygpt://docs/{section}',
+        name: 'Documentation',
+        description:
+          'Access documentation sections. Type one of: overview, workflow, providers',
+        mimeType: 'text/markdown',
       },
       {
-        uriTemplate: "anygpt://examples/{example}",
-        name: "Usage Examples", 
-        description: "Access usage examples. Type: basic-chat",
-        mimeType: "text/markdown",
+        uriTemplate: 'anygpt://examples/{example}',
+        name: 'Usage Examples',
+        description: 'Access usage examples. Type: basic-chat',
+        mimeType: 'text/markdown',
       },
     ],
   };
@@ -59,28 +64,29 @@ export function listResources(): ListResourcesResult {
   return {
     resources: [
       {
-        uri: "anygpt://docs/overview",
-        name: "AnyGPT Overview",
-        description: "Introduction to AnyGPT MCP server and its capabilities",
-        mimeType: "text/markdown",
+        uri: 'anygpt://docs/overview',
+        name: 'AnyGPT Overview',
+        description: 'Introduction to AnyGPT MCP server and its capabilities',
+        mimeType: 'text/markdown',
       },
       {
-        uri: "anygpt://docs/workflow",
-        name: "Discovery Workflow",
-        description: "Step-by-step guide on how to discover and use providers",
-        mimeType: "text/markdown",
+        uri: 'anygpt://docs/workflow',
+        name: 'Discovery Workflow',
+        description: 'Step-by-step guide on how to discover and use providers',
+        mimeType: 'text/markdown',
       },
       {
-        uri: "anygpt://docs/providers",
-        name: "Configured Providers",
-        description: "List of currently configured AI providers and their details",
-        mimeType: "application/json",
+        uri: 'anygpt://docs/providers',
+        name: 'Configured Providers',
+        description:
+          'List of currently configured AI providers and their details',
+        mimeType: 'application/json',
       },
       {
-        uri: "anygpt://examples/basic-chat",
-        name: "Basic Chat Example",
-        description: "Simple example of using the chat completion tool",
-        mimeType: "text/markdown",
+        uri: 'anygpt://examples/basic-chat',
+        name: 'Basic Chat Example',
+        description: 'Simple example of using the chat completion tool',
+        mimeType: 'text/markdown',
       },
     ],
   };
@@ -128,37 +134,39 @@ function readDocSection(
   const uri = `anygpt://docs/${section}`;
 
   switch (section) {
-    case "overview":
+    case 'overview':
       return {
         contents: [
           {
             uri,
-            mimeType: "text/markdown",
+            mimeType: 'text/markdown',
             text: readDoc('overview.md'),
           },
         ],
       };
 
-    case "workflow":
+    case 'workflow':
       return {
         contents: [
           {
             uri,
-            mimeType: "text/markdown",
+            mimeType: 'text/markdown',
             text: readDoc('workflow.md'),
           },
         ],
       };
 
-    case "providers":
+    case 'providers':
       return {
         contents: [
           {
             uri,
-            mimeType: "application/json",
+            mimeType: 'application/json',
             text: JSON.stringify(
               {
-                configured_providers: Object.entries(context.configuredProviders).map(([id, config]) => ({
+                configured_providers: Object.entries(
+                  context.configuredProviders
+                ).map(([id, config]) => ({
                   id,
                   type: config.connector.providerId,
                   isDefault: id === context.defaultProvider,
@@ -174,7 +182,9 @@ function readDocSection(
       };
 
     default:
-      throw new Error(`Unknown documentation section: ${section}. Available: overview, workflow, providers`);
+      throw new Error(
+        `Unknown documentation section: ${section}. Available: overview, workflow, providers`
+      );
   }
 }
 
@@ -185,12 +195,12 @@ function readExample(example: string) {
   const uri = `anygpt://examples/${example}`;
 
   switch (example) {
-    case "basic-chat":
+    case 'basic-chat':
       return {
         contents: [
           {
             uri,
-            mimeType: "text/markdown",
+            mimeType: 'text/markdown',
             text: readDoc('basic-chat-example.md'),
           },
         ],

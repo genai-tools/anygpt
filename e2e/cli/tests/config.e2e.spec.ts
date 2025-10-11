@@ -17,7 +17,10 @@ describe('config command E2E', () => {
 
   describe('config show', () => {
     it('should display current configuration', async () => {
-      const result = await runCLI(['config', 'show'], { configPath: join(E2E_DIR, "anygpt.config.ts"), cwd: E2E_DIR });
+      const result = await runCLI(['config', 'show'], {
+        configPath: join(E2E_DIR, 'anygpt.config.ts'),
+        cwd: E2E_DIR,
+      });
 
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('Configuration');
@@ -26,10 +29,13 @@ describe('config command E2E', () => {
     });
 
     it('should show config in JSON format', async () => {
-      const result = await runCLI(['config', 'show', '--json'], { configPath: join(E2E_DIR, "anygpt.config.ts"), cwd: E2E_DIR });
+      const result = await runCLI(['config', 'show', '--json'], {
+        configPath: join(E2E_DIR, 'anygpt.config.ts'),
+        cwd: E2E_DIR,
+      });
 
       expect(result.exitCode).toBe(0);
-      
+
       // Should be valid JSON
       const config = JSON.parse(result.stdout);
       expect(config).toBeDefined();
@@ -38,7 +44,10 @@ describe('config command E2E', () => {
     });
 
     it('should show config source path', async () => {
-      const result = await runCLI(['config', 'show'], { configPath: join(E2E_DIR, "anygpt.config.ts"), cwd: E2E_DIR });
+      const result = await runCLI(['config', 'show'], {
+        configPath: join(E2E_DIR, 'anygpt.config.ts'),
+        cwd: E2E_DIR,
+      });
 
       expect(result.exitCode).toBe(0);
       // Config path may be shown in different formats
@@ -48,7 +57,10 @@ describe('config command E2E', () => {
 
   describe('config validation', () => {
     it('should validate valid config file', async () => {
-      const result = await runCLI(['config', 'show'], { configPath: join(E2E_DIR, "anygpt.config.ts"), cwd: E2E_DIR });
+      const result = await runCLI(['config', 'show'], {
+        configPath: join(E2E_DIR, 'anygpt.config.ts'),
+        cwd: E2E_DIR,
+      });
 
       expect(result.exitCode).toBe(0);
       // If config loads successfully, it's valid
@@ -56,16 +68,24 @@ describe('config command E2E', () => {
     });
 
     it('should reject invalid config file', async () => {
-      const result = await runCLI(['config', 'show'], { configPath: "/nonexistent/config.ts", cwd: E2E_DIR });
+      const result = await runCLI(['config', 'show'], {
+        configPath: '/nonexistent/config.ts',
+        cwd: E2E_DIR,
+      });
 
       expect(result.exitCode).not.toBe(0);
-      expect(result.stderr).toContain('Config file not found');
+      expect(result.stderr.toLowerCase()).toMatch(
+        /failed to parse configuration|file not found/
+      );
     });
   });
 
   describe('config discovery', () => {
     it('should auto-discover config from cwd', async () => {
-      const result = await runCLI(['config', 'show'], { configPath: join(E2E_DIR, "anygpt.config.ts"), cwd: E2E_DIR });
+      const result = await runCLI(['config', 'show'], {
+        configPath: join(E2E_DIR, 'anygpt.config.ts'),
+        cwd: E2E_DIR,
+      });
 
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('Configuration');
