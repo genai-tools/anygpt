@@ -117,17 +117,58 @@ export async function chatCommand(
     context.logger.info(`📌 Using direct model: ${providerId}:${modelId}`);
   } else {
     // No --model or --tag: Use defaults
-    modelId =
+    const defaultTag = context.defaults.providers?.[providerId]?.tag;
+    const defaultModel =
       context.defaults.providers?.[providerId]?.model || context.defaults.model;
 
-    if (!modelId) {
+    // If default tag is specified, resolve it
+    if (defaultTag && !defaultModel) {
+      // Use tag registry if available (fast lookup)
+      if (context.tagRegistry) {
+        const resolution = context.tagRegistry.resolve(defaultTag, providerId);
+
+        if (!resolution) {
+          throw new Error(
+            `Could not resolve default tag '${defaultTag}' for provider '${providerId}'.\n` +
+              `Run 'anygpt list-tags --provider ${providerId}' to see available tags.`
+          );
+        }
+
+        providerId = resolution.provider;
+        modelId = resolution.model;
+      } else {
+        // Fallback to old resolution method (for non-factory configs)
+        const resolution = resolveModel(
+          defaultTag,
+          {
+            providers: context.providers,
+            aliases: context.defaults.aliases,
+            defaultProvider: context.defaults.provider,
+          },
+          providerId
+        );
+
+        if (!resolution) {
+          throw new Error(
+            `Could not resolve default tag '${defaultTag}' for provider '${providerId}'.\n` +
+              `Run 'anygpt list-tags --provider ${providerId}' to see available tags.`
+          );
+        }
+
+        providerId = resolution.provider;
+        modelId = resolution.model;
+      }
+
+      context.logger.info(`📌 Using default tag '${defaultTag}' → ${modelId}`);
+    } else if (defaultModel) {
+      modelId = defaultModel;
+      context.logger.info(`📌 Using default model: ${providerId}:${modelId}`);
+    } else {
       throw new Error(
         `No model specified. Use --model <model-name>, --tag <tag>, or configure a default model.\n` +
           `Run 'anygpt list-tags' to see available tags.`
       );
     }
-
-    context.logger.info(`📌 Using default model: ${providerId}:${modelId}`);
   }
 
   // Verbose mode: show request metrics
@@ -205,9 +246,10 @@ export async function chatCommand(
 
     // Show usage info only if --usage flag is provided (for non-verbose mode)
     // In verbose mode, usage is already shown above via context.logger.info
-    const isVerbose =
-      process.argv.includes('--verbose') || process.argv.includes('-v');
-    if (options.usage && response.usage && !isVerbose) {
+    const hasVerboseFlag = process.argv.some(
+      (arg) => arg === '--verbose' || arg === '-v'
+    );
+    if (options.usage && response.usage && !hasVerboseFlag) {
       console.log('');
       console.log(
         `📊 Usage: ${response.usage.prompt_tokens} input + ${response.usage.completion_tokens} output = ${response.usage.total_tokens} tokens`

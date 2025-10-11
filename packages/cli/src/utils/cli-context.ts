@@ -5,27 +5,42 @@
 import { setupRouter, setupRouterFromFactory } from '@anygpt/config';
 import type { Logger } from '@anygpt/types';
 
+type LogLevel = 'quiet' | 'info' | 'debug';
+
 // Console logger implementation for CLI
 class ConsoleLogger implements Logger {
-  constructor(private verbose = false) {}
+  constructor(private logLevel: LogLevel = 'quiet') {}
 
-  // Check verbose flag dynamically
-  private isVerbose(): boolean {
-    return (
-      this.verbose ||
-      process.argv.includes('--verbose') ||
-      process.argv.includes('-v')
+  // Parse log level from environment and command line args
+  private getLogLevel(): LogLevel {
+    // Check environment variable first
+    if (process.env.VERBOSE === 'debug') return 'debug';
+    if (process.env.VERBOSE === 'true') return 'info';
+
+    // Check command line arguments
+    const verboseIndex = process.argv.findIndex(
+      (arg) => arg === '--verbose' || arg === '-v'
     );
+
+    if (verboseIndex !== -1) {
+      // Check if next arg is a level value
+      const nextArg = process.argv[verboseIndex + 1];
+      if (nextArg === 'debug') return 'debug';
+      return 'info'; // Default verbose level
+    }
+
+    return this.logLevel;
   }
 
   debug(message: string, ...args: any[]): void {
-    if (this.isVerbose()) {
+    if (this.getLogLevel() === 'debug') {
       console.log('[DEBUG]', message, ...args);
     }
   }
 
   info(message: string, ...args: any[]): void {
-    if (this.isVerbose()) {
+    const level = this.getLogLevel();
+    if (level === 'info' || level === 'debug') {
       console.log(message, ...args);
     }
   }
@@ -39,10 +54,8 @@ class ConsoleLogger implements Logger {
   }
 }
 
-// Console logger for CLI - shows connector loading messages only in verbose mode
-const consoleLogger = new ConsoleLogger(
-  process.env.VERBOSE === 'true' || process.argv.includes('--verbose')
-);
+// Console logger for CLI
+const consoleLogger = new ConsoleLogger();
 
 import type {
   ModelAlias,
