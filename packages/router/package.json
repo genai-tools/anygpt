@@ -42,5 +42,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@anygpt/types": "*"
+  }
 }
