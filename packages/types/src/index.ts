@@ -1,6 +1,6 @@
 /**
  * @anygpt/types - Pure type definitions for the AnyGPT ecosystem
- * 
+ *
  * This package contains ONLY type definitions with no runtime dependencies.
  * Use with `import type` for zero runtime overhead.
  */
@@ -9,19 +9,15 @@
 export type {
   ChatMessage,
   ChatCompletionRequest as BaseChatCompletionRequest,
-  ChatCompletionResponse as BaseChatCompletionResponse
+  ChatCompletionResponse as BaseChatCompletionResponse,
+  ExtraBodyParams,
 } from './chat.js';
 
 // Model types
-export type {
-  ModelInfo,
-  ModelCapabilities
-} from './models.js';
+export type { ModelInfo, ModelCapabilities } from './models.js';
 
 // Common utility types
-export type {
-  ConnectorConfig as BaseConnectorConfig
-} from './common.js';
+export type { ConnectorConfig as BaseConnectorConfig } from './common.js';
 
 // Logger interface
 export type { Logger } from './logger.js';
@@ -29,7 +25,7 @@ export type { Logger } from './logger.js';
 // API configuration types
 export type {
   ApiConfig,
-  ProviderConfig as RouterProviderConfig
+  ProviderConfig as RouterProviderConfig,
 } from './api.js';
 
 // Response API types
@@ -40,7 +36,7 @@ export type {
   ResponseContent,
   ResponseAnnotation,
   Tool,
-  ToolChoice
+  ToolChoice,
 } from './responses.js';
 
 // Router types
@@ -50,14 +46,14 @@ export type {
   ChatCompletionRequest,
   ChatCompletionResponse,
   IRouter,
-  IGateway
+  IGateway,
 } from './routing.js';
 
 // Connector types
 export type {
   IConnector,
   ConnectorFactory,
-  IConnectorRegistry
+  IConnectorRegistry,
 } from './connector.js';
 
 // Configuration types
@@ -65,5 +61,5 @@ export type {
   ConnectorConfig,
   ProviderConfig,
   AnyGPTConfig,
-  ConfigLoadOptions
+  ConfigLoadOptions,
 } from './config.js';

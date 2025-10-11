@@ -1,0 +1,22 @@
+# Exclude everything by default
+*
+
+# Include only what we need for build
+!package.json
+!package-lock.json
+!tsconfig.json
+!tsconfig.base.json
+!nx.json
+
+# Include source code
+!packages/
+!tools/
+
+# Exclude build artifacts and dependencies (anywhere)
+**/node_modules/
+**/dist/
+**/*.tsbuildinfo
+
+# Exclude tests
+**/*.spec.ts
+**/*.test.ts

@@ -2,7 +2,12 @@
  * Dynamically import types
  */
 import type { ConnectorFactory, Logger } from '@anygpt/types';
-import type { AnyGPTConfig, ProviderConfig, ConnectorConfig } from '@anygpt/types';
+import type {
+  AnyGPTConfig,
+  ProviderConfig,
+  ConnectorConfig,
+} from '@anygpt/types';
+import { ConnectorLoadError } from './errors.js';
 
 type LegacyConnectorConfig = ConnectorConfig & {
   type?: string;
@@ -24,7 +29,9 @@ const connectorCache = new Map<string, ConnectorFactory>();
 /**
  * Dynamically import and create a connector factory
  */
-async function loadConnectorFactory(packageName: string): Promise<ConnectorFactory> {
+async function loadConnectorFactory(
+  packageName: string
+): Promise<ConnectorFactory> {
   // Check cache first
   const cachedFactory = connectorCache.get(packageName);
   if (cachedFactory) {
@@ -34,11 +41,14 @@ async function loadConnectorFactory(packageName: string): Promise<ConnectorFacto
   try {
     // Dynamic import of the connector package
     const connectorModule = await import(packageName);
-    
+
     // Look for factory exports (try multiple common patterns)
     let factory: ConnectorFactory;
-    
-    if (connectorModule.default && typeof connectorModule.default === 'function') {
+
+    if (
+      connectorModule.default &&
+      typeof connectorModule.default === 'function'
+    ) {
       // Default export is a factory constructor
       const FactoryCtor = connectorModule.default as new () => ConnectorFactory;
       factory = new FactoryCtor();
@@ -47,30 +57,37 @@ async function loadConnectorFactory(packageName: string): Promise<ConnectorFacto
       factory = connectorModule.default as ConnectorFactory;
     } else {
       // Look for named exports ending with 'Factory'
-      const factoryExports = Object.keys(connectorModule).filter(key => 
-        key.endsWith('Factory') && typeof connectorModule[key] === 'function'
+      const factoryExports = Object.keys(connectorModule).filter(
+        (key) =>
+          key.endsWith('Factory') && typeof connectorModule[key] === 'function'
       );
-      
+
       if (factoryExports.length === 0) {
-        throw new Error(`No connector factory found in package '${packageName}'`);
+        throw new Error(
+          `No connector factory found in package '${packageName}'`
+        );
       }
-      
+
       // Use the first factory found
-      const FactoryClass = connectorModule[factoryExports[0] as keyof typeof connectorModule] as new () => ConnectorFactory;
+      const FactoryClass = connectorModule[
+        factoryExports[0] as keyof typeof connectorModule
+      ] as new () => ConnectorFactory;
       factory = new FactoryClass();
     }
-    
+
     // Validate factory interface
     if (!factory.getProviderId || !factory.create) {
-      throw new Error(`Invalid connector factory in package '${packageName}': missing getProviderId or create methods`);
+      throw new Error(
+        `Invalid connector factory in package '${packageName}': missing getProviderId or create methods`
+      );
     }
-    
+
     // Cache the factory
     connectorCache.set(packageName, factory);
-    
+
     return factory;
   } catch (error) {
-    throw new Error(`Failed to load connector from package '${packageName}': ${error}`);
+    throw new ConnectorLoadError(packageName, 'unknown', error);
   }
 }
 
@@ -83,10 +100,11 @@ export async function loadConnectors(
   logger?: Logger
 ): Promise<void> {
   // Create loading promises for all providers
-  const loadPromises = Object.entries(config.providers).map(([providerId, providerConfig]) =>
-    loadConnectorForProvider(router, providerId, providerConfig, logger)
+  const loadPromises = Object.entries(config.providers).map(
+    ([providerId, providerConfig]) =>
+      loadConnectorForProvider(router, providerId, providerConfig, logger)
   );
-  
+
   // Load all connectors in parallel
   await Promise.all(loadPromises);
 }
@@ -104,30 +122,45 @@ async function loadConnectorForProvider(
     const connectorConfig = providerConfig.connector as LegacyConnectorConfig;
     const connectorPackage = connectorConfig.type || connectorConfig.connector;
     const factory = await loadConnectorFactory(connectorPackage);
-    
+
     // Register the connector factory with the router
     router.registerConnector(factory);
-    
+
     // Use logger facade - CLI provides console logger, MCP provides no-op
-    logger?.info(`✓ Loaded connector '${connectorPackage}' for provider '${providerId}'`);
+    logger?.info(
+      `✓ Loaded connector '${connectorPackage}' for provider '${providerId}'`
+    );
   } catch (error) {
-    logger?.error(`✗ Failed to load connector for provider '${providerId}':`, error);
-    throw error;
+    logger?.error(
+      `✗ Failed to load connector for provider '${providerId}':`,
+      error
+    );
+    // Re-throw with provider context if not already a ConnectorLoadError
+    if (error instanceof ConnectorLoadError) {
+      throw error;
+    }
+    const connectorConfig = providerConfig.connector as LegacyConnectorConfig;
+    const connectorPackage = connectorConfig.type || connectorConfig.connector;
+    throw new ConnectorLoadError(connectorPackage, providerId, error);
   }
 }
 
 /**
  * Get connector configuration for a provider
  */
-export function getConnectorConfig(config: AnyGPTConfig, providerId: string): Record<string, unknown> {
+export function getConnectorConfig(
+  config: AnyGPTConfig,
+  providerId: string
+): Record<string, unknown> {
   const provider = config.providers[providerId];
   if (!provider) {
     throw new Error(`Provider '${providerId}' not found in configuration`);
   }
-  
+
   const connectorConfig = provider.connector as LegacyConnectorConfig;
-  const connectorOptions = connectorConfig.options || connectorConfig.config || {};
-  
+  const connectorOptions =
+    connectorConfig.options || connectorConfig.config || {};
+
   const mergedOptions: Record<string, unknown> = {
     ...connectorOptions,
   };
