@@ -52,7 +52,10 @@ cat docs/projects/[project]/features/[feature-name]/README.md
 ## Step 3: Check Dependencies & Setup
 
 1. Check Dependencies table - if blocked, STOP and inform user
-2. Install external deps if needed: `npm install [packages]`
+2. Install external deps if needed:
+   - **ALWAYS use latest versions** for new packages: `npm view [package] version`
+   - Install: `npm install [package]@latest`
+   - Update package.json with exact version found
 3. Create package structure if new (follow existing patterns)
 4. Clean up legacy code if applicable (document with BREAKING CHANGE)
 
@@ -120,6 +123,7 @@ git push
 ```
 
 **Self-review checklist**:
+
 - [ ] Tests pass, coverage meets targets
 - [ ] No lint/type errors
 - [ ] All docs updated (feature + project + roadmap)
@@ -143,6 +147,8 @@ git push
 
 - **TDD**: Write tests first, run frequently, use `npx nx test`
 - **Workspace**: Follow AGENTS.md, use Nx commands, match existing patterns
+- **Dependencies**: Always use latest versions for new packages - check with `npm view [package] version`
+- **Validation**: Run all nx commands before finishing: `build`, `lint`, `test`, `typecheck`
 - **Design**: Can evolve - update design.md when reality differs
 - **Git**: Commit frequently, use `/commit`, don't commit broken code
 - **Docs**: Update as you go, not at the end
