@@ -1,0 +1,26 @@
+# Minimal exclusions for local build
+# We want to include node_modules and dist for local builds
+
+# Exclude only unnecessary files
+.git/
+.github/
+.husky/
+.nx/
+.vscode/
+.windsurf/
+.kilocode/
+.devcontainer/
+.verdaccio/
+docs/
+examples/
+e2e/
+*.md
+!README.md
+**/*.spec.ts
+**/*.test.ts
+**/*.tsbuildinfo
+Dockerfile
+Dockerfile.local
+.dockerignore
+.dockerignore.local
+docker-compose*.yml
