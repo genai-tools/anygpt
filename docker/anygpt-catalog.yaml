@@ -1,0 +1,57 @@
+name: anygpt
+image: anygpt-mcp:dev
+type: server
+meta:
+  category: ai-integration
+  tags:
+    - openai
+    - anthropic
+    - ai
+    - llm
+    - multi-provider
+about:
+  title: AnyGPT (Local Dev)
+  description: Universal AI provider gateway with support for OpenAI, Anthropic, and other providers. Route requests to multiple AI providers with a unified interface.
+  icon: https://avatars.githubusercontent.com/u/182288589?s=200&v=4
+run:
+  volumes:
+    - '{{anygpt.workspace_path}}:/workspace:ro'
+    - '{{anygpt.cody_config_path}}:/home/anygpt/.config/Cody-nodejs:ro'
+config:
+  description: Configure AI provider API keys and default settings
+  secrets:
+    - name: anygpt.openai_api_key
+      env: OPENAI_API_KEY
+      example: sk-proj-...
+    - name: anygpt.anthropic_api_key
+      env: ANTHROPIC_API_KEY
+      example: sk-ant-...
+  env:
+    - name: DEFAULT_PROVIDER
+      example: openai
+      value: '{{anygpt.default_provider}}'
+    - name: DEFAULT_MODEL
+      example: gpt-4o
+      value: '{{anygpt.default_model}}'
+    - name: LOG_LEVEL
+      example: info
+      value: '{{anygpt.log_level}}'
+  parameters:
+    type: object
+    properties:
+      workspace_path:
+        type: string
+        description: Path to your AnyGPT workspace (absolute path on your machine)
+        default: /mnt/wsl/workspace/ubuntu/openai-gateway-mcp
+      cody_config_path:
+        type: string
+        description: Path to your Cody config directory (absolute path on your machine)
+        default: ~/.config/Cody-nodejs
+      log_level:
+        type: string
+        description: Logging level
+        enum: [debug, info, warn, error]
+        default: info
+    required:
+      - workspace_path
+      - cody_config_path
