@@ -1,15 +1,15 @@
 # Docker: MCP Container
 
-| | |
-|---|---|
-| **Status** | ❌ Not Started |
-| **Progress** | 0/6 tasks |
-| **Spec** | [Docker MCP Toolkit](../../../../products/anygpt/specs/anygpt/docker-mcp-toolkit.md) |
-| **Use Case** | [Docker MCP Toolkit](../../../../products/anygpt/cases/docker-mcp-toolkit.md) |
-| **Architecture** | [System Design](../../architecture.md) |
-| **Roadmap** | [Feature List](../../roadmap.md) |
-| **Technical Design** | [design.md](./design.md) |
-| **Testing Strategy** | [tests.md](./tests.md) |
+|                      |                                                                                  |
+| -------------------- | -------------------------------------------------------------------------------- |
+| **Status**           | ❌ Not Started                                                                   |
+| **Progress**         | 0/6 tasks                                                                        |
+| **Spec**             | [Docker Container](../../../../products/anygpt/specs/anygpt/docker-container.md) |
+| **Use Case**         | [Docker MCP Toolkit](../../../../products/anygpt/cases/docker-mcp-toolkit.md)    |
+| **Architecture**     | [System Design](../../architecture.md)                                           |
+| **Roadmap**          | [Feature List](../../roadmap.md)                                                 |
+| **Technical Design** | [design.md](./design.md)                                                         |
+| **Testing Strategy** | [tests.md](./tests.md)                                                           |
 
 ---
 
@@ -23,7 +23,9 @@ Container image for MCP server deployment. Enables easy deployment of AnyGPT MCP
 **Current Phase**: Not Started
 
 ### Recent Updates
+
 - 2025-01-10: Feature documentation created
+- 2025-01-10: Docker container spec created with detailed requirements
 
 ## Implementation Plan
 
@@ -48,7 +50,7 @@ Container image for MCP server deployment. Enables easy deployment of AnyGPT MCP
 
 ## Dependencies
 
-| Type | Dependency | Description |
-|------|------------|-------------|
+| Type              | Dependency                                 | Description                     |
+| ----------------- | ------------------------------------------ | ------------------------------- |
 | 🚫 **Blocked by** | [MCP Server Core](../2-3-mcp-server-core/) | Need MCP server to containerize |
-| 🌐 **External** | [Docker](https://www.docker.com/) | Container platform |
+| 🌐 **External**   | [Docker](https://www.docker.com/)          | Container platform              |
