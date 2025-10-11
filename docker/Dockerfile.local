@@ -1,0 +1,37 @@
+# Local development Dockerfile - uses pre-built artifacts
+# Build locally first: npm run build
+FROM node:24-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Copy all packages (includes package.json and dist/)
+COPY packages/ ./packages/
+
+# Copy pre-installed node_modules
+COPY node_modules/ ./node_modules/
+
+# Create non-root user
+RUN addgroup -g 1001 -S anygpt && \
+    adduser -S anygpt -u 1001 -G anygpt
+
+# Change ownership
+RUN chown -R anygpt:anygpt /app
+
+# Switch to non-root user
+USER anygpt
+
+# Metadata
+LABEL org.opencontainers.image.title="AnyGPT MCP Server (Local)"
+LABEL org.opencontainers.image.description="Universal AI provider gateway - local development build"
+LABEL org.opencontainers.image.source="https://github.com/genai-tools/anygpt"
+LABEL org.opencontainers.image.licenses="MIT"
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+  CMD node -e "process.exit(0)" || exit 1
+
+# Start MCP server
+ENTRYPOINT ["node", "packages/mcp/dist/index.js"]

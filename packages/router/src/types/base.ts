@@ -2,9 +2,27 @@
  * Base types for the GenAI Router connector system
  */
 
+import type { Logger } from '@anygpt/types';
+
+// Re-export Logger so it can be imported from this module
+export type { Logger };
+
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
+}
+
+/**
+ * Provider-specific extra parameters that can be passed in extra_body
+ */
+export interface ExtraBodyParams {
+  // Anthropic extended thinking parameter
+  thinking?: {
+    type: 'enabled';
+    budget_tokens?: number;
+  };
+  // Allow any other provider-specific parameters
+  [key: string]: unknown;
 }
 
 export interface ChatCompletionRequest {
@@ -12,10 +30,21 @@ export interface ChatCompletionRequest {
   model?: string;
   temperature?: number;
   max_tokens?: number;
+  // Capability flag: use legacy max_tokens parameter (Anthropic-style)
+  // - true: use max_tokens parameter (for Cody/Anthropic models)
+  // - false/undefined: use max_completion_tokens parameter (OpenAI-style, default)
+  useLegacyMaxTokens?: boolean;
   top_p?: number;
   frequency_penalty?: number;
   presence_penalty?: number;
   stream?: boolean;
+  // Reasoning support (OpenAI o1/o3)
+  reasoning?: {
+    // OpenAI o1/o3 models: reasoning_effort parameter
+    effort?: 'minimal' | 'low' | 'medium' | 'high';
+  };
+  // Provider-specific extra parameters that will be merged into the API request body
+  extra_body?: ExtraBodyParams;
 }
 
 export interface ChatCompletionResponse {
@@ -49,15 +78,15 @@ export interface ModelCapabilities {
   /** Output features supported */
   output: {
     text: boolean;
-    structured?: boolean;      // JSON mode
+    structured?: boolean; // JSON mode
     function_calling?: boolean;
     streaming?: boolean;
-    verbosity_control?: boolean;  // OpenAI verbosity
+    verbosity_control?: boolean; // OpenAI verbosity
   };
   /** Reasoning features */
   reasoning?: {
     enabled: boolean;
-    effort_control?: boolean;   // OpenAI reasoning effort
+    effort_control?: boolean; // OpenAI reasoning effort
   };
 }
 
@@ -70,13 +99,6 @@ export interface ModelInfo {
   display_name: string;
   /** What this model can do - only features that affect API calls */
   capabilities: ModelCapabilities;
-}
-
-export interface Logger {
-  debug(message: string, ...args: unknown[]): void;
-  info(message: string, ...args: unknown[]): void;
-  warn(message: string, ...args: unknown[]): void;
-  error(message: string, ...args: unknown[]): void;
 }
 
 export interface ConnectorConfig {

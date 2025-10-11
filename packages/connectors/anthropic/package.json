@@ -1,0 +1,47 @@
+{
+  "name": "@anygpt/anthropic",
+  "version": "0.1.0",
+  "description": "Anthropic connector for AnyGPT - integrates native Anthropic API with the router",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "!**/*.tsbuildinfo"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/genai-tools/anygpt.git",
+    "directory": "packages/connectors/anthropic"
+  },
+  "keywords": [
+    "anthropic",
+    "claude",
+    "connector",
+    "ai",
+    "llm"
+  ],
+  "author": "AnyGPT Contributors",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/genai-tools/anygpt/issues"
+  },
+  "homepage": "https://github.com/genai-tools/anygpt#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@anygpt/router": "0.4.0",
+    "@anthropic-ai/sdk": "^0.65.0"
+  }
+}

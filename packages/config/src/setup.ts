@@ -6,10 +6,13 @@ import { GenAIRouter } from '@anygpt/router';
 import { loadConfig } from './loader.js';
 import { loadConnectors } from './connector-loader.js';
 import type { AnyGPTConfig, ConfigLoadOptions } from '@anygpt/types';
-import type { ConnectorConfig as AnyConnectorConfig, Logger } from '@anygpt/types';
+import type {
+  ConnectorConfig as AnyConnectorConfig,
+  Logger,
+} from '@anygpt/types';
 import type {
   ProviderConfig as RouterProviderConfig,
-  ConnectorConfig as RouterConnectorConfig
+  ConnectorConfig as RouterConnectorConfig,
 } from '@anygpt/router';
 import type { FactoryConfig } from './factory.js';
 
@@ -27,24 +30,27 @@ export async function setupRouter(
 ): Promise<{ router: GenAIRouter; config: AnyGPTConfig }> {
   // Load configuration
   const config = await loadConfig(options);
-  
+
   // Create router with converted config
   const router = new GenAIRouter({
     timeout: config.settings?.timeout,
     maxRetries: config.settings?.maxRetries,
-    providers: convertToRouterProviders(config)
+    providers: convertToRouterProviders(config),
   });
-  
+
   // Load and register connectors with logger
   await loadConnectors(router, config, logger);
-  
+
   return { router, config };
 }
 
 /**
  * Create router from factory config with direct connector instances
  */
-export async function setupRouterFromFactory(factoryConfig: FactoryConfig): Promise<{ router: GenAIRouter; config: FactoryConfig }> {
+export async function setupRouterFromFactory(
+  factoryConfig: FactoryConfig,
+  logger?: Logger
+): Promise<{ router: GenAIRouter; config: FactoryConfig }> {
   // Convert factory providers to router provider format for validation
   const routerProviders: Record<string, RouterProviderConfig> = {};
   for (const providerId of Object.keys(factoryConfig.providers)) {
@@ -53,8 +59,8 @@ export async function setupRouterFromFactory(factoryConfig: FactoryConfig): Prom
       api: {
         url: '',
         token: '',
-        headers: {}
-      }
+        headers: {},
+      },
     };
   }
 
@@ -62,17 +68,32 @@ export async function setupRouterFromFactory(factoryConfig: FactoryConfig): Prom
   const router = new GenAIRouter({
     timeout: factoryConfig.defaults?.timeout || 30000,
     maxRetries: factoryConfig.defaults?.maxRetries || 3,
-    providers: routerProviders
+    providers: routerProviders,
   });
 
   // Register each connector directly with the router
-  for (const [providerId, providerConfig] of Object.entries(factoryConfig.providers)) {
+  for (const [providerId, providerConfig] of Object.entries(
+    factoryConfig.providers
+  )) {
+    const connector = providerConfig.connector;
+
+    // Inject logger into connector if provided
+    if (logger && connector) {
+      // Use Object.defineProperty to override the protected logger property
+      Object.defineProperty(connector, 'logger', {
+        value: logger,
+        writable: true,
+        enumerable: false,
+        configurable: true,
+      });
+    }
+
     const factory = {
       getProviderId: () => providerId,
       create: (routerConfig: RouterConnectorConfig) => {
         // For factory configs, ignore normalized config and reuse supplied connector instance
         void routerConfig;
-        return providerConfig.connector;
+        return connector;
       },
     };
 
@@ -84,37 +105,51 @@ export async function setupRouterFromFactory(factoryConfig: FactoryConfig): Prom
 /**
  * Convert AnyGPT config providers to router format
  */
-function convertToRouterProviders(config: AnyGPTConfig): Record<string, RouterProviderConfig> {
+function convertToRouterProviders(
+  config: AnyGPTConfig
+): Record<string, RouterProviderConfig> {
   const routerProviders: Record<string, RouterProviderConfig> = {};
-  
+
   for (const [providerId, providerConfig] of Object.entries(config.providers)) {
     // Extract connector type from package name
     // e.g., "@anygpt/openai" -> "openai"
     const connectorConfig = providerConfig.connector as ExtendedConnectorConfig;
     const connectorPackage = connectorConfig.type || connectorConfig.connector;
-    const connectorType = connectorPackage
-      .split('/')
-      .pop()
-      ?.replace('@anygpt/', '') || 'unknown';
-    
+    const connectorType =
+      connectorPackage.split('/').pop()?.replace('@anygpt/', '') || 'unknown';
+
     // Support both old format (config) and new format (options)
-    const connectorOptions = (connectorConfig.options ?? connectorConfig.config ?? {}) as Record<string, unknown>;
-    const baseURL = typeof connectorOptions['baseURL'] === 'string' ? connectorOptions['baseURL'] : '';
-    const apiKey = typeof connectorOptions['apiKey'] === 'string' ? connectorOptions['apiKey'] : '';
-    const timeout = typeof connectorOptions['timeout'] === 'number' ? connectorOptions['timeout'] : undefined;
-    const maxRetries = typeof connectorOptions['maxRetries'] === 'number' ? connectorOptions['maxRetries'] : undefined;
+    const connectorOptions = (connectorConfig.options ??
+      connectorConfig.config ??
+      {}) as Record<string, unknown>;
+    const baseURL =
+      typeof connectorOptions['baseURL'] === 'string'
+        ? connectorOptions['baseURL']
+        : '';
+    const apiKey =
+      typeof connectorOptions['apiKey'] === 'string'
+        ? connectorOptions['apiKey']
+        : '';
+    const timeout =
+      typeof connectorOptions['timeout'] === 'number'
+        ? connectorOptions['timeout']
+        : undefined;
+    const maxRetries =
+      typeof connectorOptions['maxRetries'] === 'number'
+        ? connectorOptions['maxRetries']
+        : undefined;
 
     routerProviders[providerId] = {
       type: connectorType,
       api: {
         url: baseURL,
         token: apiKey,
-        headers: {}
+        headers: {},
       },
       timeout,
-      maxRetries
+      maxRetries,
     };
   }
-  
+
   return routerProviders;
 }

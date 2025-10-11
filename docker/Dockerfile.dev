@@ -1,0 +1,21 @@
+# Development Dockerfile - mounts workspace at runtime
+# No build needed - just provides Node.js environment
+FROM node:24-alpine
+
+WORKDIR /workspace
+
+# Create non-root user
+RUN addgroup -g 1001 -S anygpt && \
+    adduser -S anygpt -u 1001 -G anygpt
+
+# Switch to non-root user
+USER anygpt
+
+# Metadata
+LABEL org.opencontainers.image.title="AnyGPT MCP Server (Dev)"
+LABEL org.opencontainers.image.description="Universal AI provider gateway - development with mounted workspace"
+LABEL org.opencontainers.image.source="https://github.com/genai-tools/anygpt"
+LABEL org.opencontainers.image.licenses="MIT"
+
+# Start MCP server from mounted workspace
+ENTRYPOINT ["node", "packages/mcp/dist/index.js"]

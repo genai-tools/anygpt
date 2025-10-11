@@ -7,12 +7,12 @@ import {
   type PackageRelease,
 } from '../../lib/changelog.js';
 import { generateAISummary } from '../../lib/ai-summary.js';
+import { generateInteractiveAISummary } from '../../lib/ai-summary-interactive.js';
 import { execa } from 'execa';
 import {
   getExistingPR,
   buildPRBody,
   updatePR,
-  getPRDiff,
   getRepoName,
   addUpdateComment,
   markPRReady,
@@ -92,9 +92,12 @@ export default async function runExecutor(
       'packages/connectors/*/CHANGELOG.md',
     ],
     aiCommand,
+    aiTitleCommand,
     model,
     maxLinesPerFile = 150,
-    diffPaths = ['packages/*/src/**', 'packages/connectors/*/src/**'],
+    interactiveAI = false,
+    verbose = false,
+    // diffPaths not used in pr-update (we get full diff from git)
   } = options;
 
   // Override model in aiCommand if model parameter is provided
@@ -102,6 +105,8 @@ export default async function runExecutor(
     model && aiCommand
       ? aiCommand.replace(/--model\s+\S+/, `--model ${model}`)
       : aiCommand;
+
+  const finalAiTitleCommand = aiTitleCommand || finalAiCommand;
 
   try {
     console.log('🔄 Updating release PR...\n');
@@ -152,32 +157,79 @@ export default async function runExecutor(
     const prBodyWithoutAI = buildPRBody('', releases);
     await updatePR(existingPR, prBodyWithoutAI, prTitle);
 
-    // Generate AI summary from actual PR diff if enabled
+    // Generate AI summary from branch diff if enabled
     if (finalAiCommand) {
+      const mode = interactiveAI ? 'interactive' : 'standard';
       console.log(
-        `\n🤖 Generating AI summary from PR diff${
+        `\n🤖 Generating AI summary (${mode} mode) from branch diff${
           model ? ` with model: ${model}` : ''
         }...`
       );
       try {
-        const prDiff = await getPRDiff(existingPR);
-        const aiSummary = await generateAISummary(
-          changelog,
-          releases,
-          prDiff,
-          finalAiCommand,
-          {
-            maxLinesPerFile,
-          }
-        );
+        // Fetch latest from remote to ensure we have up-to-date branches
+        await execa('git', ['fetch', 'origin', targetBranch, baseBranch]);
 
-        // Update PR with AI summary
+        // Get diff directly from git (comparing current branch to target)
+        const { stdout: branchDiff } = await execa('git', [
+          'diff',
+          `origin/${targetBranch}...${baseBranch}`,
+        ]);
+        const prDiff = branchDiff;
+
+        // Step 1: Generate summary (choose mode based on flag)
+        const aiSummary = interactiveAI
+          ? await generateInteractiveAISummary(
+              changelog,
+              releases,
+              prDiff,
+              finalAiCommand,
+              {
+                maxLinesPerFile,
+                verbose,
+              }
+            )
+          : await generateAISummary(
+              changelog,
+              releases,
+              prDiff,
+              finalAiCommand,
+              {
+                maxLinesPerFile,
+              }
+            );
+
+        console.log(`📝 AI Summary length: ${aiSummary.length} chars`);
+        if (aiSummary) {
+          console.log(
+            `📝 AI Summary preview: ${aiSummary.substring(0, 200)}...`
+          );
+        }
+
+        // Step 2: Build PR body with summary
         const prBodyWithAI = buildPRBody(aiSummary, releases);
-        await updatePR(existingPR, prBodyWithAI);
-        console.log('✅ PR description updated with AI summary');
+        console.log(`📄 PR Body length: ${prBodyWithAI.length} chars`);
+
+        // Step 3: Generate title from summary
+        let aiTitle: string | undefined;
+        if (finalAiTitleCommand) {
+          console.log('🎯 Generating AI title from summary...');
+          const { generateAITitle } = await import('../../lib/ai-summary.js');
+          aiTitle = await generateAITitle(
+            aiSummary,
+            changelog,
+            releases,
+            finalAiTitleCommand
+          );
+        }
+
+        // Step 4: Update PR with both title and body in one call
+        await updatePR(existingPR, prBodyWithAI, aiTitle || prTitle);
+        console.log(
+          `✅ PR updated with AI summary and title: "${aiTitle || prTitle}"`
+        );
       } catch (error) {
-        console.warn('⚠️  Failed to generate AI summary:', error);
-        console.log('   PR updated without AI summary');
+        console.warn('⚠️  Failed to generate AI content:', error);
+        console.log('   PR updated without AI enhancements');
       }
     }
 

@@ -66,12 +66,12 @@ export async function createPR(
   title: string,
   body: string,
   baseBranch: string,
-  options: { draft?: boolean } = {}
+  options: { draft?: boolean; headBranch?: string } = {}
 ): Promise<string> {
   const prBodyPath = '/tmp/release-pr.md';
   await writeFile(prBodyPath, body, 'utf-8');
 
-  const { draft = false } = options;
+  const { draft = false, headBranch } = options;
 
   console.log(`\n📝 Creating ${draft ? 'draft ' : ''}release PR...`);
   const args = [
@@ -81,11 +81,13 @@ export async function createPR(
     title,
     '--body-file',
     prBodyPath,
-    '--head',
-    headBranch,
     '--base',
     baseBranch,
   ];
+
+  if (headBranch) {
+    args.push('--head', headBranch);
+  }
 
   if (draft) {
     args.push('--draft');
@@ -182,21 +184,12 @@ export async function getPRBaseCommit(
   return stdout.trim();
 }
 
-export async function getPRDiff(
-  prNumber: string,
-  paths?: string[]
-): Promise<string> {
-  // Note: gh pr diff doesn't support path filtering, so we get the full diff
-  const { stdout } = await execa('gh', ['pr', 'diff', prNumber]);
-  return stdout;
-}
-
 export async function markPRReady(prNumber: string): Promise<void> {
   console.log('Converting draft PR to ready...');
   try {
     await execa('gh', ['pr', 'ready', prNumber]);
     console.log('PR marked as ready for review');
-  } catch (error) {
+  } catch {
     // Ignore error if PR is already ready
     console.log('PR is already ready (not a draft)');
   }

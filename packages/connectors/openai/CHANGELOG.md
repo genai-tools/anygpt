@@ -1,3 +1,22 @@
+## 1.1.0 (2025-10-09)
+
+### 🚀 Features
+
+- **openai:** add tag resolution support to connector ([5b7790e](https://github.com/genai-tools/anygpt/commit/5b7790e))
+- **openai:** support reasoning_effort parameter with enhanced error handling ([9226e82](https://github.com/genai-tools/anygpt/commit/9226e82))
+
+### 🩹 Fixes
+
+- resolve typecheck errors in config and openai packages ([063ab5f](https://github.com/genai-tools/anygpt/commit/063ab5f))
+
+### 🧱 Updated Dependencies
+
+- Updated router to 0.4.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.3.3 (2025-10-09)
 
 ### 🧱 Updated Dependencies

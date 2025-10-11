@@ -18,3 +18,7 @@ export type { RouterConfig, GatewayConfig, ProviderConfig, ApiConfig } from './c
 
 // Error exports
 export * from './errors.js';
+
+// Error handler exports
+export { ErrorHandler, createErrorHandler } from './error-handler.js';
+export type { RetryConfig, ErrorContext, RetryDecision } from './error-handler.js';

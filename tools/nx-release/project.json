@@ -3,5 +3,14 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "tools/nx-release/src",
   "projectType": "library",
-  "tags": []
+  "tags": [],
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx tsc --noEmit --project tsconfig.lib.json",
+        "cwd": "tools/nx-release"
+      }
+    }
+  }
 }

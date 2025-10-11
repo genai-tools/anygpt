@@ -1,3 +1,23 @@
+## 1.1.0 (2025-10-09)
+
+### 🚀 Features
+
+- **config:** implement model tag resolution system ([8e21d0b](https://github.com/genai-tools/anygpt/commit/8e21d0b))
+- **config:** add model pattern resolver with priority-based rules ([ec1bc6a](https://github.com/genai-tools/anygpt/commit/ec1bc6a))
+
+### 📖 Documentation
+
+- add reasoning effort levels guide and configuration examples ([d82a360](https://github.com/genai-tools/anygpt/commit/d82a360))
+
+### 🧱 Updated Dependencies
+
+- Updated router to 0.4.0
+- Updated types to 1.1.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.6.1 (2025-10-09)
 
 ### 🧱 Updated Dependencies

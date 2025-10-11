@@ -1,3 +1,20 @@
+## 1.1.0 (2025-10-09)
+
+### 🚀 Features
+
+- **cli:** add model tag resolution and improved context handling ([e4e6a20](https://github.com/genai-tools/anygpt/commit/e4e6a20))
+- **cli:** enhance commands with modelRules filtering and improved output ([b5b5909](https://github.com/genai-tools/anygpt/commit/b5b5909))
+
+### 🧱 Updated Dependencies
+
+- Updated config to 1.1.0
+- Updated router to 0.4.0
+- Updated types to 1.1.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.0.5 (2025-10-09)
 
 ### 🩹 Fixes

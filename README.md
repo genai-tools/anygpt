@@ -34,15 +34,17 @@ CLI Tool → @anygpt/config → @anygpt/connectors → Provider SDKs
 
 ### Connector Packages
 
-| Package                                             | Provider                 | Dependencies           |
-| --------------------------------------------------- | ------------------------ | ---------------------- |
-| **[@anygpt/openai](./packages/connectors/openai/)** | OpenAI & compatible APIs | @anygpt/router, openai |
-| **[@anygpt/mock](./packages/connectors/mock/)**     | Testing & development    | @anygpt/types          |
+| Package                                                   | Provider                  | Dependencies                      |
+| --------------------------------------------------------- | ------------------------- | --------------------------------- |
+| **[@anygpt/openai](./packages/connectors/openai/)**       | OpenAI & compatible APIs  | @anygpt/router, openai            |
+| **[@anygpt/anthropic](./packages/connectors/anthropic/)** | Anthropic Claude (native) | @anygpt/router, @anthropic-ai/sdk |
+| **[@anygpt/mock](./packages/connectors/mock/)**           | Testing & development     | @anygpt/types                     |
 
 ### Supported Providers
 
 - **OpenAI**: GPT-4o, GPT-4, GPT-3.5, o1 models
 - **OpenAI-Compatible**: Ollama, LocalAI, Together AI, Anyscale
+- **Anthropic**: Claude Sonnet, Opus, Haiku (native API)
 - **Mock Provider**: For testing and development
 
 ## Quick Start
@@ -57,7 +59,7 @@ npm install -g @anygpt/cli
 
 ```bash
 # For building applications
-npm install @anygpt/router @anygpt/openai
+npm install @anygpt/router @anygpt/openai @anygpt/anthropic
 
 # For configuration management
 npm install @anygpt/config
@@ -147,7 +149,9 @@ const response = await router.chatCompletion({
 **Example factory config file (`.anygpt/anygpt.config.ts`):**
 
 ```typescript
-import { config, openai } from '@anygpt/config';
+import { config } from '@anygpt/config';
+import { openai } from '@anygpt/openai';
+import { anthropic } from '@anygpt/anthropic';
 
 export default config({
   defaults: {
@@ -160,6 +164,13 @@ export default config({
       connector: openai({
         apiKey: process.env.OPENAI_API_KEY,
         baseURL: 'https://api.openai.com/v1',
+      }),
+    },
+    claude: {
+      name: 'Anthropic Claude',
+      connector: anthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY,
+        baseURL: 'https://api.anthropic.com', // Optional: for corporate gateways
       }),
     },
     'ollama-local': {
@@ -304,8 +315,8 @@ npx nx run-many -t lint
 ### Getting Started
 
 - **[CLI Documentation](./packages/cli/docs/README.md)** - Complete command-line interface guide
-- **[Configuration Guide](./docs/configuration.md)** - Complete configuration setup and examples
-- **[Troubleshooting Guide](./docs/troubleshooting.md)** - Common issues, recent fixes, and debugging
+- **[Configuration Guide](./docs/product/features/configuration.md)** - Complete configuration setup and examples
+- **[Troubleshooting Guide](./docs/workspace/troubleshooting.md)** - Common issues, recent fixes, and debugging
 
 ### Integration Examples
 
@@ -314,11 +325,11 @@ npx nx run-many -t lint
 
 ### Development Guidelines
 
-- **[Testing Guide](./docs/guidelines/testing.md)** - Comprehensive testing strategy, patterns, and coverage goals
+- **[Testing Guide](./docs/workspace/guidelines/testing.md)** - Comprehensive testing strategy, patterns, and coverage goals
 - **[E2E Testing Guide](./e2e/README.md)** - End-to-end test suite documentation and patterns
-- **[Release Workflow](./docs/release-workflow.md)** - Automated Release PR workflow documentation
-- **[Release Quick Reference](./docs/release-quick-reference.md)** - Quick reference for releasing packages
-- **[Release Setup](./docs/release-setup.md)** - Release infrastructure documentation
+- **[Release Workflow](./docs/workspace/release-workflow.md)** - Automated Release PR workflow documentation
+- **[Release Quick Reference](./docs/workspace/release-quick-reference.md)** - Quick reference for releasing packages
+- **[Release Setup](./docs/workspace/release-setup.md)** - Release infrastructure documentation
 
 ### CLI Commands
 
@@ -332,6 +343,7 @@ npx nx run-many -t lint
 - **[@anygpt/config](./packages/config/README.md)** - Configuration management
 - **[@anygpt/router](./packages/router/README.md)** - Core router and connector system
 - **[@anygpt/openai](./packages/connectors/openai/README.md)** - OpenAI connector
+- **[@anygpt/anthropic](./packages/connectors/anthropic/README.md)** - Anthropic connector
 - **[@anygpt/mock](./packages/connectors/mock/README.md)** - Mock connector for testing
 - **[@anygpt/cli](./packages/cli/README.md)** - Command-line interface
 - **[@anygpt/mcp](./packages/mcp/README.md)** - MCP server implementation
