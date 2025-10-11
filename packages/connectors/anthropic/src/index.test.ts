@@ -23,12 +23,11 @@ describe('AnthropicConnector', () => {
   });
 
   describe('listModels', () => {
-    it('should return static model list', async () => {
+    it('should return empty array when API call fails with dummy key', async () => {
       const models = await connector.listModels();
-      expect(models.length).toBeGreaterThan(0);
-      expect(models[0]).toHaveProperty('id');
-      expect(models[0]).toHaveProperty('provider');
-      expect(models[0].provider).toBe('anthropic');
+      // With a dummy API key, the API call will fail and return empty array
+      // This allows fallback to config-defined models
+      expect(models).toEqual([]);
     });
   });
 });

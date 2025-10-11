@@ -25,11 +25,13 @@ class MockConnector implements IConnector {
       created: Date.now(),
       model: request.model || 'test-model',
       provider: this.providerId,
-      choices: [{
-        index: 0,
-        message: { role: 'assistant', content: 'Test response' },
-        finish_reason: 'stop',
-      }],
+      choices: [
+        {
+          index: 0,
+          message: { role: 'assistant', content: 'Test response' },
+          finish_reason: 'stop',
+        },
+      ],
       usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 },
     };
   }
@@ -48,15 +50,17 @@ class MockConnector implements IConnector {
   }
 
   async listModels(): Promise<any[]> {
-    return [{
-      id: `${this.providerId}-model`,
-      provider: this.providerId,
-      display_name: `${this.providerId} Model`,
-      capabilities: {
-        input: { text: true },
-        output: { text: true },
+    return [
+      {
+        id: `${this.providerId}-model`,
+        provider: this.providerId,
+        display_name: `${this.providerId} Model`,
+        capabilities: {
+          input: { text: true },
+          output: { text: true },
+        },
       },
-    }];
+    ];
   }
 
   isInitialized(): boolean {
@@ -99,19 +103,19 @@ describe('ConnectorRegistry', () => {
   describe('registerConnector', () => {
     it('should register a connector factory', () => {
       const factory = new MockConnectorFactory('openai');
-      
+
       registry.registerConnector(factory);
-      
+
       expect(registry.hasConnector('openai')).toBe(true);
     });
 
     it('should not register duplicate connector types', () => {
       const factory1 = new MockConnectorFactory('openai');
       const factory2 = new MockConnectorFactory('openai');
-      
+
       registry.registerConnector(factory1);
       registry.registerConnector(factory2);
-      
+
       // Should still have only one
       expect(registry.getAvailableProviders()).toHaveLength(1);
     });
@@ -119,10 +123,10 @@ describe('ConnectorRegistry', () => {
     it('should register multiple different connectors', () => {
       const openaiFactory = new MockConnectorFactory('openai');
       const anthropicFactory = new MockConnectorFactory('anthropic');
-      
+
       registry.registerConnector(openaiFactory);
       registry.registerConnector(anthropicFactory);
-      
+
       expect(registry.hasConnector('openai')).toBe(true);
       expect(registry.hasConnector('anthropic')).toBe(true);
       expect(registry.getAvailableProviders()).toHaveLength(2);
@@ -133,9 +137,9 @@ describe('ConnectorRegistry', () => {
     it('should create a connector instance', () => {
       const factory = new MockConnectorFactory('openai');
       registry.registerConnector(factory);
-      
+
       const connector = registry.createConnector('openai');
-      
+
       expect(connector).toBeDefined();
       expect(connector.getProviderId()).toBe('openai');
     });
@@ -143,14 +147,14 @@ describe('ConnectorRegistry', () => {
     it('should pass config to connector', () => {
       const factory = new MockConnectorFactory('openai');
       registry.registerConnector(factory);
-      
+
       const config: ConnectorConfig = {
         timeout: 5000,
         maxRetries: 3,
       };
-      
+
       const connector = registry.createConnector('openai', config);
-      
+
       expect(connector.getConfig()).toEqual(config);
     });
 
@@ -163,9 +167,9 @@ describe('ConnectorRegistry', () => {
     it('should create connector with empty config', () => {
       const factory = new MockConnectorFactory('openai');
       registry.registerConnector(factory);
-      
+
       const connector = registry.createConnector('openai');
-      
+
       expect(connector.getConfig()).toEqual({});
     });
   });
@@ -174,9 +178,9 @@ describe('ConnectorRegistry', () => {
     it('should get a connector instance', () => {
       const factory = new MockConnectorFactory('openai');
       registry.registerConnector(factory);
-      
+
       const connector = registry.getConnector('openai');
-      
+
       expect(connector).toBeDefined();
       expect(connector.getProviderId()).toBe('openai');
     });
@@ -184,10 +188,10 @@ describe('ConnectorRegistry', () => {
     it('should create new instance each time (stateless)', () => {
       const factory = new MockConnectorFactory('openai');
       registry.registerConnector(factory);
-      
+
       const connector1 = registry.getConnector('openai');
       const connector2 = registry.getConnector('openai');
-      
+
       // Should be different instances
       expect(connector1).not.toBe(connector2);
     });
@@ -195,10 +199,10 @@ describe('ConnectorRegistry', () => {
     it('should pass config to connector', () => {
       const factory = new MockConnectorFactory('openai');
       registry.registerConnector(factory);
-      
+
       const config: ConnectorConfig = { timeout: 3000 };
       const connector = registry.getConnector('openai', config);
-      
+
       expect(connector.getConfig()).toEqual(config);
     });
   });
@@ -207,7 +211,7 @@ describe('ConnectorRegistry', () => {
     it('should return true for registered connector', () => {
       const factory = new MockConnectorFactory('openai');
       registry.registerConnector(factory);
-      
+
       expect(registry.hasConnector('openai')).toBe(true);
     });
 
@@ -218,9 +222,9 @@ describe('ConnectorRegistry', () => {
     it('should return false after unregistering', () => {
       const factory = new MockConnectorFactory('openai');
       registry.registerConnector(factory);
-      
+
       registry.unregisterConnector('openai');
-      
+
       expect(registry.hasConnector('openai')).toBe(false);
     });
   });
@@ -233,12 +237,12 @@ describe('ConnectorRegistry', () => {
     it('should return list of registered providers', () => {
       const openaiFactory = new MockConnectorFactory('openai');
       const anthropicFactory = new MockConnectorFactory('anthropic');
-      
+
       registry.registerConnector(openaiFactory);
       registry.registerConnector(anthropicFactory);
-      
+
       const providers = registry.getAvailableProviders();
-      
+
       expect(providers).toHaveLength(2);
       expect(providers).toContain('openai');
       expect(providers).toContain('anthropic');
@@ -247,13 +251,13 @@ describe('ConnectorRegistry', () => {
     it('should return updated list after unregistering', () => {
       const openaiFactory = new MockConnectorFactory('openai');
       const anthropicFactory = new MockConnectorFactory('anthropic');
-      
+
       registry.registerConnector(openaiFactory);
       registry.registerConnector(anthropicFactory);
       registry.unregisterConnector('openai');
-      
+
       const providers = registry.getAvailableProviders();
-      
+
       expect(providers).toHaveLength(1);
       expect(providers).toContain('anthropic');
       expect(providers).not.toContain('openai');
@@ -264,26 +268,26 @@ describe('ConnectorRegistry', () => {
     it('should unregister a connector', () => {
       const factory = new MockConnectorFactory('openai');
       registry.registerConnector(factory);
-      
+
       const result = registry.unregisterConnector('openai');
-      
+
       expect(result).toBe(true);
       expect(registry.hasConnector('openai')).toBe(false);
     });
 
     it('should return false for non-existent connector', () => {
       const result = registry.unregisterConnector('invalid');
-      
+
       expect(result).toBe(false);
     });
 
     it('should allow re-registering after unregister', () => {
       const factory = new MockConnectorFactory('openai');
-      
+
       registry.registerConnector(factory);
       registry.unregisterConnector('openai');
       registry.registerConnector(factory);
-      
+
       expect(registry.hasConnector('openai')).toBe(true);
     });
   });
@@ -292,12 +296,12 @@ describe('ConnectorRegistry', () => {
     it('should remove all connectors', () => {
       const openaiFactory = new MockConnectorFactory('openai');
       const anthropicFactory = new MockConnectorFactory('anthropic');
-      
+
       registry.registerConnector(openaiFactory);
       registry.registerConnector(anthropicFactory);
-      
+
       registry.clear();
-      
+
       expect(registry.getAvailableProviders()).toEqual([]);
       expect(registry.hasConnector('openai')).toBe(false);
       expect(registry.hasConnector('anthropic')).toBe(false);
@@ -305,11 +309,11 @@ describe('ConnectorRegistry', () => {
 
     it('should allow registering after clear', () => {
       const factory = new MockConnectorFactory('openai');
-      
+
       registry.registerConnector(factory);
       registry.clear();
       registry.registerConnector(factory);
-      
+
       expect(registry.hasConnector('openai')).toBe(true);
     });
   });
@@ -318,12 +322,12 @@ describe('ConnectorRegistry', () => {
     it('should return models from all registered providers', async () => {
       const openaiFactory = new MockConnectorFactory('openai');
       const anthropicFactory = new MockConnectorFactory('anthropic');
-      
+
       registry.registerConnector(openaiFactory);
       registry.registerConnector(anthropicFactory);
-      
+
       const results = await registry.getAllModels();
-      
+
       expect(results).toHaveLength(2);
       expect(results[0].provider).toBe('openai');
       expect(results[0].models).toHaveLength(1);
@@ -333,7 +337,7 @@ describe('ConnectorRegistry', () => {
 
     it('should return empty array when no connectors registered', async () => {
       const results = await registry.getAllModels();
-      
+
       expect(results).toEqual([]);
     });
 
@@ -343,27 +347,31 @@ describe('ConnectorRegistry', () => {
         create(config: ConnectorConfig): IConnector {
           const connector = new MockConnector('failing', config);
           // Override listModels to throw
-          connector.listModels = vi.fn().mockRejectedValue(new Error('API error'));
+          connector.listModels = vi
+            .fn()
+            .mockRejectedValue(new Error('API error'));
           return connector;
         }
-        
+
         getProviderId(): string {
           return 'failing';
         }
       }
-      
+
       const factory = new FailingConnectorFactory();
       registry.registerConnector(factory);
-      
+
       // Mock console.warn to verify it's called
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
+        // Intentionally empty - suppressing console output in tests
+      });
+
       const results = await registry.getAllModels();
-      
+
       // Should return empty results but not throw
       expect(results).toHaveLength(0);
       expect(warnSpy).toHaveBeenCalled();
-      
+
       warnSpy.mockRestore();
     });
   });
