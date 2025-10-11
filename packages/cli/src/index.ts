@@ -24,7 +24,10 @@ program
   .description('AnyGPT - Universal AI Gateway CLI')
   .version('0.0.1')
   .option('-c, --config <path>', 'path to config file')
-  .option('-v, --verbose', 'verbose output');
+  .option(
+    '-v, --verbose [level]',
+    'verbose output: no value = info (metrics), "debug" = debug logs'
+  );
 
 // Stateless chat command
 program
@@ -121,6 +124,13 @@ program
   .option(
     '--filter-tags <tags>',
     'filter models by tags (comma-separated, use ! prefix to exclude)'
+  )
+  .option('--parallel', 'run models in parallel instead of sequentially')
+  .option(
+    '--concurrency <number>',
+    'max parallel requests when using --parallel (default: 3)',
+    (val) => parseInt(val, 10),
+    3
   )
   .option('--output <directory>', 'directory to save response files')
   .option('--json', 'output as JSON')
