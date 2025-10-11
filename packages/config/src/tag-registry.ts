@@ -51,10 +51,12 @@ export async function buildTagRegistry(
   // Process each provider
   for (const [providerId, providerConfig] of Object.entries(providers)) {
     // Step 1: Collect tags from explicit models
+    const explicitModels: string[] = [];
     if (providerConfig.models) {
       for (const [modelName, metadata] of Object.entries(
         providerConfig.models
       )) {
+        explicitModels.push(modelName);
         if (metadata.tags) {
           for (const tag of metadata.tags) {
             addTag(tag, providerId, modelName, 'explicit');
@@ -74,13 +76,18 @@ export async function buildTagRegistry(
       // Error will be visible when user tries to use the provider
     }
 
-    // Step 3: Apply provider-level modelRules to actual models
-    if (providerConfig.modelRules && actualModels.length > 0) {
+    // Step 3: Determine which models to apply rules to
+    // If connector returned models, use those; otherwise fallback to config models
+    const modelsForRules =
+      actualModels.length > 0 ? actualModels : explicitModels;
+
+    // Step 4: Apply provider-level modelRules
+    if (providerConfig.modelRules && modelsForRules.length > 0) {
       for (const rule of providerConfig.modelRules) {
         if (!rule.tags) continue;
 
         // Find models matching this rule's patterns
-        const matchingModels = actualModels.filter((modelId) =>
+        const matchingModels = modelsForRules.filter((modelId) =>
           matchesPatterns(modelId, rule.pattern)
         );
 
@@ -93,12 +100,12 @@ export async function buildTagRegistry(
       }
     }
 
-    // Step 4: Apply global modelRules to actual models
-    if (globalModelRules && actualModels.length > 0) {
+    // Step 5: Apply global modelRules
+    if (globalModelRules && modelsForRules.length > 0) {
       for (const rule of globalModelRules) {
         if (!rule.tags) continue;
 
-        const matchingModels = actualModels.filter((modelId) =>
+        const matchingModels = modelsForRules.filter((modelId) =>
           matchesPatterns(modelId, rule.pattern)
         );
 
