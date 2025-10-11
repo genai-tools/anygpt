@@ -32,6 +32,16 @@
       "description": "Maximum lines per file in diff sent to AI (prevents large files from dominating)",
       "default": 150
     },
+    "interactiveAI": {
+      "type": "boolean",
+      "description": "Use interactive AI mode where AI selects which files to examine (more efficient for large PRs)",
+      "default": false
+    },
+    "verbose": {
+      "type": "boolean",
+      "description": "Enable verbose logging for debugging",
+      "default": false
+    },
     "diffPaths": {
       "type": "array",
       "items": {
@@ -46,7 +56,10 @@
         "type": "string"
       },
       "description": "Glob patterns for changelog files",
-      "default": ["packages/*/CHANGELOG.md", "packages/connectors/*/CHANGELOG.md"]
+      "default": [
+        "packages/*/CHANGELOG.md",
+        "packages/connectors/*/CHANGELOG.md"
+      ]
     }
   }
 }
