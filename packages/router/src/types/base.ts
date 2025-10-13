@@ -30,9 +30,17 @@ export interface ChatCompletionRequest {
   model?: string;
   temperature?: number;
   max_tokens?: number;
-  // Capability flag: use legacy max_tokens parameter (Anthropic-style)
-  // - true: use max_tokens parameter (for Cody/Anthropic models)
-  // - false/undefined: use max_completion_tokens parameter (OpenAI-style, default)
+  // API mode flag: determines which OpenAI API to use
+  // - true: Use Chat Completions API directly (skip Responses API entirely)
+  // - false/undefined: Try Responses API (default, modern API)
+  useLegacyCompletionAPI?: boolean;
+  // Fallback flag: only applies when using Responses API
+  // - true: If Responses API fails (404/400), fallback to Chat Completions API
+  // - false/undefined: No fallback, raise error
+  fallbackToChatCompletion?: boolean;
+  // Token parameter flag: only applies to Chat Completions API
+  // - true: use max_tokens parameter (Anthropic/Cody style)
+  // - false/undefined: use max_completion_tokens parameter (OpenAI style, default)
   useLegacyMaxTokens?: boolean;
   top_p?: number;
   frequency_penalty?: number;
