@@ -96,6 +96,36 @@ function applyRule(
     }
   }
 
+  // Apply or override useLegacyCompletionAPI capability
+  if (
+    rule.useLegacyCompletionAPI !== undefined &&
+    !locked.has('useLegacyCompletionAPI')
+  ) {
+    if (priority === 'provider') {
+      // Provider rules can override global rules
+      resolved.useLegacyCompletionAPI = rule.useLegacyCompletionAPI;
+      locked.add('useLegacyCompletionAPI'); // Lock after first provider rule match
+    } else if (resolved.useLegacyCompletionAPI === undefined) {
+      // Global rules only apply if not already set
+      resolved.useLegacyCompletionAPI = rule.useLegacyCompletionAPI;
+    }
+  }
+
+  // Apply or override fallbackToChatCompletion capability
+  if (
+    rule.fallbackToChatCompletion !== undefined &&
+    !locked.has('fallbackToChatCompletion')
+  ) {
+    if (priority === 'provider') {
+      // Provider rules can override global rules
+      resolved.fallbackToChatCompletion = rule.fallbackToChatCompletion;
+      locked.add('fallbackToChatCompletion'); // Lock after first provider rule match
+    } else if (resolved.fallbackToChatCompletion === undefined) {
+      // Global rules only apply if not already set
+      resolved.fallbackToChatCompletion = rule.fallbackToChatCompletion;
+    }
+  }
+
   // Merge extra_body (later rules can add to it, never locked)
   if (rule.extra_body) {
     resolved.extra_body = { ...resolved.extra_body, ...rule.extra_body };
@@ -182,6 +212,15 @@ export function resolveModelConfig(
     if (modelMetadata.useLegacyMaxTokens !== undefined) {
       resolved.useLegacyMaxTokens = modelMetadata.useLegacyMaxTokens;
       locked.add('useLegacyMaxTokens'); // Lock capability from model metadata
+    }
+    if (modelMetadata.useLegacyCompletionAPI !== undefined) {
+      resolved.useLegacyCompletionAPI = modelMetadata.useLegacyCompletionAPI;
+      locked.add('useLegacyCompletionAPI'); // Lock capability from model metadata
+    }
+    if (modelMetadata.fallbackToChatCompletion !== undefined) {
+      resolved.fallbackToChatCompletion =
+        modelMetadata.fallbackToChatCompletion;
+      locked.add('fallbackToChatCompletion'); // Lock capability from model metadata
     }
     if (modelMetadata.extra_body !== undefined) {
       resolved.extra_body = { ...modelMetadata.extra_body };
