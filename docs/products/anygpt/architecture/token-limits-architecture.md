@@ -13,6 +13,7 @@ Different LLM API providers use different parameter names for specifying maximum
 - **Legacy OpenAI**: `max_tokens` - Older OpenAI API versions
 
 Without proper handling, this inconsistency causes:
+
 1. **Truncated responses**: When the wrong parameter is used, APIs may default to very low token limits (e.g., 100 tokens)
 2. **API errors**: Some APIs reject requests with the wrong parameter name
 3. **Configuration complexity**: Users need to know which parameter each provider expects
@@ -76,11 +77,13 @@ Without proper handling, this inconsistency causes:
 **Files**: `factory.ts`, `model-pattern-resolver.ts`
 
 **Responsibilities**:
+
 - Define `BaseModelConfig` interface with `max_tokens` and `useLegacyMaxTokens`
 - Resolve model rules to determine which capability flag to use
 - Pass resolved configuration to consumers
 
 **Key Types**:
+
 ```typescript
 interface BaseModelConfig {
   max_tokens?: number;
@@ -93,10 +96,12 @@ interface BaseModelConfig {
 **Files**: `chat.ts`
 
 **Responsibilities**:
+
 - Define `ChatCompletionRequest` with capability flag
 - Document the flag's purpose and usage
 
 **Key Types**:
+
 ```typescript
 interface ChatCompletionRequest {
   max_tokens?: number;
@@ -109,10 +114,12 @@ interface ChatCompletionRequest {
 **Files**: `lib/router.ts`, `types/base.ts`
 
 **Responsibilities**:
+
 - Pass through `max_tokens` and `useLegacyMaxTokens` from request to connector
 - No translation logic (connectors handle it)
 
 **Key Code**:
+
 ```typescript
 const baseRequest: BaseRequest = {
   max_tokens: request.max_tokens,
@@ -126,10 +133,12 @@ const baseRequest: BaseRequest = {
 **Files**: `src/index.ts`
 
 **Responsibilities**:
+
 - Translate `max_tokens` to correct API parameter based on `useLegacyMaxTokens`
 - Send correctly formatted request to OpenAI-compatible APIs
 
 **Key Code**:
+
 ```typescript
 ...(validatedRequest.max_tokens !== undefined && {
   [validatedRequest.useLegacyMaxTokens ? 'max_tokens' : 'max_completion_tokens']:
@@ -142,6 +151,7 @@ const baseRequest: BaseRequest = {
 **Files**: `src/index.ts`
 
 **Responsibilities**:
+
 - Pass through request to OpenAI connector (which handles translation)
 - Preserve `useLegacyMaxTokens` flag
 
@@ -209,6 +219,7 @@ npx anygpt chat --tag sonnet --max-tokens 2000 "Your prompt"
 ```
 
 The CLI:
+
 1. Resolves the model config (including `useLegacyMaxTokens`)
 2. Passes both `max_tokens` and `useLegacyMaxTokens` to the router
 3. Router passes to connector
@@ -252,7 +263,7 @@ inputs: [
   `{projectRoot}/src/**/*.ts`,
   `{projectRoot}/tsconfig.lib.json`,
   // Missing: dependency source files!
-]
+];
 ```
 
 When we changed `router/src/types/base.ts`, packages depending on `router` (like `cli`, `config`) didn't know their cache was invalid.
@@ -269,23 +280,24 @@ inputs: [
   `{projectRoot}/package.json`,
   `^production`, // ← This invalidates cache when dependencies change
   { externalDependencies: ['tsdown'] },
-]
+];
 ```
 
 **2. Improved outputs specification** - Better cache granularity:
 
 ```typescript
 outputs: [
-  `{projectRoot}/dist`,           // All build artifacts
-  `{projectRoot}/dist/**/*.js`,   // JavaScript files
+  `{projectRoot}/dist`, // All build artifacts
+  `{projectRoot}/dist/**/*.js`, // JavaScript files
   `{projectRoot}/dist/**/*.d.ts`, // TypeScript declarations
-  `{projectRoot}/dist/**/*.map`,  // Source maps
-]
+  `{projectRoot}/dist/**/*.map`, // Source maps
+];
 ```
 
 **File**: `tools/nx-tsdown/src/plugin.ts`
 
 **Benefits**:
+
 - More precise cache invalidation
 - Better tracking of what files are actually produced
 - Nx can detect partial build failures more accurately
@@ -325,9 +337,8 @@ The MCP server should respect the same capability flags when calling models, ens
 
 ## Related Documentation
 
-- [Model Rules Guide](../packages/config/docs/MODEL_RULES.md) - User-facing documentation
-- [Configuration Guide](./configuration.md) - General configuration overview
-- [Anthropic Thinking Support](./anthropic-thinking-support.md) - Related feature using `extra_body`
+- [Model Rules Guide](../../../../packages/config/docs/MODEL_RULES.md) - User-facing documentation
+- [Anthropic Thinking Support](../features/anthropic-thinking-support.md) - Related feature using `extra_body`
 
 ## Changelog
 

@@ -156,4 +156,4 @@ This will:
 
 - [Anthropic Extended Thinking Documentation](https://docs.anthropic.com/en/docs/about-claude/models/extended-thinking-models)
 - [OpenAI Reasoning Effort Documentation](./reasoning-effort-levels.md)
-- [Model Rules Documentation](../packages/config/docs/MODEL_RULES.md)
+- [Model Rules Documentation](../../../../packages/config/docs/MODEL_RULES.md)

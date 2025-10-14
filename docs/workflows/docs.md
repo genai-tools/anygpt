@@ -35,6 +35,7 @@ docs/
 **Purpose**: Define business problems and measurable impact
 
 **When to use**:
+
 - Starting a new product or feature
 - Justifying why something should be built
 - Need to quantify business value
@@ -43,17 +44,20 @@ docs/
 **Output**: `docs/products/[product-name]/cases/[use-case-name].md`
 
 **Key sections**:
+
 - Problem statement (specific and concrete)
 - Current situation (evidence of problem)
 - Desired outcome (measurable goals)
 - Success metrics (quantified benefits)
 
 **Example**:
+
 ```bash
 /use-case provider-agnostic-chat
 ```
 
 **Quality requirements**:
+
 - ✅ Quantified benefits (%, $, time)
 - ✅ Concrete scenario
 - ❌ No vague claims ("better", "faster")
@@ -65,6 +69,7 @@ docs/
 **Purpose**: Define technical contracts (WHAT to build, not HOW)
 
 **When to use**:
+
 - After use case is defined
 - Need to specify exact behavior
 - Defining APIs, commands, or protocols
@@ -73,6 +78,7 @@ docs/
 **Output**: `docs/products/[product-name]/specs/[spec-name].md`
 
 **Key sections**:
+
 - Linked use cases (WHY)
 - Requirements (WHAT must be supported)
 - Interface/API contract
@@ -80,16 +86,19 @@ docs/
 - Examples
 
 **Example**:
+
 ```bash
 /spec chat-command
 ```
 
 **Spec types**:
+
 - **Commands**: Syntax, arguments, exit codes, output format
 - **Components**: Responsibilities, interface, behavior
 - **Protocols**: Message format, error codes, flow
 
 **Quality requirements**:
+
 - ✅ Links to use cases
 - ✅ Concrete examples
 - ✅ Testable requirements
@@ -102,6 +111,7 @@ docs/
 **Purpose**: Create high-level architecture before implementation
 
 **When to use**:
+
 - Starting a new project implementation
 - Need to plan component structure
 - Before extracting features
@@ -110,6 +120,7 @@ docs/
 **Output**: `docs/projects/[project-name]/architecture.md`
 
 **Key sections**:
+
 - High-level component diagram
 - Component overview
 - Data flow diagrams
@@ -119,11 +130,13 @@ docs/
 - Future enhancements
 
 **Example**:
+
 ```bash
 /project anygpt-ts
 ```
 
 **Workflow steps**:
+
 1. Review specs and use cases
 2. Identify components
 3. Define dependencies
@@ -137,6 +150,7 @@ docs/
 **Purpose**: Extract features from specs and organize by phases
 
 **When to use**:
+
 - After architecture is defined
 - Need to plan implementation order
 - Want to track progress
@@ -145,23 +159,27 @@ docs/
 **Output**: `docs/projects/[project-name]/roadmap.md`
 
 **Key sections**:
+
 - Feature list (with phase numbering)
 - Implementation phases
 - Feature details (spec, use case, dependencies, acceptance)
 - Progress tracking
 
 **Example**:
+
 ```bash
 /roadmap anygpt-ts
 ```
 
 **Phase structure**:
+
 - **Phase 1**: Foundation (no dependencies)
 - **Phase 2**: Core (depends on Phase 1)
 - **Phase 3**: Advanced (depends on Phase 2)
 - **Phase 4**: Integrations (depends on Phase 3)
 
 **Feature naming**: `[phase]-[order]-[feature-name]`
+
 - Example: `1-1-config-loader`, `3-5-cli-benchmark`
 - Benefits: Sorts correctly in file explorer, shows implementation order
 
@@ -172,6 +190,7 @@ docs/
 **Purpose**: Create detailed design, tests, and tasks for a feature
 
 **When to use**:
+
 - Ready to implement a specific feature
 - Need detailed technical design
 - Want to define test scenarios (TDD)
@@ -180,16 +199,19 @@ docs/
 **Output**: `docs/projects/[project-name]/features/[phase]-[order]-[feature-name]/`
 
 **Files created**:
+
 - `design.md` - Technical design (components, algorithms, dependencies)
 - `tests.md` - Test scenarios (unit, integration, E2E)
 - `status.md` - Progress tracking and task list
 
 **Example**:
+
 ```bash
 /feature 1-1-config-loader
 ```
 
 **Workflow steps**:
+
 1. Identify feature (name, phase, order)
 2. Review spec and architecture
 3. Create design (components, data structures, algorithms)
@@ -220,6 +242,7 @@ The workflows are designed to be used in sequence:
 ## When to Use Each Workflow
 
 ### Starting a New Product
+
 1. `/use-case` - Define all use cases
 2. `/spec` - Write specs for each use case
 3. `/project` - Create architecture
@@ -227,6 +250,7 @@ The workflows are designed to be used in sequence:
 5. `/feature` - Design each feature
 
 ### Adding a New Feature
+
 1. `/use-case` - Define use case (if new)
 2. `/spec` - Update or create spec
 3. Update architecture (if needed)
@@ -234,6 +258,7 @@ The workflows are designed to be used in sequence:
 5. `/feature` - Design the feature
 
 ### Reviewing Existing Documentation
+
 - `/use-case` - Review and update use cases
 - `/spec` - Review and update specs
 - `/project` - Review architecture consistency
@@ -241,30 +266,35 @@ The workflows are designed to be used in sequence:
 ## Best Practices
 
 ### Use Cases
+
 - ✅ Start with use cases (WHY before WHAT)
 - ✅ Quantify all benefits
 - ✅ Provide concrete examples
 - ❌ Don't skip use cases
 
 ### Specifications
+
 - ✅ Link to use cases
 - ✅ Define behavior, not implementation
 - ✅ Include examples
 - ❌ Don't include HOW to implement
 
 ### Architecture
+
 - ✅ Create before features
 - ✅ Show component relationships
 - ✅ Document design decisions
 - ❌ Don't skip this step
 
 ### Roadmap
+
 - ✅ Use phase numbering
 - ✅ Mark dependencies clearly
 - ✅ Update as you progress
 - ❌ Don't implement out of order
 
 ### Features
+
 - ✅ Design before coding
 - ✅ Write tests first (TDD)
 - ✅ Track progress in status.md
@@ -275,11 +305,13 @@ The workflows are designed to be used in sequence:
 All features use phase numbering: `[phase]-[order]-[feature-name]`
 
 **Benefits**:
+
 - Features sort in implementation order in file explorer
 - Phase dependencies are visually clear
 - Easy to see what comes next
 
 **Example**:
+
 ```
 features/
 ├── 1-1-config-loader/       ← Phase 1, Feature 1
@@ -291,21 +323,25 @@ features/
 ## Naming Conventions
 
 ### Use Cases
+
 - Lowercase with hyphens
 - Descriptive of the problem
 - Example: `provider-agnostic-chat.md`
 
 ### Specs
+
 - Lowercase with hyphens
 - Component or command name
 - Example: `chat-command.md`
 
 ### Projects
+
 - Lowercase with hyphens
 - Include technology if multiple implementations
 - Example: `anygpt-ts/`, `anygpt-go/`
 
 ### Features
+
 - Phase numbering prefix: `[phase]-[order]-[name]`
 - CLI features prefixed with `cli-`
 - Example: `1-1-config-loader`, `2-1-cli-chat`
@@ -313,11 +349,13 @@ features/
 ## Progress Tracking
 
 ### Roadmap Level
+
 - Track phase completion
 - Update feature counts
 - Mark dependencies
 
 ### Feature Level
+
 - Update status.md regularly
 - Check off completed tasks
 - Track test progress
@@ -326,6 +364,7 @@ features/
 ## Common Patterns
 
 ### New Product Development
+
 ```bash
 # 1. Define business value
 /use-case provider-agnostic-chat
@@ -349,6 +388,7 @@ features/
 ```
 
 ### Adding a Feature to Existing Project
+
 ```bash
 # 1. Define use case (if new)
 /use-case new-feature
@@ -366,19 +406,25 @@ features/
 ## File Organization
 
 ### Products (Product-level docs)
+
 ```
 docs/products/anygpt/
-├── specs/              # Technical specifications
-│   ├── README.md      # Main spec index
-│   └── cli/
-│       ├── chat.md
-│       └── config.md
-└── cases/             # Use cases
-    ├── provider-agnostic-chat.md
-    └── flexible-configuration.md
+├── README.md          # Product documentation index
+├── specs/             # Technical specifications
+│   ├── README.md     # Main spec index
+│   └── anygpt/       # Component specs
+├── cases/             # Use cases
+│   ├── provider-agnostic-chat.md
+│   └── flexible-configuration.md
+├── features/          # Feature documentation
+│   ├── anthropic-thinking-support.md
+│   └── reasoning-effort-levels.md
+└── architecture/      # Architecture docs
+    └── token-limits-architecture.md
 ```
 
 ### Projects (Implementation-level docs)
+
 ```
 docs/projects/anygpt-ts/
 ├── architecture.md                    # System design
@@ -397,21 +443,25 @@ docs/projects/anygpt-ts/
 ## Tips
 
 ### For Product Managers
+
 - Focus on `/use-case` and `/spec`
 - Ensure use cases have measurable impact
 - Review specs for completeness
 
 ### For Architects
+
 - Use `/project` to document architecture
 - Use `/roadmap` to plan implementation
 - Review feature designs for consistency
 
 ### For Developers
+
 - Use `/feature` to design before coding
 - Follow TDD: write tests first
 - Update status.md as you progress
 
 ### For Teams
+
 - Use workflows consistently
 - Review documentation in PRs
 - Keep documentation up to date
@@ -419,11 +469,13 @@ docs/projects/anygpt-ts/
 ## Maintenance
 
 ### Regular Updates
+
 - Update status.md as features progress
 - Update roadmap when features complete
 - Review architecture for consistency
 
 ### When to Refactor
+
 - Architecture changes significantly
 - New patterns emerge
 - Dependencies change
@@ -431,6 +483,7 @@ docs/projects/anygpt-ts/
 ## Examples
 
 See the AnyGPT TypeScript project for a complete example:
+
 - **Architecture**: `docs/projects/anygpt-ts/architecture.md`
 - **Roadmap**: `docs/projects/anygpt-ts/roadmap.md`
 - **Features**: `docs/projects/anygpt-ts/features/`
