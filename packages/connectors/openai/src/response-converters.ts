@@ -6,7 +6,7 @@ import type { ChatCompletionResponse } from '@anygpt/types';
  */
 export function convertResponsesToChatCompletion(
   responsesResponse: OpenAI.Responses.Response,
-  providerId: string = 'openai'
+  providerId = 'openai'
 ): ChatCompletionResponse {
   const outputMessage = responsesResponse.output.find(
     (item): item is OpenAI.Responses.ResponseOutputMessage =>
