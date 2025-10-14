@@ -1,7 +1,7 @@
 {
-  "name": "nx-release",
+  "name": "nx-vitest",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "tools/nx-release/src",
+  "sourceRoot": "tools/nx-vitest/src",
   "projectType": "library",
   "tags": [],
   "targets": {
@@ -15,7 +15,7 @@
       "executor": "nx:run-commands",
       "options": {
         "command": "npx tsc --noEmit --project tsconfig.lib.json",
-        "cwd": "tools/nx-release"
+        "cwd": "tools/nx-vitest"
       }
     }
   }
