@@ -220,7 +220,7 @@ export class OpenAIConnector extends BaseConnector {
     return {
       ...response,
       provider: this.providerId,
-      choices: response.choices.map(choice => ({
+      choices: response.choices.map((choice) => ({
         ...choice,
         message: {
           ...choice.message,
@@ -312,11 +312,16 @@ export class OpenAIConnector extends BaseConnector {
       created_at: responsesResponse.created_at,
       model: responsesResponse.model,
       provider: this.providerId,
-      status: (responsesResponse.status || 'completed') as 'in_progress' | 'completed' | 'failed',
+      status: (responsesResponse.status || 'completed') as
+        | 'in_progress'
+        | 'completed'
+        | 'failed',
       output: responsesResponse.output.map((item, index) => ({
         id: `${responsesResponse.id}-${index}`,
         type: item.type as 'message' | 'function_call' | 'reasoning',
-        role: ('role' in item ? item.role : 'assistant') as 'assistant' | 'user',
+        role: ('role' in item ? item.role : 'assistant') as
+          | 'assistant'
+          | 'user',
         content: ('content' in item ? item.content : []) as any,
       })),
       usage: {
@@ -341,7 +346,7 @@ export class OpenAIConnector extends BaseConnector {
         const displayName = model.id
           .replace(/-/g, ' ')
           .replace(/\b\w/g, (c) => c.toUpperCase());
-        
+
         models.push({
           id: model.id,
           display_name: displayName,
@@ -370,7 +375,7 @@ export class OpenAIConnector extends BaseConnector {
       const displayName = model.id
         .replace(/-/g, ' ')
         .replace(/\b\w/g, (c) => c.toUpperCase());
-      
+
       return {
         id: model.id,
         display_name: displayName,
@@ -427,5 +432,4 @@ export {
   type ResponseTransform,
   type TransformContext,
   tokenParameterTransform,
-  customCodexTransform,
 } from './hooks.js';
