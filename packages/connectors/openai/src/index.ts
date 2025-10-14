@@ -337,9 +337,14 @@ export class OpenAIConnector extends BaseConnector {
       const models: ModelInfo[] = [];
 
       for await (const model of response) {
+        // Create a more readable display name from the model ID
+        const displayName = model.id
+          .replace(/-/g, ' ')
+          .replace(/\b\w/g, (c) => c.toUpperCase());
+        
         models.push({
           id: model.id,
-          display_name: model.id,
+          display_name: displayName,
           provider: this.providerId,
           capabilities: {
             input: { text: true },
@@ -361,9 +366,14 @@ export class OpenAIConnector extends BaseConnector {
       // Try to fetch model info from the remote API
       const model = await this.client.models.retrieve(modelId);
 
+      // Create a more readable display name from the model ID
+      const displayName = model.id
+        .replace(/-/g, ' ')
+        .replace(/\b\w/g, (c) => c.toUpperCase());
+      
       return {
         id: model.id,
-        display_name: model.id,
+        display_name: displayName,
         provider: this.providerId,
         capabilities: {
           input: { text: true },
