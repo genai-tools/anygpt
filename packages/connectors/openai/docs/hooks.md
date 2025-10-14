@@ -92,19 +92,19 @@ Automatically handles token parameter variations (registered by default).
 
 ### `bookingCodexTransform`
 
-Example transform for Booking.com's codex models:
+Example transform for custom codex models:
 
 ```typescript
 import { openai, bookingCodexTransform } from '@anygpt/openai';
 
 const connector = openai(
   {
-    baseURL: 'https://gen-ai.prod.REDACTED/openai/REDACTED:8',
+    baseURL: process.env.CUSTOM_OPENAI_BASE_URL,
     hooks: {
       'chat:request': bookingCodexTransform,
     },
   },
-  'booking'
+  'custom-provider'
 );
 ```
 
