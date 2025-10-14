@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/cody",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Cody CLI connector for AnyGPT",
   "type": "module",
   "main": "./dist/index.js",
@@ -16,8 +16,8 @@
     "README.md"
   ],
   "dependencies": {
-    "@anygpt/types": "1.1.0",
-    "@anygpt/openai": "1.1.0"
+    "@anygpt/types": "1.2.0",
+    "@anygpt/openai": "1.2.0"
   },
   "keywords": [
     "cody",
