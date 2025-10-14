@@ -1,3 +1,18 @@
+## 1.3.0 (2025-10-14)
+
+### 🚀 Features
+
+- **openai:** improve model display names with readable formatting ([461cf85](https://github.com/genai-tools/anygpt/commit/461cf85))
+
+### 🩹 Fixes
+
+- **openai:** resolve all TypeScript type errors ([351430e](https://github.com/genai-tools/anygpt/commit/351430e))
+- **openai:** improve hook manager type safety with overloads ([1becc97](https://github.com/genai-tools/anygpt/commit/1becc97))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.2.0 (2025-10-14)
 
 ### 🚀 Features
