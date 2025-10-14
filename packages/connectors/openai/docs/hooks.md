@@ -90,24 +90,6 @@ Hooks execute in order, with each receiving the output of the previous.
 
 Automatically handles token parameter variations (registered by default).
 
-### `customCodexTransform`
-
-Example transform for custom codex models:
-
-```typescript
-import { openai, customCodexTransform } from '@anygpt/openai';
-
-const connector = openai(
-  {
-    baseURL: process.env.CUSTOM_OPENAI_BASE_URL,
-    hooks: {
-      'chat:request': customCodexTransform,
-    },
-  },
-  'custom-provider'
-);
-```
-
 ## Transform Context
 
 Every transform receives a context object:

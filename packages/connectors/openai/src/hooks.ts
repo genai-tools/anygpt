@@ -58,18 +58,9 @@ export class HookManager {
   /**
    * Register a hook
    */
-  on(
-    event: 'chat:request',
-    handler: ChatCompletionBodyTransform
-  ): void;
-  on(
-    event: 'responses:request',
-    handler: ResponsesBodyTransform
-  ): void;
-  on(
-    event: 'response',
-    handler: ResponseTransform
-  ): void;
+  on(event: 'chat:request', handler: ChatCompletionBodyTransform): void;
+  on(event: 'responses:request', handler: ResponsesBodyTransform): void;
+  on(event: 'response', handler: ResponseTransform): void;
   on(event: keyof ConnectorHooks, handler: any): void {
     if (!this.hooks[event]) {
       this.hooks[event] = [] as any;
@@ -120,27 +111,5 @@ export const tokenParameterTransform: ChatCompletionBodyTransform = (
 ) => {
   // This transform is now handled by request-builders.ts
   // Kept here for backwards compatibility but does nothing
-  return body;
-};
-
-/**
- * Example: Custom codex transform
- * Replaces max_completion_tokens with max_output_tokens for codex models
- */
-export const customCodexTransform: ChatCompletionBodyTransform = (
-  body,
-  context
-) => {
-  // Only apply to codex models
-  if (!context.request.model?.includes('codex')) {
-    return body;
-  }
-
-  const { max_completion_tokens, ...rest } = body as any;
-
-  if (max_completion_tokens !== undefined) {
-    return { ...rest, max_output_tokens: max_completion_tokens };
-  }
-
   return body;
 };

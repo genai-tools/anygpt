@@ -60,7 +60,6 @@ The OpenAI connector implements a powerful hook system inspired by unplugin, all
 │  ┌──────────────────────────────────────────────────────┐  │
 │  │           Built-in Transforms                        │  │
 │  │  - tokenParameterTransform (always registered)       │  │
-│  │  - customCodexTransform (example)                   │  │
 │  └──────────────────────────────────────────────────────┘  │
 │                          │                                  │
 │                          ▼                                  │
@@ -179,24 +178,28 @@ private async executeChatCompletion(request, context) {
 Hooks are easy to test because they're pure functions:
 
 ```typescript
-import { customCodexTransform } from '@anygpt/openai';
+import type { ChatCompletionBodyTransform } from '@anygpt/openai';
 
-test('transforms codex requests', () => {
+const myTransform: ChatCompletionBodyTransform = (body, context) => {
+  // Custom transformation logic
+  return { ...body, custom_param: 'value' };
+};
+
+test('transforms requests', () => {
   const body = {
-    model: 'gpt-5-codex',
-    max_completion_tokens: 4096,
+    model: 'gpt-4',
+    messages: [{ role: 'user', content: 'test' }],
   };
 
   const context = {
-    request: { model: 'gpt-5-codex' },
-    providerId: 'booking',
-    apiType: 'chat',
+    request: { model: 'gpt-4' },
+    providerId: 'openai',
+    apiType: 'chat' as const,
   };
 
-  const result = customCodexTransform(body, context);
+  const result = myTransform(body, context);
 
-  expect(result.max_output_tokens).toBe(4096);
-  expect(result.max_completion_tokens).toBeUndefined();
+  expect(result.custom_param).toBe('value');
 });
 ```
 
@@ -233,10 +236,12 @@ Built-in helpers for conditional execution:
 ```typescript
 import { when } from '@anygpt/openai';
 
+const myTransform = (body, ctx) => ({ ...body, custom: true });
+
 hooks: {
   'chat:request': when(
-    (ctx) => ctx.request.model?.includes('codex'),
-    customCodexTransform
+    (ctx) => ctx.request.model?.includes('gpt-4'),
+    myTransform
   ),
 }
 ```
