@@ -12,9 +12,10 @@ export async function generateAISummary(
   command: string,
   options: {
     maxLinesPerFile?: number;
+    aiTimeout?: number;
   } = {}
 ): Promise<string> {
-  const { maxLinesPerFile = 150 } = options;
+  const { maxLinesPerFile = 150, aiTimeout = 20 } = options;
   try {
     // Truncate diff per-file to prevent large files from dominating
     const { diff: truncatedDiff, stats } = truncateDiff(diff, maxLinesPerFile);
@@ -61,41 +62,69 @@ Respond with ONLY bullet points describing the changes. Be thorough and detailed
     // Execute the command with prompt via stdin
     const [cmd, ...args] = command.split(' ');
 
-    const { stdout } = await execa(cmd, args, {
-      input: prompt,
-      stdio: ['pipe', 'pipe', 'pipe'],
-      maxBuffer: 10 * 1024 * 1024, // 10MB buffer
-      encoding: 'utf8',
-    });
+    // Add timeout to prevent hanging indefinitely (0 = no timeout)
+    const timeoutMs = aiTimeout > 0 ? aiTimeout * 1000 : 0;
+    
+    const controller = new AbortController();
+    const timeoutId = timeoutMs > 0 ? setTimeout(() => {
+      controller.abort();
+    }, timeoutMs) : undefined;
 
-    let summary = stdout.trim();
-
-    console.log(`🔍 Raw AI output (${summary.length} chars):`);
-    console.log(summary);
-    console.log('--- END RAW OUTPUT ---');
-
-    // Strip markdown code blocks if present
-    summary = summary.replace(/^```\s*\n?/gm, '').replace(/\n?```\s*$/gm, '');
-
-    // Strip out TITLE: and SUMMARY: prefixes if AI included them
-    // (AI sometimes ignores instructions and uses old format)
-    summary = summary.replace(/^TITLE:\s*.+?$/im, '');
-    summary = summary.replace(/^SUMMARY:\s*$/im, '');
-    summary = summary.trim();
-
-    console.log(
-      `✅ Cleaned summary (${summary.length} chars): ${summary.substring(
-        0,
-        200
-      )}...`
-    );
-
-    return summary;
+    try {
+      const { stdout } = await execa(cmd, args, {
+        input: prompt,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+        encoding: 'utf8',
+        signal: controller.signal,
+        timeout: timeoutMs,
+      });
+      
+      if (timeoutId) clearTimeout(timeoutId);
+      
+      return await processSummary(stdout);
+    } catch (error) {
+      if (timeoutId) clearTimeout(timeoutId);
+      
+      if ((error as any)?.isCanceled || (error as any)?.killed) {
+        throw new Error(`AI generation timed out after ${timeoutMs / 1000}s`);
+      }
+      throw error;
+    }
   } catch (error) {
     console.log('⚠️  AI summary generation failed');
     console.error(error);
     return '';
   }
+}
+
+/**
+ * Process and clean AI summary output
+ */
+function processSummary(stdout: string): string {
+  let summary = stdout.trim();
+
+  console.log(`🔍 Raw AI output (${summary.length} chars):`);
+  console.log(summary);
+  console.log('--- END RAW OUTPUT ---');
+
+  // Strip markdown code blocks if present
+  summary = summary.replace(/^```\s*\n?/gm, '').replace(/\n?```\s*$/gm, '');
+
+  // Strip out TITLE: and SUMMARY: prefixes if AI included them
+  // (AI sometimes ignores instructions and uses old format)
+  summary = summary.replace(/^TITLE:\s*.+?$/im, '');
+  summary = summary.replace(/^SUMMARY:\s*$/im, '');
+  summary = summary.trim();
+
+  console.log(
+    `✅ Cleaned summary (${summary.length} chars): ${summary.substring(
+      0,
+      200
+    )}...`
+  );
+
+  return summary;
 }
 
 /**

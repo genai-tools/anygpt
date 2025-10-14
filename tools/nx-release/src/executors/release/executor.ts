@@ -45,6 +45,7 @@ export default async function runExecutor(
     aiTitleCommand,
     model,
     maxLinesPerFile = 150,
+    aiTimeout = 20,
     autoMerge = true,
     skipPublish = true,
     diffPaths = ['packages/*/src/**', 'packages/connectors/*/src/**'],
@@ -274,6 +275,7 @@ export default async function runExecutor(
           finalAiCommand,
           {
             maxLinesPerFile,
+            aiTimeout,
           }
         );
 
@@ -371,6 +373,7 @@ export default async function runExecutor(
             finalAiCommand,
             {
               maxLinesPerFile,
+              aiTimeout,
             }
           );
 
