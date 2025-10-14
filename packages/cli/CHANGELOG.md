@@ -1,3 +1,13 @@
+## 1.3.0 (2025-10-14)
+
+### 🚀 Features
+
+- **cli:** remove codex/toml config support and add eslint ([0bc82d8](https://github.com/genai-tools/anygpt/commit/0bc82d8))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.2.0 (2025-10-14)
 
 ### 🚀 Features
