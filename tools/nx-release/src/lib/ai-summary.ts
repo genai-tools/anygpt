@@ -76,7 +76,7 @@ Respond with ONLY bullet points describing the changes. Be thorough and detailed
         stdio: ['pipe', 'pipe', 'pipe'],
         maxBuffer: 10 * 1024 * 1024, // 10MB buffer
         encoding: 'utf8',
-        signal: controller.signal,
+        cancelSignal: controller.signal,
         timeout: timeoutMs,
         all: true,
       });
