@@ -101,6 +101,7 @@ export function readResource(
     configuredProviders: Record<string, FactoryProviderConfig>;
     defaultProvider?: string;
     defaultModel?: string;
+    defaultProviders?: Record<string, { tag?: string; model?: string }>;
   }
 ): ReadResourceResult {
   // Match docs template: anygpt://docs/{section}
@@ -129,6 +130,7 @@ function readDocSection(
     configuredProviders: Record<string, FactoryProviderConfig>;
     defaultProvider?: string;
     defaultModel?: string;
+    defaultProviders?: Record<string, { tag?: string; model?: string }>;
   }
 ) {
   const uri = `anygpt://docs/${section}`;

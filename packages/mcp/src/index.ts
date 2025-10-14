@@ -40,6 +40,7 @@ let defaultProvider: string | undefined;
 let defaultModel: string | undefined;
 let configuredProviders: Record<string, FactoryProviderConfig> = {};
 let aliases: Record<string, ModelAlias[]> | undefined;
+let defaultProviders: Record<string, { tag?: string; model?: string }> | undefined;
 
 async function initializeRouter() {
   try {
@@ -60,6 +61,7 @@ async function initializeRouter() {
     defaultModel = c.defaults?.model;
     configuredProviders = c.providers || {};
     aliases = c.defaults?.aliases;
+    defaultProviders = c.defaults?.providers;
 
     const providersList = Object.keys(configuredProviders).join(', ') || 'none';
     const aliasesList = aliases ? Object.keys(aliases).join(', ') : 'none';
@@ -116,6 +118,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       defaultModel,
       configuredProviders,
       aliases,
+      defaultProviders,
     };
 
     let result;
@@ -180,6 +183,7 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
     configuredProviders,
     defaultProvider,
     defaultModel,
+    defaultProviders,
   });
 });
 
