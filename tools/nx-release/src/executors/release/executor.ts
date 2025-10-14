@@ -94,7 +94,7 @@ export default async function runExecutor(
 
     // Run nx release (version + changelog + commit + tag)
     console.log('\n📝 Running nx release...');
-    
+
     // Helper function to run nx release and handle errors
     const runNxRelease = async (firstRelease = false) => {
       const args = ['nx', 'release'];
@@ -104,18 +104,18 @@ export default async function runExecutor(
       if (skipPublish) {
         args.push('--skip-publish');
       }
-      
+
       try {
         // Capture output to check for errors, but still show it
-        const result = await execa('npx', args, { 
+        const result = await execa('npx', args, {
           all: true,
           reject: false,
         });
-        
+
         // If command failed, check the output
         if (result.exitCode !== 0) {
           const output = result.all || '';
-          
+
           // Check for "No changes were detected"
           if (output.includes('No changes were detected')) {
             console.log(output); // Show the output
@@ -123,20 +123,25 @@ export default async function runExecutor(
             console.log('ℹ️  No changes detected - nothing to release');
             return { handled: true, success: true };
           }
-          
+
           // Check for missing git tags (new package)
-          if (!firstRelease && output.includes('No git tags matching pattern')) {
+          if (
+            !firstRelease &&
+            output.includes('No git tags matching pattern')
+          ) {
             console.log(output); // Show the output
             console.log('\n⚠️  Detected new package(s) without git tags');
             console.log('🔄 Retrying with --first-release flag...\n');
             return { handled: false, retry: true };
           }
-          
+
           // Other error - show output and throw
           console.log(output);
-          throw new Error(`nx release failed with exit code ${result.exitCode}`);
+          throw new Error(
+            `nx release failed with exit code ${result.exitCode}`
+          );
         }
-        
+
         // Success - show output
         console.log(result.all);
         return { handled: true, success: true };
@@ -149,10 +154,10 @@ export default async function runExecutor(
         throw new Error(`Failed to run nx release: ${err}`);
       }
     };
-    
+
     // Try running nx release
     const result = await runNxRelease();
-    
+
     // If it needs retry with --first-release, do it
     if (!result.handled && result.retry) {
       const retryResult = await runNxRelease(true);
@@ -193,6 +198,11 @@ export default async function runExecutor(
             console.log(
               `✅ PR already exists and will include these commits: https://github.com/${repoName}/pull/${existingPR}`
             );
+
+            // Run pr-update to regenerate AI summary and update PR description
+            console.log('\n🔄 Running pr-update to refresh PR description...');
+            await execa('npx', ['nx', 'pr-update'], { stdio: 'inherit' });
+
             await openPRInBrowser(existingPR);
           } else {
             const prTitle = `Sync: ${commitsToSync} commit(s) from ${baseBranch}`;
@@ -212,7 +222,9 @@ export default async function runExecutor(
         } else {
           // No commits to sync
           if (!existingPR) {
-            console.log('📝 Creating draft PR to keep release workflow ready...');
+            console.log(
+              '📝 Creating draft PR to keep release workflow ready...'
+            );
             const prTitle = 'Draft release';
             const prBody = `## 📝 Draft Release PR\n\nThis is a draft PR created automatically to keep the release workflow ready.\n\nWhen you make changes that trigger version bumps, this PR will be updated with:\n- Package versions\n- Changelog\n- AI-generated summary\n\n**No action needed** - this will be automatically updated on the next release.`;
             const prUrl = await createPR(prTitle, prBody, targetBranch, {
