@@ -275,7 +275,7 @@ export default async function runExecutor(
           finalAiCommand,
           {
             maxLinesPerFile,
-            aiTimeout,
+            aiTimeoutInSec: aiTimeout,
           }
         );
 
@@ -373,7 +373,7 @@ export default async function runExecutor(
             finalAiCommand,
             {
               maxLinesPerFile,
-              aiTimeout,
+              aiTimeoutInSec: aiTimeout,
             }
           );
 

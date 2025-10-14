@@ -12,10 +12,10 @@ export async function generateAISummary(
   command: string,
   options: {
     maxLinesPerFile?: number;
-    aiTimeout?: number;
+    aiTimeoutInSec?: number;
   } = {}
 ): Promise<string> {
-  const { maxLinesPerFile = 150, aiTimeout = 20 } = options;
+  const { maxLinesPerFile = 150, aiTimeoutInSec = 20 } = options;
   try {
     // Truncate diff per-file to prevent large files from dominating
     const { diff: truncatedDiff, stats } = truncateDiff(diff, maxLinesPerFile);
@@ -63,7 +63,7 @@ Respond with ONLY bullet points describing the changes. Be thorough and detailed
     const [cmd, ...args] = command.split(' ');
 
     // Add timeout to prevent hanging indefinitely (0 = no timeout)
-    const timeoutMs = aiTimeout > 0 ? aiTimeout * 1000 : 0;
+    const timeoutMs = aiTimeoutInSec > 0 ? aiTimeoutInSec * 1000 : 0;
     
     const controller = new AbortController();
     const timeoutId = timeoutMs > 0 ? setTimeout(() => {
