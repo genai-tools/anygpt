@@ -44,6 +44,9 @@
     "build:dts": "tsc --project tsconfig.lib.json"
   },
   "dependencies": {
-    "@anygpt/types": "1.2.0"
+    "@anygpt/types": "1.2.0",
+    "jiti": "2.6.1",
+    "@anygpt/router": "0.5.0",
+    "minimatch": "9.0.3"
   }
 }
