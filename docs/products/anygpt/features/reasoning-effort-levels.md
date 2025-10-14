@@ -4,12 +4,12 @@ AnyGPT supports OpenAI's reasoning effort levels for models with extended thinki
 
 ## Supported Effort Levels
 
-| Level | Description | Use Case |
-|-------|-------------|----------|
-| `minimal` | Fastest reasoning with minimal computational effort | Quick tasks, simple queries |
-| `low` | Light reasoning for straightforward problems | Standard queries, basic analysis |
-| `medium` | Balanced reasoning (default) | Most general-purpose tasks |
-| `high` | Deep reasoning for complex problems | Complex analysis, difficult problems |
+| Level     | Description                                         | Use Case                             |
+| --------- | --------------------------------------------------- | ------------------------------------ |
+| `minimal` | Fastest reasoning with minimal computational effort | Quick tasks, simple queries          |
+| `low`     | Light reasoning for straightforward problems        | Standard queries, basic analysis     |
+| `medium`  | Balanced reasoning (default)                        | Most general-purpose tasks           |
+| `high`    | Deep reasoning for complex problems                 | Complex analysis, difficult problems |
 
 ## Configuration
 
@@ -21,9 +21,9 @@ Enable reasoning with default 'medium' effort:
 modelRules: [
   {
     pattern: [/o[13]/, /thinking/],
-    reasoning: true  // Implicit 'medium' effort
-  }
-]
+    reasoning: true, // Implicit 'medium' effort
+  },
+];
 ```
 
 ### String Shorthand (Recommended)
@@ -34,17 +34,17 @@ Directly specify effort level as a string - clean and explicit:
 modelRules: [
   {
     pattern: [/o3-mini/],
-    reasoning: 'minimal'  // ✨ Direct string value
+    reasoning: 'minimal', // ✨ Direct string value
   },
   {
     pattern: [/o1/],
-    reasoning: 'low'
+    reasoning: 'low',
   },
   {
     pattern: [/thinking/],
-    reasoning: 'high'
-  }
-]
+    reasoning: 'high',
+  },
+];
 ```
 
 ### Explicit Object Form
@@ -55,17 +55,17 @@ Use object form when you need additional reasoning properties:
 modelRules: [
   {
     pattern: [/o3-mini/],
-    reasoning: { effort: 'minimal' }
+    reasoning: { effort: 'minimal' },
   },
   {
     pattern: [/o1/],
-    reasoning: { effort: 'low' }
+    reasoning: { effort: 'low' },
   },
   {
     pattern: [/thinking/],
-    reasoning: { effort: 'high' }
-  }
-]
+    reasoning: { effort: 'high' },
+  },
+];
 ```
 
 ### Disable Reasoning
@@ -76,9 +76,9 @@ Explicitly disable reasoning for models that don't support it:
 modelRules: [
   {
     pattern: [/gpt-4/, /gpt-3\.5/],
-    reasoning: false
-  }
-]
+    reasoning: false,
+  },
+];
 ```
 
 ## API Compatibility
@@ -102,25 +102,25 @@ export default config({
       // Minimal effort for mini models (fast, cost-effective)
       {
         pattern: [/o3-mini/, /-mini/],
-        reasoning: { effort: 'minimal' }
+        reasoning: { effort: 'minimal' },
       },
       // Low effort for preview/beta models
       {
         pattern: [/preview/, /beta/],
-        reasoning: { effort: 'low' }
+        reasoning: { effort: 'low' },
       },
       // Medium effort for production models (default)
       {
         pattern: [/\bo[13]\b/],
-        reasoning: true  // medium
+        reasoning: true, // medium
       },
       // High effort for extended thinking
       {
         pattern: [/extended-thinking/, /-thinking-/],
-        reasoning: { effort: 'high' }
-      }
-    ]
-  }
+        reasoning: { effort: 'high' },
+      },
+    ],
+  },
 });
 ```
 
@@ -132,9 +132,9 @@ export default config({
     modelRules: [
       {
         pattern: [/o[13]/],
-        reasoning: true  // Global default: medium
-      }
-    ]
+        reasoning: true, // Global default: medium
+      },
+    ],
   },
   providers: {
     openai: {
@@ -143,9 +143,9 @@ export default config({
         // Override for specific OpenAI models
         {
           pattern: [/o3-mini/],
-          reasoning: { effort: 'minimal' }
-        }
-      ]
+          reasoning: { effort: 'minimal' },
+        },
+      ],
     },
     cody: {
       connector: cody(),
@@ -153,11 +153,11 @@ export default config({
         // Cody might have different reasoning support
         {
           pattern: [/.*/],
-          reasoning: { effort: 'high' }  // Always use high effort
-        }
-      ]
-    }
-  }
+          reasoning: { effort: 'high' }, // Always use high effort
+        },
+      ],
+    },
+  },
 });
 ```
 
@@ -186,9 +186,9 @@ Some models don't support the `reasoning_effort` parameter. To fix:
 modelRules: [
   {
     pattern: [/gpt-4/, /gpt-3\.5/],
-    reasoning: false  // Explicitly disable
-  }
-]
+    reasoning: false, // Explicitly disable
+  },
+];
 ```
 
 ### Provider doesn't support reasoning_effort
@@ -211,6 +211,6 @@ providers: {
 
 ## See Also
 
-- [Model Rules Documentation](../packages/config/docs/MODEL_RULES.md)
-- [Configuration Guide](./configuration.md)
+- [Model Rules Documentation](../../../../packages/config/docs/MODEL_RULES.md)
+- [Anthropic Thinking Support](./anthropic-thinking-support.md)
 - [OpenAI Reasoning Effort Documentation](https://platform.openai.com/docs/guides/reasoning)

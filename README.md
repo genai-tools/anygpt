@@ -315,7 +315,8 @@ npx nx run-many -t lint
 ### Getting Started
 
 - **[CLI Documentation](./packages/cli/docs/README.md)** - Complete command-line interface guide
-- **[Configuration Guide](./docs/product/features/configuration.md)** - Complete configuration setup and examples
+- **[Configuration Guide](./packages/config/docs/MODEL_RULES.md)** - Complete configuration setup and examples
+- **[Product Documentation](./docs/products/anygpt/README.md)** - Features, architecture, and use cases
 - **[Troubleshooting Guide](./docs/workspace/troubleshooting.md)** - Common issues, recent fixes, and debugging
 
 ### Integration Examples
