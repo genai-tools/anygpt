@@ -1,7 +1,22 @@
 {
-    "name": "nx-tsdown",
-    "$schema": "../../node_modules/nx/schemas/project-schema.json",
-    "sourceRoot": "tools/nx-tsdown/src",
-    "projectType": "library",
-    "tags": []
+  "name": "nx-tsdown",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "tools/nx-tsdown/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "cache": true,
+      "outputs": ["{projectRoot}/dist"],
+      "inputs": ["production", "^production", "{projectRoot}/tsdown.config.ts"]
+    },
+    "typecheck": {
+      "cache": true,
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx tsc --noEmit --project tsconfig.lib.json",
+        "cwd": "tools/nx-tsdown"
+      }
+    }
   }
+}
