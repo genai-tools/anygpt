@@ -1,3 +1,9 @@
+## 1.0.2 (2025-10-14)
+
+### 🧱 Updated Dependencies
+
+- Updated types to 1.2.0
+
 ## 1.0.1 (2025-10-09)
 
 ### 🧱 Updated Dependencies

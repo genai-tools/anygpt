@@ -1,3 +1,19 @@
+## 1.2.0 (2025-10-14)
+
+### 🚀 Features
+
+- **connectors:** implement useLegacyMaxTokens capability flag ([95efa95](https://github.com/genai-tools/anygpt/commit/95efa95))
+
+### 🧱 Updated Dependencies
+
+- Updated router to 0.5.0
+- Updated types to 1.2.0
+- Updated openai to 1.2.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.1.0 (2025-10-09)
 
 ### 🚀 Features

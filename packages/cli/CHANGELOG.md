@@ -1,3 +1,29 @@
+## 1.2.0 (2025-10-14)
+
+### 🚀 Features
+
+- **cli:** add parallel execution to benchmark command ([757acec](https://github.com/genai-tools/anygpt/commit/757acec))
+- implement tag registry for pattern-based tag resolution ([fd6c489](https://github.com/genai-tools/anygpt/commit/fd6c489))
+
+### 🩹 Fixes
+
+- **cli:** improve tag resolution in chat command ([b6c8f71](https://github.com/genai-tools/anygpt/commit/b6c8f71))
+- **nx-release:** improve AI summary generation and switch to sonnet model ([e3fbe5f](https://github.com/genai-tools/anygpt/commit/e3fbe5f))
+
+### 📖 Documentation
+
+- **cli:** audit and update CLI feature implementation status ([0e3f516](https://github.com/genai-tools/anygpt/commit/0e3f516))
+
+### 🧱 Updated Dependencies
+
+- Updated config to 2.0.0
+- Updated router to 0.5.0
+- Updated types to 1.2.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.1.0 (2025-10-09)
 
 ### 🚀 Features
