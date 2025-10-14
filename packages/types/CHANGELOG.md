@@ -1,3 +1,13 @@
+## 1.2.0 (2025-10-14)
+
+### 🚀 Features
+
+- **types:** add useLegacyMaxTokens flag to ChatCompletionRequest ([929e9b5](https://github.com/genai-tools/anygpt/commit/929e9b5))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.1.0 (2025-10-09)
 
 ### 🚀 Features
