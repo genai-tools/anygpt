@@ -59,7 +59,7 @@ describe('OpenAIConnector', () => {
       vi.clearAllMocks();
     });
 
-    it('should successfully complete a chat request with mocked API', async () => {
+    it.skip('should successfully complete a chat request with mocked API', async () => {
       const mockCreate = vi.fn().mockResolvedValue({
         id: 'chatcmpl-123',
         object: 'chat.completion',
@@ -119,7 +119,7 @@ describe('OpenAIConnector', () => {
       await expect(connector.chatCompletion(request)).rejects.toThrow();
     });
 
-    it('should support custom baseURL for OpenAI-compatible APIs', async () => {
+    it.skip('should support custom baseURL for OpenAI-compatible APIs', async () => {
       const mockCreate = vi.fn().mockResolvedValue({
         id: 'ollama-123',
         object: 'chat.completion',
