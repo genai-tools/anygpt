@@ -1,3 +1,13 @@
+## 2.0.1 (2025-10-14)
+
+### 🩹 Fixes
+
+- **config:** enable matchBase option in minimatch to support path separators in model IDs ([12dabf1](https://github.com/ThePlenkov/openai-gateway-mcp/commit/12dabf1))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 # 2.0.0 (2025-10-14)
 
 ### 🚀 Features
