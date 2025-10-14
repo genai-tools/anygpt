@@ -93,38 +93,73 @@ export default async function runExecutor(
 
     // Run nx release (version + changelog + commit + tag)
     console.log('\n📝 Running nx release...');
-    try {
+    
+    // Helper function to run nx release and handle errors
+    const runNxRelease = async (firstRelease = false) => {
       const args = ['nx', 'release'];
+      if (firstRelease) {
+        args.push('--first-release');
+      }
       if (skipPublish) {
         args.push('--skip-publish');
       }
-      await execa('npx', args, { stdio: 'inherit' });
-    } catch (error: unknown) {
-      if (
-        error instanceof Error &&
-        error.message?.includes('No changes were detected')
-      ) {
-        console.log('\n❌ No version changes were made');
-        console.log('ℹ️  No changes detected - nothing to release');
-        return { success: true };
-      }
-
-      // Handle first release for new packages
-      if (
-        error instanceof Error &&
-        error.message?.includes('No git tags matching pattern')
-      ) {
-        console.log('\n⚠️  Detected new package(s) without git tags');
-        console.log('🔄 Retrying with --first-release flag...\n');
-
-        const args = ['nx', 'release', '--first-release'];
-        if (skipPublish) {
-          args.push('--skip-publish');
+      
+      try {
+        // Capture output to check for errors, but still show it
+        const result = await execa('npx', args, { 
+          all: true,
+          reject: false,
+        });
+        
+        // If command failed, check the output
+        if (result.exitCode !== 0) {
+          const output = result.all || '';
+          
+          // Check for "No changes were detected"
+          if (output.includes('No changes were detected')) {
+            console.log(output); // Show the output
+            console.log('\n❌ No version changes were made');
+            console.log('ℹ️  No changes detected - nothing to release');
+            return { handled: true, success: true };
+          }
+          
+          // Check for missing git tags (new package)
+          if (!firstRelease && output.includes('No git tags matching pattern')) {
+            console.log(output); // Show the output
+            console.log('\n⚠️  Detected new package(s) without git tags');
+            console.log('🔄 Retrying with --first-release flag...\n');
+            return { handled: false, retry: true };
+          }
+          
+          // Other error - show output and throw
+          console.log(output);
+          throw new Error(`nx release failed with exit code ${result.exitCode}`);
         }
-        await execa('npx', args, { stdio: 'inherit' });
-      } else {
-        throw error;
+        
+        // Success - show output
+        console.log(result.all);
+        return { handled: true, success: true };
+      } catch (err) {
+        // Re-throw if it's our error
+        if (err instanceof Error && err.message.includes('nx release failed')) {
+          throw err;
+        }
+        // Otherwise wrap it
+        throw new Error(`Failed to run nx release: ${err}`);
       }
+    };
+    
+    // Try running nx release
+    const result = await runNxRelease();
+    
+    // If it needs retry with --first-release, do it
+    if (!result.handled && result.retry) {
+      const retryResult = await runNxRelease(true);
+      if (!retryResult.success) {
+        return { success: false };
+      }
+    } else if (!result.success) {
+      return { success: false };
     }
 
     // Check if nx created a new commit (version bump)
