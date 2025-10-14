@@ -195,6 +195,8 @@ export async function chatCommand(
       provider: providerId,
       max_tokens: modelConfig.max_tokens,
       useLegacyMaxTokens: modelConfig.useLegacyMaxTokens,
+      useLegacyCompletionAPI: modelConfig.useLegacyCompletionAPI,
+      fallbackToChatCompletion: modelConfig.fallbackToChatCompletion,
     });
 
     const requestParams = {
@@ -205,6 +207,12 @@ export async function chatCommand(
       ...((options.maxTokens || modelConfig.max_tokens) && {
         max_tokens: options.maxTokens || modelConfig.max_tokens,
         useLegacyMaxTokens: modelConfig.useLegacyMaxTokens, // Pass capability flag
+      }),
+      ...(modelConfig.useLegacyCompletionAPI !== undefined && {
+        useLegacyCompletionAPI: modelConfig.useLegacyCompletionAPI,
+      }),
+      ...(modelConfig.fallbackToChatCompletion !== undefined && {
+        fallbackToChatCompletion: modelConfig.fallbackToChatCompletion,
       }),
       ...(modelConfig.reasoning && { reasoning: modelConfig.reasoning }),
       ...(modelConfig.extra_body && { extra_body: modelConfig.extra_body }),
@@ -278,6 +286,11 @@ export async function chatCommand(
       );
     }
 
-    throw new Error(`Chat request failed: ${errorMessage}`);
+    // If error already has emoji, print directly without "Error:" prefix
+    if (errorMessage.startsWith('❌')) {
+      console.error(errorMessage);
+      process.exit(1);
+    }
+    throw new Error(`❌ Chat request failed: ${errorMessage}`);
   }
 }

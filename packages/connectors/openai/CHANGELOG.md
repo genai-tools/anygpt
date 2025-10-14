@@ -1,3 +1,42 @@
+## 1.3.0 (2025-10-14)
+
+### 🚀 Features
+
+- **openai:** improve model display names with readable formatting ([461cf85](https://github.com/genai-tools/anygpt/commit/461cf85))
+
+### 🩹 Fixes
+
+- **openai:** resolve all TypeScript type errors ([351430e](https://github.com/genai-tools/anygpt/commit/351430e))
+- **openai:** improve hook manager type safety with overloads ([1becc97](https://github.com/genai-tools/anygpt/commit/1becc97))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
+## 1.2.0 (2025-10-14)
+
+### 🚀 Features
+
+- **connectors:** implement useLegacyMaxTokens capability flag ([95efa95](https://github.com/genai-tools/anygpt/commit/95efa95))
+
+### 🩹 Fixes
+
+- **openai:** resolve lint errors ([816dbfa](https://github.com/genai-tools/anygpt/commit/816dbfa))
+- resolve typecheck failures and tsgo race conditions ([88b3915](https://github.com/genai-tools/anygpt/commit/88b3915))
+
+### 📖 Documentation
+
+- add 10 high-level use cases with measurable outcomes ([42f7e0d](https://github.com/genai-tools/anygpt/commit/42f7e0d))
+
+### 🧱 Updated Dependencies
+
+- Updated router to 0.5.0
+- Updated types to 1.2.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.1.0 (2025-10-09)
 
 ### 🚀 Features

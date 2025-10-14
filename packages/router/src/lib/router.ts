@@ -51,6 +51,8 @@ export class GenAIRouter implements IRouter {
       model: request.model,
       temperature: request.temperature,
       max_tokens: request.max_tokens,
+      useLegacyCompletionAPI: request.useLegacyCompletionAPI,
+      fallbackToChatCompletion: request.fallbackToChatCompletion,
       useLegacyMaxTokens: request.useLegacyMaxTokens,
       top_p: request.top_p,
       frequency_penalty: request.frequency_penalty,
