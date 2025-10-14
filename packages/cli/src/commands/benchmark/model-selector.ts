@@ -2,7 +2,7 @@
  * Model selection logic for benchmarking
  */
 
-import { resolveModel, resolveModelConfig } from '@anygpt/config';
+import { resolveModelConfig } from '@anygpt/config';
 import type { CLIContext } from '../../utils/cli-context.js';
 import type { BenchmarkOptions, ModelToTest } from './types.js';
 
@@ -24,7 +24,8 @@ export async function selectModels(
   } else if (options.all) {
     return await selectFromAllProviders(context, options);
   } else {
-    return await selectDefaultModels(context);
+    // No provider specified: use default provider (same as --provider=<default>)
+    return await selectDefaultModels(context, options);
   }
 }
 
@@ -186,54 +187,28 @@ async function selectFromAllProviders(
 }
 
 /**
- * Select default models from all providers
+ * Select models from the default provider
+ * Behaves exactly like --provider=<default_provider>
  */
 async function selectDefaultModels(
-  context: CLIContext
+  context: CLIContext,
+  options: BenchmarkOptions
 ): Promise<ModelToTest[]> {
-  const { router, providers } = context;
-  const providerNames = Object.keys(providers);
-  const modelsToTest: ModelToTest[] = [];
+  const { providers } = context;
+  const defaultProvider = context.defaults?.provider;
 
-  for (const provider of providerNames) {
-    const defaultModel = context.defaults?.providers?.[provider]?.model;
-
-    if (defaultModel) {
-      // Resolve tag to actual model ID if needed
-      const resolution = resolveModel(
-        defaultModel,
-        {
-          providers: context.providers,
-          aliases: context.defaults?.aliases,
-          defaultProvider: context.defaults?.provider,
-        },
-        provider
-      );
-
-      if (resolution) {
-        // Use resolved model
-        modelsToTest.push({
-          provider: resolution.provider,
-          model: resolution.model,
-        });
-      } else {
-        // Use as-is (might be a direct model ID)
-        modelsToTest.push({ provider, model: defaultModel });
-      }
-    } else {
-      // Use first available model
-      try {
-        const models = await router.listModels(provider);
-        if (models.length > 0) {
-          modelsToTest.push({ provider, model: models[0].id });
-        }
-      } catch (error) {
-        console.error(`Skipping provider ${provider}: ${error}`);
-      }
-    }
+  if (!defaultProvider) {
+    console.error('No default provider configured');
+    return [];
   }
 
-  return modelsToTest;
+  if (!providers[defaultProvider]) {
+    console.error(`Default provider '${defaultProvider}' not found in config`);
+    return [];
+  }
+
+  // Behave exactly like --provider=<default_provider>
+  return await selectFromProvider(context, { ...options, provider: defaultProvider });
 }
 
 /**
