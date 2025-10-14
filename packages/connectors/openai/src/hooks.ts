@@ -58,10 +58,19 @@ export class HookManager {
   /**
    * Register a hook
    */
-  on<K extends keyof ConnectorHooks>(
-    event: K,
-    handler: ConnectorHooks[K] extends Array<infer T> ? T : never
-  ): void {
+  on(
+    event: 'chat:request',
+    handler: ChatCompletionBodyTransform
+  ): void;
+  on(
+    event: 'responses:request',
+    handler: ResponsesBodyTransform
+  ): void;
+  on(
+    event: 'response',
+    handler: ResponseTransform
+  ): void;
+  on(event: keyof ConnectorHooks, handler: any): void {
     if (!this.hooks[event]) {
       this.hooks[event] = [] as any;
     }
