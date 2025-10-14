@@ -174,6 +174,7 @@ export async function handleChatCompletion(
     defaultModel?: string;
     configuredProviders: Record<string, FactoryProviderConfig>;
     aliases?: Record<string, ModelAlias[]>;
+    defaultProviders?: Record<string, { tag?: string; model?: string }>;
   }
 ) {
   try {
@@ -187,7 +188,25 @@ export async function handleChatCompletion(
     }));
 
     // Get model name (from args or default)
-    const modelName = args.model || context.defaultModel || 'gpt-3.5-turbo';
+    // If no model specified, use default model or default tag from default provider
+    let modelName = args.model || context.defaultModel;
+    
+    if (!modelName) {
+      // No model specified - use default provider's default tag/model if available
+      const targetProvider = args.provider || context.defaultProvider;
+      if (targetProvider && context.defaultProviders?.[targetProvider]) {
+        const providerDefaults = context.defaultProviders[targetProvider];
+        // Prefer tag over model (tag is more flexible)
+        modelName = providerDefaults.tag || providerDefaults.model;
+      }
+      // Error if still no model - don't fallback to hardcoded model
+      if (!modelName) {
+        throw new Error(
+          'No model specified and no default model configured. ' +
+          'Please specify a model or configure defaults.model or defaults.providers[provider].tag in your config.'
+        );
+      }
+    }
 
     // Resolve provider and model using shared config resolution
     const resolution = resolveModelShared(
@@ -204,8 +223,15 @@ export async function handleChatCompletion(
     const providerId =
       resolution?.provider ||
       args.provider ||
-      context.defaultProvider ||
-      'openai';
+      context.defaultProvider;
+    
+    if (!providerId) {
+      throw new Error(
+        'No provider could be determined. ' +
+        'Please specify a provider or configure defaults.provider in your config.'
+      );
+    }
+    
     const resolvedModel = resolution?.model || modelName;
 
     const request: ChatCompletionRequest = {
@@ -236,10 +262,17 @@ export async function handleListModels(
     router: any;
     defaultProvider?: string;
     configuredProviders: Record<string, FactoryProviderConfig>;
+    defaultProviders?: Record<string, { tag?: string; model?: string }>;
   }
 ): Promise<{ provider: string; models: TypesModelInfo[] }> {
   try {
-    const providerId = args.provider || context.defaultProvider || 'openai';
+    const providerId = args.provider || context.defaultProvider;
+    if (!providerId) {
+      throw new Error(
+        'No provider specified and no default provider configured. ' +
+        'Please specify a provider or configure defaults.provider in your config.'
+      );
+    }
     const models = await context.router.listModels(providerId);
 
     // Enrich models with tags/aliases from configuration
