@@ -6,4 +6,5 @@ export default defineConfig({
   tsconfig: 'tsconfig.lib.json',
   skipNodeModulesBundle: true,
   format: 'cjs',
+  clean: false, // Don't clean dist - let Nx handle caching
 });
