@@ -173,19 +173,57 @@ export default async function runExecutor(
       if (!hasUnpushed) {
         console.log('\n❌ No version changes were made');
 
-        // If no existing PR, create a draft PR to keep the workflow ready
-        if (!existingPR) {
-          console.log('📝 Creating draft PR to keep release workflow ready...');
-          const prTitle = 'Draft release';
-          const prBody = `## 📝 Draft Release PR\n\nThis is a draft PR created automatically to keep the release workflow ready.\n\nWhen you make changes that trigger version bumps, this PR will be updated with:\n- Package versions\n- Changelog\n- AI-generated summary\n\n**No action needed** - this will be automatically updated on the next release.`;
-          const prUrl = await createPR(prTitle, prBody, targetBranch, {
-            draft: true,
-            headBranch: baseBranch,
-          });
-          console.log(`✅ Draft PR created: ${prUrl}`);
-          await openPRInBrowser();
+        // Check if there are commits on main that aren't on production
+        const { stdout: commitsBehind } = await execa('git', [
+          'rev-list',
+          '--count',
+          `origin/${targetBranch}..origin/${baseBranch}`,
+        ]);
+        const commitsToSync = parseInt(commitsBehind.trim(), 10);
+
+        if (commitsToSync > 0) {
+          console.log(
+            `\n📋 Found ${commitsToSync} commit(s) on ${baseBranch} not yet on ${targetBranch}`
+          );
+          console.log('📝 Updating PR to sync these commits...');
+
+          // Update or create PR to sync commits
+          if (existingPR) {
+            const repoName = await getRepoName();
+            console.log(
+              `✅ PR already exists and will include these commits: https://github.com/${repoName}/pull/${existingPR}`
+            );
+            await openPRInBrowser(existingPR);
+          } else {
+            const prTitle = `Sync: ${commitsToSync} commit(s) from ${baseBranch}`;
+            const prBody = `## 📦 Sync Commits\n\nThis PR syncs ${commitsToSync} commit(s) from \`${baseBranch}\` to \`${targetBranch}\`.\n\n**No package version changes** - these are infrastructure, tooling, or documentation updates.`;
+            const prUrl = await createPR(prTitle, prBody, targetBranch, {
+              draft: false,
+              headBranch: baseBranch,
+            });
+            console.log(`✅ PR created: ${prUrl}`);
+
+            const prNumber = prUrl.split('/').pop() || '';
+            if (autoMerge) {
+              await enableAutoMerge(prNumber);
+            }
+            await openPRInBrowser();
+          }
         } else {
-          console.log('ℹ️  Existing PR found - no changes needed');
+          // No commits to sync
+          if (!existingPR) {
+            console.log('📝 Creating draft PR to keep release workflow ready...');
+            const prTitle = 'Draft release';
+            const prBody = `## 📝 Draft Release PR\n\nThis is a draft PR created automatically to keep the release workflow ready.\n\nWhen you make changes that trigger version bumps, this PR will be updated with:\n- Package versions\n- Changelog\n- AI-generated summary\n\n**No action needed** - this will be automatically updated on the next release.`;
+            const prUrl = await createPR(prTitle, prBody, targetBranch, {
+              draft: true,
+              headBranch: baseBranch,
+            });
+            console.log(`✅ Draft PR created: ${prUrl}`);
+            await openPRInBrowser();
+          } else {
+            console.log('ℹ️  Existing PR found - no changes needed');
+          }
         }
 
         console.log('ℹ️  No changes detected - nothing to release');
