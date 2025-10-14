@@ -163,7 +163,9 @@ export async function enableAutoMerge(
 
   console.log('✅ Branch protection configured - enabling auto-merge...');
   try {
-    await execa('gh', ['pr', 'merge', '--auto', '--rebase', prNumber]);
+    // Use merge commit instead of rebase to avoid commit SHA divergence
+    // between main and production branches
+    await execa('gh', ['pr', 'merge', '--auto', '--merge', prNumber]);
     console.log('✅ Auto-merge enabled - PR will merge when CI passes');
   } catch (error: unknown) {
     if (error instanceof Error) {
