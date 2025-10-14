@@ -8,7 +8,6 @@ import {
   type ResponseRequest,
   type ResponseResponse,
 } from '@anygpt/router';
-import type { ConnectorFactory } from '@anygpt/router';
 import { getChatModels } from './models.js';
 import {
   buildChatCompletionRequest,
@@ -22,7 +21,6 @@ import {
 } from './error-handler.js';
 import {
   HookManager,
-  type ConnectorHooks,
   type ChatCompletionBodyTransform,
   type ResponsesBodyTransform,
   type ResponseTransform,
