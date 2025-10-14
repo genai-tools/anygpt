@@ -212,7 +212,7 @@ export default async function runExecutor(
 
             const prNumber = prUrl.split('/').pop() || '';
             if (autoMerge) {
-              await enableAutoMerge(prNumber);
+              await enableAutoMerge(prNumber, targetBranch);
             }
             await openPRInBrowser();
           }
@@ -258,7 +258,7 @@ export default async function runExecutor(
         const prNumber = prUrl.split('/').pop() || '';
 
         if (autoMerge) {
-          await enableAutoMerge(prNumber);
+          await enableAutoMerge(prNumber, targetBranch);
         }
 
         await openPRInBrowser();
@@ -317,7 +317,7 @@ export default async function runExecutor(
       prNumber = prUrl.split('/').pop() || '';
 
       if (autoMerge) {
-        await enableAutoMerge(prNumber);
+        await enableAutoMerge(prNumber, targetBranch);
       }
     } else {
       // Update existing PR - keep existing title, pr-update will update if needed

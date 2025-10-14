@@ -117,8 +117,51 @@ export async function updatePR(
   await execa('gh', args);
 }
 
-export async function enableAutoMerge(prNumber: string): Promise<void> {
-  console.log('🔄 Enabling auto-merge...');
+async function checkBranchProtection(
+  branch: string
+): Promise<{ hasProtection: boolean; hasRequiredChecks: boolean }> {
+  try {
+    const result = await execa('gh', [
+      'api',
+      `repos/{owner}/{repo}/branches/${branch}/protection`,
+    ]);
+    const protection = JSON.parse(result.stdout);
+    const hasRequiredChecks =
+      protection.required_status_checks?.contexts?.length > 0 ||
+      protection.required_status_checks?.checks?.length > 0;
+    return { hasProtection: true, hasRequiredChecks };
+  } catch {
+    return { hasProtection: false, hasRequiredChecks: false };
+  }
+}
+
+export async function enableAutoMerge(
+  prNumber: string,
+  targetBranch = 'production'
+): Promise<void> {
+  console.log('🔄 Checking branch protection rules...');
+
+  // Check if branch protection is configured
+  const { hasProtection, hasRequiredChecks } = await checkBranchProtection(
+    targetBranch
+  );
+
+  if (!hasProtection || !hasRequiredChecks) {
+    console.log(
+      `⚠️  WARNING: Branch protection not properly configured for '${targetBranch}'`
+    );
+    console.log(
+      '   Without required status checks, auto-merge will merge immediately!'
+    );
+    console.log(
+      `   Configure at: https://github.com/{owner}/{repo}/settings/branch_protection_rules`
+    );
+    console.log('   Required: Enable "Require status checks to pass"');
+    console.log('   Skipping auto-merge to prevent premature merge.');
+    return;
+  }
+
+  console.log('✅ Branch protection configured - enabling auto-merge...');
   try {
     await execa('gh', ['pr', 'merge', '--auto', '--rebase', prNumber]);
     console.log('✅ Auto-merge enabled - PR will merge when CI passes');
@@ -146,7 +189,9 @@ export async function enableAutoMerge(prNumber: string): Promise<void> {
         error.message?.includes('is in unstable status') ||
         error.message?.includes('unstable status')
       ) {
-        console.log('⚠️  Cannot enable auto-merge: PR has failing checks or conflicts');
+        console.log(
+          '⚠️  Cannot enable auto-merge: PR has failing checks or conflicts'
+        );
         console.log(
           '   Auto-merge will be enabled automatically once checks pass and conflicts are resolved'
         );
