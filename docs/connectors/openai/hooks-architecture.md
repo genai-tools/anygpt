@@ -60,7 +60,6 @@ The OpenAI connector implements a powerful hook system inspired by unplugin, all
 │  ┌──────────────────────────────────────────────────────┐  │
 │  │           Built-in Transforms                        │  │
 │  │  - tokenParameterTransform (always registered)       │  │
-│  │  - bookingCodexTransform (example)                   │  │
 │  └──────────────────────────────────────────────────────┘  │
 │                          │                                  │
 │                          ▼                                  │
@@ -179,24 +178,27 @@ private async executeChatCompletion(request, context) {
 Hooks are easy to test because they're pure functions:
 
 ```typescript
-import { bookingCodexTransform } from '@anygpt/openai';
+import { type ChatCompletionBodyTransform } from '@anygpt/openai';
 
-test('transforms codex requests', () => {
+const customTransform: ChatCompletionBodyTransform = (body, context) => {
+  return { ...body, temperature: 0.7 };
+};
+
+test('applies custom transform', () => {
   const body = {
-    model: 'gpt-5-codex',
-    max_completion_tokens: 4096,
+    model: 'gpt-4',
+    messages: [],
   };
 
   const context = {
-    request: { model: 'gpt-5-codex' },
-    providerId: 'booking',
+    request: { model: 'gpt-4' },
+    providerId: 'openai',
     apiType: 'chat',
   };
 
-  const result = bookingCodexTransform(body, context);
+  const result = customTransform(body, context);
 
-  expect(result.max_output_tokens).toBe(4096);
-  expect(result.max_completion_tokens).toBeUndefined();
+  expect(result.temperature).toBe(0.7);
 });
 ```
 
@@ -235,8 +237,8 @@ import { when } from '@anygpt/openai';
 
 hooks: {
   'chat:request': when(
-    (ctx) => ctx.request.model?.includes('codex'),
-    bookingCodexTransform
+    (ctx) => ctx.request.model?.startsWith('gpt-4'),
+    customTransform
   ),
 }
 ```

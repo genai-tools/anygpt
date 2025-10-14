@@ -28,8 +28,7 @@ src/
 │
 ├── hooks.ts                    # Hook system (150 lines)
 │   ├── HookManager                    - Register and execute transforms
-│   ├── tokenParameterTransform        - Built-in token parameter handling
-│   └── bookingCodexTransform          - Example transform
+│   └── tokenParameterTransform        - Built-in token parameter handling
 │
 └── models.ts                   # Model metadata (existing)
     ├── getChatModels()

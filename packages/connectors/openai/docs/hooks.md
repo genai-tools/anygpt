@@ -90,24 +90,6 @@ Hooks execute in order, with each receiving the output of the previous.
 
 Automatically handles token parameter variations (registered by default).
 
-### `bookingCodexTransform`
-
-Example transform for custom codex models:
-
-```typescript
-import { openai, bookingCodexTransform } from '@anygpt/openai';
-
-const connector = openai(
-  {
-    baseURL: process.env.CUSTOM_OPENAI_BASE_URL,
-    hooks: {
-      'chat:request': bookingCodexTransform,
-    },
-  },
-  'custom-provider'
-);
-```
-
 ## Transform Context
 
 Every transform receives a context object:
@@ -160,15 +142,16 @@ const logRequests: ChatCompletionBodyTransform = (body, context) => {
 ### Model-Specific Transform
 
 ```typescript
-const codexTransform: ChatCompletionBodyTransform = (body, context) => {
-  if (!context.request.model?.includes('codex')) {
+const customModelTransform: ChatCompletionBodyTransform = (body, context) => {
+  // Example: Transform parameters for specific model types
+  if (!context.request.model?.includes('custom-model')) {
     return body;
   }
 
-  const { max_completion_tokens, ...rest } = body as any;
+  // Apply custom transformations
   return {
-    ...rest,
-    max_output_tokens: max_completion_tokens,
+    ...body,
+    // Add your custom parameters here
   };
 };
 ```

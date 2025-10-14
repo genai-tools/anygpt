@@ -7,7 +7,7 @@ import type { BaseChatCompletionRequest as ChatCompletionRequest } from '@anygpt
 export interface TransformContext {
   /** The validated request from the router */
   request: ChatCompletionRequest;
-  /** Provider ID (e.g., 'openai', 'booking') */
+  /** Provider ID (e.g., 'openai', 'anthropic') */
   providerId: string;
   /** API type being used */
   apiType: 'chat' | 'responses';
@@ -58,18 +58,9 @@ export class HookManager {
   /**
    * Register a hook
    */
-  on(
-    event: 'chat:request',
-    handler: ChatCompletionBodyTransform
-  ): void;
-  on(
-    event: 'responses:request',
-    handler: ResponsesBodyTransform
-  ): void;
-  on(
-    event: 'response',
-    handler: ResponseTransform
-  ): void;
+  on(event: 'chat:request', handler: ChatCompletionBodyTransform): void;
+  on(event: 'responses:request', handler: ResponsesBodyTransform): void;
+  on(event: 'response', handler: ResponseTransform): void;
   on(event: keyof ConnectorHooks, handler: any): void {
     if (!this.hooks[event]) {
       this.hooks[event] = [] as any;
@@ -116,31 +107,9 @@ export class HookManager {
  */
 export const tokenParameterTransform: ChatCompletionBodyTransform = (
   body,
-  context
+  _context
 ) => {
   // This transform is now handled by request-builders.ts
   // Kept here for backwards compatibility but does nothing
-  return body;
-};
-
-/**
- * Example: Booking.com codex transform
- * Replaces max_completion_tokens with max_output_tokens for codex models
- */
-export const bookingCodexTransform: ChatCompletionBodyTransform = (
-  body,
-  context
-) => {
-  // Only apply to codex models
-  if (!context.request.model?.includes('codex')) {
-    return body;
-  }
-
-  const { max_completion_tokens, ...rest } = body as any;
-
-  if (max_completion_tokens !== undefined) {
-    return { ...rest, max_output_tokens: max_completion_tokens };
-  }
-
   return body;
 };
