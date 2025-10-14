@@ -1,3 +1,9 @@
+## 1.3.1 (2025-10-14)
+
+### 🧱 Updated Dependencies
+
+- Updated config to 2.0.1
+
 ## 1.3.0 (2025-10-14)
 
 ### 🚀 Features
