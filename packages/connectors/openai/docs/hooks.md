@@ -99,12 +99,12 @@ import { openai, customCodexTransform } from '@anygpt/openai';
 
 const connector = openai(
   {
-    baseURL: 'https://your-ai-gateway.example.com/v1',
+    baseURL: process.env.CUSTOM_OPENAI_BASE_URL,
     hooks: {
       'chat:request': customCodexTransform,
     },
   },
-  'booking'
+  'custom-provider'
 );
 ```
 
