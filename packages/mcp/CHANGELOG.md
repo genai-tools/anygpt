@@ -1,3 +1,19 @@
+## 1.1.0 (2025-10-14)
+
+### 🚀 Features
+
+- **mcp:** add support for per-provider default models ([0fbc381](https://github.com/genai-tools/anygpt/commit/0fbc381))
+- **mcp:** inject logger into router setup and improve resources ([0d846a7](https://github.com/genai-tools/anygpt/commit/0d846a7))
+
+### 🧱 Updated Dependencies
+
+- Updated config to 2.0.0
+- Updated types to 1.2.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.0.1 (2025-10-09)
 
 ### 📖 Documentation

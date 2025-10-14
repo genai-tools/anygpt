@@ -6,6 +6,7 @@ export interface ReleaseExecutorSchema {
   aiTitleCommand?: string;
   model?: string;
   maxLinesPerFile?: number;
+  aiTimeout?: number;
   autoMerge?: boolean;
   skipPublish?: boolean;
   diffPaths?: string[];

@@ -1,3 +1,31 @@
+# 2.0.0 (2025-10-14)
+
+### 🚀 Features
+
+- **config:** improve tag registry to support config-defined models ([6c1ca9e](https://github.com/genai-tools/anygpt/commit/6c1ca9e))
+- ⚠️ **config:** complete configuration loader feature ([a48515c](https://github.com/genai-tools/anygpt/commit/a48515c))
+- **config:** add custom error types for better error handling ([fcf0271](https://github.com/genai-tools/anygpt/commit/fcf0271))
+- **config:** enhance model pattern resolver and add capability flags ([c11ba09](https://github.com/genai-tools/anygpt/commit/c11ba09))
+- implement tag registry for pattern-based tag resolution ([fd6c489](https://github.com/genai-tools/anygpt/commit/fd6c489))
+
+### 📖 Documentation
+
+- **config:** consolidate documentation into single README ([877dc9d](https://github.com/genai-tools/anygpt/commit/877dc9d))
+
+### ⚠️ Breaking Changes
+
+- **config:** Removed Codex migration support. Users should use modern factory config pattern instead.
+
+### 🧱 Updated Dependencies
+
+- Updated router to 0.5.0
+- Updated types to 1.2.0
+- Updated mock to 1.0.2
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.1.0 (2025-10-09)
 
 ### 🚀 Features

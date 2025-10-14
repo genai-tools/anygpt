@@ -1,3 +1,22 @@
+## 0.2.0 (2025-10-14)
+
+### 🚀 Features
+
+- **connectors:** add Anthropic connector with API model listing ([072032b](https://github.com/genai-tools/anygpt/commit/072032b))
+
+### 🩹 Fixes
+
+- resolve router lint and anthropic test failures ([f41ced4](https://github.com/genai-tools/anygpt/commit/f41ced4))
+- resolve typecheck failures and tsgo race conditions ([88b3915](https://github.com/genai-tools/anygpt/commit/88b3915))
+
+### 🧱 Updated Dependencies
+
+- Updated router to 0.5.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 # Changelog
 
 All notable changes to the @anygpt/anthropic package will be documented in this file.

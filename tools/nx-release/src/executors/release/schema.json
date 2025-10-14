@@ -40,6 +40,11 @@
       "description": "Maximum lines per file in diff sent to AI (prevents large files from dominating)",
       "default": 150
     },
+    "aiTimeout": {
+      "type": "number",
+      "description": "Timeout in seconds for AI generation (prevents hanging). Set to 0 to disable timeout.",
+      "default": 20
+    },
     "autoMerge": {
       "type": "boolean",
       "description": "Enable auto-merge on the PR when CI passes",

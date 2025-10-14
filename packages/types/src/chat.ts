@@ -18,11 +18,13 @@ export interface ChatCompletionRequest {
   model?: string;
   temperature?: number;
   // Maximum tokens for completion
-  // Will be sent as max_tokens or max_completion_tokens based on useLegacyMaxTokens
+  // Parameter name depends on API mode and legacy flags
   max_tokens?: number;
-  // Capability flag from config - determines parameter name
+  // Capability flags from config - determines API mode and parameter names
   // Internal use only, not sent to API
-  useLegacyMaxTokens?: boolean;
+  useLegacyCompletionAPI?: boolean; // true = Chat Completions API directly, false/undefined = Responses API (default)
+  fallbackToChatCompletion?: boolean; // true = fallback to Chat Completions if Responses fails (404/400)
+  useLegacyMaxTokens?: boolean; // Only for Chat Completions: true = max_tokens (Anthropic), false = max_completion_tokens (OpenAI)
   top_p?: number;
   frequency_penalty?: number;
   presence_penalty?: number;
