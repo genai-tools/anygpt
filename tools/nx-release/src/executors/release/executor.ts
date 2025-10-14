@@ -10,14 +10,12 @@ import {
   getTagsAtCommit,
   pushWithTags,
   getNewTags,
-  getDiff,
 } from '../../lib/git-operations.js';
 import {
   extractChangelog,
   extractReleasesFromTags,
   buildPRTitle,
 } from '../../lib/changelog.js';
-import { generateAISummary } from '../../lib/ai-summary.js';
 import {
   getExistingPR,
   buildPRBody,
@@ -26,7 +24,6 @@ import {
   enableAutoMerge,
   openPRInBrowser,
   getRepoName,
-  addUpdateComment,
   markPRReady,
 } from '../../lib/pr-creation.js';
 
@@ -273,6 +270,11 @@ export default async function runExecutor(
         console.log(
           `✅ PR updated: https://github.com/${repoName}/pull/${existingPR}`
         );
+
+        // Run pr-update to regenerate AI summary and update PR description
+        console.log('\n🔄 Running pr-update to refresh PR description...');
+        await execa('npx', ['nx', 'pr-update'], { stdio: 'inherit' });
+
         await openPRInBrowser(existingPR);
       }
 
@@ -300,83 +302,15 @@ export default async function runExecutor(
 
     // Build PR title from releases
     const prTitle = buildPRTitle(releases);
+    const prBody = buildPRBody('', releases);
 
     let prNumber: string;
 
-    // For NEW PR: Generate AI summary from local diff before creating PR
-    if (!existingPR && finalAiCommand) {
-      console.log(
-        `\n🤖 Generating AI summary from local changes${
-          model ? ` with model: ${model}` : ''
-        }...`
-      );
-      try {
-        // Use local diff since PR doesn't exist yet
-        const localDiff = await getDiff(
-          `origin/${targetBranch}`,
-          afterSha,
-          diffPaths
-        );
-        // Step 1: Generate summary
-        const aiSummary = await generateAISummary(
-          changelog,
-          releases,
-          localDiff,
-          finalAiCommand,
-          {
-            maxLinesPerFile,
-            aiTimeoutInSec: aiTimeout,
-          }
-        );
-
-        // Step 2: Build PR body with summary
-        const prBodyWithAI = buildPRBody(aiSummary, releases);
-
-        // Step 3: Generate title from summary
-        let aiTitle: string | undefined;
-        if (finalAiTitleCommand) {
-          console.log('🎯 Generating AI title from summary...');
-          const { generateAITitle } = await import('../../lib/ai-summary.js');
-          aiTitle = await generateAITitle(
-            aiSummary,
-            changelog,
-            releases,
-            finalAiTitleCommand
-          );
-        }
-
-        // Step 4: Create PR with AI-generated title and summary
-        const finalTitle = aiTitle || prTitle;
-        const prUrl = await createPR(finalTitle, prBodyWithAI, targetBranch, {
-          headBranch: baseBranch,
-        });
-        console.log(`✅ PR created with AI title and summary: "${finalTitle}"`);
-        prNumber = prUrl.split('/').pop() || '';
-
-        // Enable auto-merge if requested
-        if (autoMerge) {
-          await enableAutoMerge(prNumber);
-        }
-      } catch (error) {
-        console.warn('⚠️  Failed to generate AI content:', error);
-        console.log('   Creating PR without AI enhancements');
-
-        // Fallback: Create PR without AI summary
-        const prBodyWithoutAI = buildPRBody('', releases);
-        const prUrl = await createPR(prTitle, prBodyWithoutAI, targetBranch, {
-          headBranch: baseBranch,
-        });
-        console.log(`✅ PR created: ${prUrl}`);
-        prNumber = prUrl.split('/').pop() || '';
-
-        if (autoMerge) {
-          await enableAutoMerge(prNumber);
-        }
-      }
-    } else if (!existingPR) {
-      // No AI command configured, create PR without AI summary
-      const prBodyWithoutAI = buildPRBody('', releases);
-      const prUrl = await createPR(prTitle, prBodyWithoutAI, targetBranch, {
+    // Create or update PR with basic info (no AI yet)
+    if (!existingPR) {
+      // Create new PR
+      console.log('\n📝 Creating PR to production...');
+      const prUrl = await createPR(prTitle, prBody, targetBranch, {
         headBranch: baseBranch,
       });
       console.log(`✅ PR created: ${prUrl}`);
@@ -386,71 +320,30 @@ export default async function runExecutor(
         await enableAutoMerge(prNumber);
       }
     } else {
-      // EXISTING PR: Mark as ready if it was a draft, then update
+      // Update existing PR
       prNumber = existingPR;
-
-      // Convert draft PR to ready (if it was a draft placeholder)
       await markPRReady(prNumber);
+      await updatePR(prNumber, prBody, prTitle);
 
-      const prBodyWithoutAI = buildPRBody('', releases);
-      await updatePR(existingPR, prBodyWithoutAI, prTitle);
-      console.log(
-        'ℹ️  Auto-merge not enabled for existing PR - enable manually if needed'
-      );
       const repoName = await getRepoName();
       console.log(
-        `✅ PR updated: https://github.com/${repoName}/pull/${existingPR}`
+        `✅ PR updated: https://github.com/${repoName}/pull/${prNumber}`
       );
+    }
 
-      // For existing PR, generate AI summary from branch diff
-      if (finalAiCommand) {
-        console.log(
-          `\n🤖 Generating AI summary from branch diff${
-            model ? ` with model: ${model}` : ''
-          }...`
-        );
-        try {
-          // Use git diff directly (same as for new PRs)
-          const branchDiff = await getDiff(
-            `origin/${targetBranch}`,
-            afterSha,
-            diffPaths
-          );
-          const aiSummary = await generateAISummary(
-            changelog,
-            releases,
-            branchDiff,
-            finalAiCommand,
-            {
-              maxLinesPerFile,
-              aiTimeoutInSec: aiTimeout,
-            }
-          );
-
-          // Update PR with AI summary
-          const prBodyWithAI = buildPRBody(aiSummary, releases);
-          await updatePR(prNumber, prBodyWithAI);
-          console.log('✅ PR description updated with AI summary');
-        } catch (error) {
-          console.warn('⚠️  Failed to generate AI summary:', error);
-          console.log('   PR updated without AI summary');
-        }
+    // Now run pr-update to add AI-generated content
+    if (finalAiCommand) {
+      console.log('\n🔄 Running pr-update to add AI-generated content...');
+      try {
+        await execa('npx', ['nx', 'pr-update'], { stdio: 'inherit' });
+      } catch (error) {
+        console.warn('⚠️  Failed to generate AI content:', error);
+        console.log('   PR created/updated without AI enhancements');
       }
     }
 
-    // Add tracking comment
-    console.log('📋 Adding update tracking comment...');
-    await addUpdateComment(prNumber, 'publish');
-
-    // Open in browser
     await openPRInBrowser(prNumber);
-
-    console.log('\n🎉 Release process complete!');
-    console.log('   Review the PR and merge when CI passes');
-    console.log(
-      `\n💡 Tip: After the PR merges, run \`git pull origin ${targetBranch} && git push\` to sync ${baseBranch} with ${targetBranch}\n`
-    );
-
+    console.log('\n🎉 Release complete!');
     return { success: true };
   } catch (error) {
     console.error('\n❌ Release failed:', error);
