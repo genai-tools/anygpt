@@ -16,32 +16,32 @@ graph TD
         CLI[CLI Tool]
         MCP[MCP Server]
     end
-    
+
     subgraph "Core Infrastructure"
         Config[Configuration Loader]
         Router[Provider Router]
     end
-    
+
     subgraph "Connectors"
         OpenAI[OpenAI Connector]
         Mock[Mock Connector]
     end
-    
+
     subgraph "AI Providers"
         OpenAIAPI[OpenAI API]
         Ollama[Ollama]
         LocalAI[LocalAI]
     end
-    
+
     CLI --> Config
     CLI --> Router
     MCP --> Config
     MCP --> Router
-    
+
     Config --> Router
     Router --> OpenAI
     Router --> Mock
-    
+
     OpenAI --> OpenAIAPI
     OpenAI --> Ollama
     OpenAI --> LocalAI
@@ -52,11 +52,13 @@ graph TD
 ### Applications Layer
 
 **CLI Tool**
+
 - **Purpose**: Command-line interface for AI interactions
 - **Features**: chat, conversation, config, benchmark commands
 - **Dependencies**: Configuration Loader, Provider Router
 
 **MCP Server**
+
 - **Purpose**: MCP protocol server for IDE/tool integration
 - **Features**: JSON-RPC over stdin/stdout, provider routing
 - **Dependencies**: Configuration Loader, Provider Router
@@ -64,6 +66,7 @@ graph TD
 ### Core Infrastructure
 
 **Types Package**
+
 - **Purpose**: Pure TypeScript type definitions (zero runtime)
 - **Responsibilities**:
   - Define all interfaces and types
@@ -73,6 +76,7 @@ graph TD
 - **Dependencies**: None (foundation)
 
 **Configuration Loader**
+
 - **Purpose**: Load and validate configuration from multiple sources
 - **Responsibilities**:
   - Search hierarchy (project → user → system)
@@ -82,6 +86,7 @@ graph TD
 - **Dependencies**: Types Package
 
 **Provider Router**
+
 - **Purpose**: Abstract provider differences, route requests
 - **Responsibilities**:
   - Provider abstraction layer
@@ -94,11 +99,13 @@ graph TD
 ### Connectors Layer
 
 **OpenAI Connector**
+
 - **Purpose**: OpenAI and OpenAI-compatible API integration
 - **Supports**: OpenAI, Ollama, LocalAI, Together AI, Anyscale
 - **Dependencies**: Provider Router
 
 **Mock Connector**
+
 - **Purpose**: Testing and development without real API calls
 - **Features**: Configurable delays, failure simulation
 - **Dependencies**: Provider Router
@@ -120,6 +127,7 @@ packages/
 ## Data Flow
 
 ### CLI Request Flow
+
 ```
 User Command
     ↓
@@ -141,6 +149,7 @@ User
 ```
 
 ### MCP Request Flow
+
 ```
 MCP Client (IDE)
     ↓
@@ -168,14 +177,16 @@ MCP Client (IDE)
 ## Key Design Decisions
 
 ### 1. Monorepo Structure
+
 - **Decision**: Use Nx monorepo
-- **Rationale**: 
+- **Rationale**:
   - Shared code between packages
   - Consistent tooling
   - Atomic changes across packages
   - Better dependency management
 
 ### 2. Type-Only Packages
+
 - **Decision**: Separate type definitions from runtime code
 - **Rationale**:
   - Zero runtime overhead
@@ -183,6 +194,7 @@ MCP Client (IDE)
   - Prevents circular dependencies
 
 ### 3. Dynamic Connector Loading
+
 - **Decision**: Load connectors at runtime based on config
 - **Rationale**:
   - No hardcoded dependencies
@@ -190,6 +202,7 @@ MCP Client (IDE)
   - Extensible architecture
 
 ### 4. Provider Abstraction
+
 - **Decision**: Unified interface for all providers
 - **Rationale**:
   - Swap providers without code changes
@@ -197,6 +210,7 @@ MCP Client (IDE)
   - Easy to add new providers
 
 ### 5. Configuration Hierarchy
+
 - **Decision**: Project → User → System config search
 - **Rationale**:
   - Project-specific overrides
@@ -207,22 +221,26 @@ MCP Client (IDE)
 ## Technology Stack
 
 ### Core
+
 - **Language**: TypeScript
 - **Runtime**: Node.js 18+
 - **Build**: Nx, tsdown
 - **Package Manager**: npm/pnpm
 
 ### CLI
+
 - **Argument Parsing**: commander
 - **Validation**: zod
 - **Storage**: Local filesystem (JSON)
 
 ### Testing
+
 - **Framework**: Vitest
 - **E2E**: Custom test harness
 - **Mocking**: Built-in mock connector
 
 ### MCP
+
 - **Protocol**: JSON-RPC 2.0
 - **Transport**: stdin/stdout
 - **Spec**: MCP Protocol v1.0
@@ -230,11 +248,13 @@ MCP Client (IDE)
 ## Deployment Targets
 
 ### CLI Tool
+
 - **Distribution**: npm package
 - **Installation**: `npm install -g @anygpt/cli`
 - **Usage**: `anygpt <command>`
 
 ### MCP Server
+
 - **Distribution**: npm package + Docker image
 - **NPM**: `npx @anygpt/mcp`
 - **Docker**: `docker run ghcr.io/org/anygpt-mcp`
@@ -243,16 +263,19 @@ MCP Client (IDE)
 ## Security Considerations
 
 ### Credentials
+
 - API keys via environment variables
 - Never log credentials
 - Secure storage in config files
 
 ### Input Validation
+
 - Validate all user input
 - Sanitize command arguments
 - Type-safe configuration
 
 ### Network
+
 - HTTPS only for API calls
 - Timeout and retry limits
 - Rate limiting support
@@ -260,11 +283,13 @@ MCP Client (IDE)
 ## Scalability
 
 ### Stateless Design
+
 - CLI: No persistent state (except conversations)
 - MCP Server: Stateless, horizontally scalable
 - Configuration: Cached, reloadable
 
 ### Performance
+
 - Minimal startup time
 - Lazy loading of connectors
 - Efficient configuration parsing
@@ -272,16 +297,19 @@ MCP Client (IDE)
 ## Extension Points
 
 ### New Providers
+
 1. Implement connector interface
 2. Publish as separate package
 3. Users add to configuration
 
 ### New Commands
+
 1. Add command to CLI package
 2. Follow existing patterns
 3. Use shared infrastructure
 
 ### New MCP Methods
+
 1. Add handler to MCP server
 2. Route through provider router
 3. Follow MCP protocol spec
@@ -289,6 +317,7 @@ MCP Client (IDE)
 ## Future Extensions
 
 ### Potential Enhancements
+
 - **Streaming Support**: Real-time response streaming for long outputs
 - **Response Caching**: Cache responses with TTL for performance
 - **Additional Connectors**: Anthropic, Google AI, Azure OpenAI, etc.
@@ -304,24 +333,28 @@ MCP Client (IDE)
 The system is designed to be extended without modifying core:
 
 **New Providers**:
+
 ```
 packages/connectors/anthropic/  ← New package
 └── Implements connector interface
 ```
 
 **New Commands**:
+
 ```
 packages/cli/src/commands/new-command.ts  ← New file
 └── Uses existing infrastructure
 ```
 
 **New Storage Backends**:
+
 ```
 packages/storage/postgresql/  ← New package
 └── Implements storage interface
 ```
 
 **Plugin System** (Future):
+
 ```
 packages/plugins/
 ├── api/           ← Plugin API
@@ -338,7 +371,7 @@ packages/plugins/
 
 ## References
 
-- **Specs**: [docs/products/anygpt/specs/](../../product/spec/)
-- **Use Cases**: [docs/products/anygpt/use-cases/](../../product/use-cases/)
+- **Specs**: [docs/products/anygpt/specs/](../../products/anygpt/specs/)
+- **Use Cases**: [docs/products/anygpt/cases/](../../products/anygpt/cases/)
 - **Nx Documentation**: https://nx.dev
 - **MCP Protocol**: https://modelcontextprotocol.io

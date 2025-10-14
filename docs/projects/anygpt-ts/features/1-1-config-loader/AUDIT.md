@@ -401,7 +401,7 @@ tag-registry.ts               |       0 |      100 |     100 |       0
 
 ### ✅ Product Documentation (User-Facing)
 
-**Location**: `docs/product/features/configuration.md`
+**Location**: `docs/products/anygpt/cases/flexible-configuration.md`
 
 **Status**: ✅ Up to date with factory config examples
 
@@ -539,8 +539,8 @@ The configuration loader is **complete** with all critical functionality impleme
 
 **What was done**:
 
-- ✅ Moved `docs/product/features/configuration.md` → `packages/config/docs/USER_GUIDE.md`
-- ✅ Created minimal stub at `docs/product/features/configuration.md`
+- ✅ Moved configuration docs to `docs/products/anygpt/cases/flexible-configuration.md`
+- ✅ Created `packages/config/docs/MODEL_RULES.md` for technical reference
 
 **Future consolidation tasks**:
 
