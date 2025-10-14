@@ -300,17 +300,17 @@ export default async function runExecutor(
     console.log('\n📋 Extracting changelog...');
     const { changelog } = await extractChangelog(changelogPatterns);
 
-    // Build PR title from releases
-    const prTitle = buildPRTitle(releases);
+    // Build PR body with package list
     const prBody = buildPRBody('', releases);
 
     let prNumber: string;
 
     // Create or update PR with basic info (no AI yet)
     if (!existingPR) {
-      // Create new PR
+      // Create new PR with generic title - pr-update will set the AI-generated title
       console.log('\n📝 Creating PR to production...');
-      const prUrl = await createPR(prTitle, prBody, targetBranch, {
+      const genericTitle = 'Release';
+      const prUrl = await createPR(genericTitle, prBody, targetBranch, {
         headBranch: baseBranch,
       });
       console.log(`✅ PR created: ${prUrl}`);
@@ -320,10 +320,11 @@ export default async function runExecutor(
         await enableAutoMerge(prNumber);
       }
     } else {
-      // Update existing PR
+      // Update existing PR - keep existing title, pr-update will update if needed
       prNumber = existingPR;
       await markPRReady(prNumber);
-      await updatePR(prNumber, prBody, prTitle);
+      // Don't update title for existing PR - pr-update will handle it
+      await updatePR(prNumber, prBody);
 
       const repoName = await getRepoName();
       console.log(
