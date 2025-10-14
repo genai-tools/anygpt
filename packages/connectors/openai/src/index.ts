@@ -5,79 +5,126 @@ import {
   type ModelInfo,
   type BaseChatCompletionRequest,
   type BaseChatCompletionResponse,
-  type ChatMessage,
   type ResponseRequest,
   type ResponseResponse,
-  type ResponseOutput,
-  type ResponseContent,
-  type ResponseAnnotation,
 } from '@anygpt/router';
-import type { ConnectorFactory } from '@anygpt/router';
-import { getChatModels, getModelInfo, type OpenAIModelInfo } from './models.js';
+import { getChatModels } from './models.js';
+import {
+  buildChatCompletionRequest,
+  buildResponsesRequest,
+} from './request-builders.js';
+import { convertResponsesToChatCompletion } from './response-converters.js';
+import {
+  buildErrorResponse,
+  formatErrorMessage,
+  shouldFallbackToChatCompletion,
+} from './error-handler.js';
+import {
+  HookManager,
+  type ChatCompletionBodyTransform,
+  type ResponsesBodyTransform,
+  type ResponseTransform,
+  tokenParameterTransform,
+} from './hooks.js';
 
 export interface OpenAIConnectorConfig extends ConnectorConfig {
   apiKey?: string;
-  baseURL?: string; // Essential for OpenAI-compatible APIs
-  defaultHeaders?: Record<string, string>; // Custom headers for API requests
+  baseURL?: string;
+  defaultHeaders?: Record<string, string>;
+  /** Hook functions for transforming requests/responses */
+  hooks?: {
+    /** Transform Chat Completions API request body */
+    'chat:request'?:
+      | ChatCompletionBodyTransform
+      | ChatCompletionBodyTransform[];
+    /** Transform Responses API request body */
+    'responses:request'?: ResponsesBodyTransform | ResponsesBodyTransform[];
+    /** Transform response before returning */
+    response?: ResponseTransform | ResponseTransform[];
+  };
 }
-
-type ResponseInputMessage = {
-  type: 'message';
-  role: string;
-  content: string;
-};
-
-type OpenAIResponseOutput = {
-  id: string;
-  type: string;
-  role?: string;
-  content?: Array<{
-    type: string;
-    text?: string;
-    annotations?: unknown[];
-  }>;
-  status?: string;
-};
 
 export class OpenAIConnector extends BaseConnector {
   static override readonly packageName = '@anygpt/openai';
   private client: OpenAI;
+  private lastErrorBody: unknown = null;
+  private hooks: HookManager;
 
   constructor(config: OpenAIConnectorConfig = {}) {
     super('openai', config);
 
-    // Logger is now injected by CLI
+    // Initialize hook manager
+    this.hooks = new HookManager();
 
-    // Always create a client, use empty string if no API key provided
-    // Some APIs might not require authentication or handle it differently
+    // Register built-in token parameter transform
+    this.hooks.on('chat:request', tokenParameterTransform);
+
+    // Register user-provided hooks
+    if (config.hooks) {
+      if (config.hooks['chat:request']) {
+        const hooks = Array.isArray(config.hooks['chat:request'])
+          ? config.hooks['chat:request']
+          : [config.hooks['chat:request']];
+        hooks.forEach((hook) => this.hooks.on('chat:request', hook));
+      }
+      if (config.hooks['responses:request']) {
+        const hooks = Array.isArray(config.hooks['responses:request'])
+          ? config.hooks['responses:request']
+          : [config.hooks['responses:request']];
+        hooks.forEach((hook) => this.hooks.on('responses:request', hook));
+      }
+      if (config.hooks['response']) {
+        const hooks = Array.isArray(config.hooks['response'])
+          ? config.hooks['response']
+          : [config.hooks['response']];
+        hooks.forEach((hook) => this.hooks.on('response', hook));
+      }
+    }
+
     this.client = new OpenAI({
       apiKey: config.apiKey || '',
-      baseURL: config.baseURL, // Support custom endpoints
-      timeout: this.config.timeout,
-      maxRetries: this.config.maxRetries,
-      defaultHeaders: config.defaultHeaders, // Support custom headers
-      fetch: async (url: string | Request | URL, init?: RequestInit) => {
-        const response = await fetch(url, init);
+      baseURL: config.baseURL,
+      defaultHeaders: config.defaultHeaders,
+      timeout: config.timeout,
+      maxRetries: config.maxRetries ?? 2,
+      fetch: async (url: Request | URL | string, init?: RequestInit) => {
+        // Custom fetch to log requests/responses
+        this.logger.debug(`[${this.providerId}] HTTP Request:`, {
+          method: init?.method || 'GET',
+          url: url.toString(),
+          headers: init?.headers,
+          body: init?.body ? JSON.parse(init.body as string) : undefined,
+        });
 
-        // Capture error response body for better error messages
-        if (!response.ok) {
-          const responseText = await response.text();
-          this.logger.error(
-            `[${this.providerId}] HTTP ${response.status} Error:`,
-            {
-              status: response.status,
-              body: responseText,
-            }
-          );
-          // Re-create response for OpenAI SDK to handle
-          return new Response(responseText, {
-            status: response.status,
-            statusText: response.statusText,
-            headers: response.headers,
-          });
+        const response = await fetch(url, init);
+        const responseText = await response.text();
+
+        let parsedResponse;
+        if (responseText) {
+          try {
+            parsedResponse = JSON.parse(responseText);
+          } catch {
+            parsedResponse = responseText;
+          }
         }
 
-        return response;
+        this.logger.debug(`[${this.providerId}] HTTP Response:`, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries()),
+          body: parsedResponse,
+        });
+
+        // Store error body for later use
+        if (!response.ok && parsedResponse) {
+          this.lastErrorBody = parsedResponse;
+        }
+
+        return new Response(responseText, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: response.headers,
+        });
       },
     });
   }
@@ -85,7 +132,11 @@ export class OpenAIConnector extends BaseConnector {
   override async chatCompletion(
     request: BaseChatCompletionRequest
   ): Promise<BaseChatCompletionResponse> {
-    // Allow any model name - let the API endpoint validate
+    this.logger.debug('[OpenAI Connector] Incoming request flags:', {
+      useLegacyMaxTokens: request.useLegacyMaxTokens,
+      useLegacyCompletionAPI: request.useLegacyCompletionAPI,
+    });
+
     const validatedRequest = this.validateRequest(request);
 
     if (!validatedRequest.model) {
@@ -93,364 +144,116 @@ export class OpenAIConnector extends BaseConnector {
     }
 
     try {
-      // Build request parameters using proper OpenAI SDK types
-      const requestParams: OpenAI.Chat.ChatCompletionCreateParamsNonStreaming =
-        {
-          model: validatedRequest.model,
-          messages: validatedRequest.messages,
-          temperature: validatedRequest.temperature,
-          top_p: validatedRequest.top_p,
-          presence_penalty: validatedRequest.presence_penalty,
-          stream: false,
-          // Add reasoning_effort if provided (for OpenAI o1/o3 models)
-          ...(validatedRequest.reasoning?.effort && {
-            reasoning_effort: validatedRequest.reasoning.effort,
-          }),
-          // Handle token limits based on useLegacyMaxTokens capability:
-          // - true: use max_tokens parameter (Anthropic/Cody models)
-          // - false/undefined: use max_completion_tokens parameter (OpenAI models, default)
-          ...(validatedRequest.max_tokens !== undefined && {
-            [validatedRequest.useLegacyMaxTokens
-              ? 'max_tokens'
-              : 'max_completion_tokens']: validatedRequest.max_tokens,
-          }),
-        };
+      const useLegacyAPI = validatedRequest.useLegacyCompletionAPI === true;
+      const allowFallback = validatedRequest.fallbackToChatCompletion === true;
 
-      const chatRequest = {
-        ...requestParams,
-        ...(validatedRequest.extra_body && {
-          extra_body: validatedRequest.extra_body,
-        }),
-      };
-
-      // Remove undefined values
-      Object.keys(chatRequest).forEach((key) => {
-        if (chatRequest[key as keyof typeof chatRequest] === undefined) {
-          delete chatRequest[key as keyof typeof chatRequest];
-        }
-      });
-
-      // Debug: Log request for truncation investigation
-      this.logger.debug('[OpenAI Connector] Request:', {
-        model: chatRequest.model,
-        max_tokens: chatRequest.max_tokens,
-        max_completion_tokens: chatRequest.max_completion_tokens,
-      });
-
-      let response;
       try {
-        response = await this.client.chat.completions.create(chatRequest);
-
-        // Debug: Log response for truncation investigation
-        this.logger.info('[OpenAI Connector] Response:', {
-          finish_reason: response?.choices[0]?.finish_reason,
-          content_length: response?.choices[0]?.message?.content?.length,
-          usage: response?.usage,
-        });
-      } catch (error) {
-        // Try to extract the actual error body if available
-        if (error && typeof error === 'object' && 'response' in error) {
-          const apiError = error as { response?: { data?: unknown } };
-          if (apiError.response?.data) {
-            this.logger.error(
-              `[${this.providerId}] Error response body:`,
-              apiError.response.data
-            );
-          }
+        if (useLegacyAPI) {
+          return await this.executeChatCompletion(validatedRequest, 'direct');
+        } else {
+          return await this.executeResponsesAPI(validatedRequest);
         }
-        this.logger.error(`[${this.providerId}] Request failed:`, error);
+      } catch (error) {
+        if (shouldFallbackToChatCompletion(error, allowFallback)) {
+          this.logger.info(
+            `[${this.providerId}] Responses API not available (${
+              (error as { status?: number }).status
+            }), falling back to Chat Completions API`
+          );
+          return await this.executeChatCompletion(validatedRequest, 'fallback');
+        }
         throw error;
       }
-
-      return {
-        id: response.id,
-        object: response.object,
-        created: response.created,
-        model: response.model,
-        provider: this.getProviderId(),
-        choices: response.choices.map((choice) => ({
-          index: choice.index,
-          message: {
-            role: choice.message.role,
-            content: choice.message.content || '',
-          },
-          finish_reason: choice.finish_reason || 'unknown',
-        })),
-        usage: {
-          prompt_tokens: response.usage?.prompt_tokens || 0,
-          completion_tokens: response.usage?.completion_tokens || 0,
-          total_tokens: response.usage?.total_tokens || 0,
-        },
-      };
     } catch (error) {
-      // Log error details for debugging
-      this.logger.error(`[${this.providerId}] Chat completion error:`, error);
-      this.logger.debug(`[${this.providerId}] Error details:`, {
-        type: error?.constructor?.name,
-        hasStatus: error && typeof error === 'object' && 'status' in error,
-        status: (error as { status?: number })?.status,
-        message: (error as { message?: string })?.message,
-        hasReasoning: !!validatedRequest.reasoning?.effort,
-      });
-
-      // Check for 500/400 errors which may indicate reasoning parameter mismatch
-      if (error && typeof error === 'object' && 'status' in error) {
-        const errorStatus = (error as { status?: number }).status;
-        if (errorStatus === 500 || errorStatus === 400) {
-          const hasReasoning = validatedRequest.reasoning?.effort;
-
-          // Provide contextual hints based on reasoning parameter presence
-          let hint = '';
-          if (hasReasoning) {
-            hint = `This model may not support the reasoning_effort parameter. Try disabling reasoning in your provider config.`;
-          } else {
-            // No reasoning parameter was sent, so the error is likely something else
-            hint = `This model may not be available or supported by this provider. Check if the model exists and is accessible.`;
-          }
-
-          // Check if we have a message already
-          const errorMessage = (error as { message?: string }).message;
-
-          this.logger.debug(`[${this.providerId}] 500/400 error analysis:`, {
-            hasReasoning,
-            errorMessage,
-            hint,
-          });
-
-          if (errorMessage && !errorMessage.includes('no body')) {
-            // We have a real error message, don't add hint
-            throw new Error(
-              `${this.providerId} chat completion failed: ${errorMessage}`
-            );
-          }
-
-          throw new Error(
-            `${this.providerId} chat completion failed: ${errorStatus} status code (no body). ${hint}`
-          );
-        }
-      }
-
-      // Log detailed error information for debugging
-      this.logger.error(
-        `Chat completion error for model ${validatedRequest.model}:`,
-        error
+      const errorResponse = buildErrorResponse(
+        error,
+        validatedRequest.model,
+        this.lastErrorBody
       );
-
-      // Try to extract error details from various error formats
-      if (error instanceof OpenAI.APIError) {
-        // OpenAI SDK error
-        this.logger.debug(`[${this.providerId}] APIError details:`, {
-          status: error.status,
-          message: error.message,
-          type: error.type,
-          code: error.code,
-        });
-
-        const errorMessage = error.message || `${error.status} status code`;
-
-        throw new Error(
-          `${this.providerId} chat completion failed: ${errorMessage}`
-        );
-      } else if (error && typeof error === 'object' && 'status' in error) {
-        // Generic error with status
-        const genericError = error as {
-          status?: number;
-          message?: string;
-          body?: unknown;
-        };
-        let errorMessage =
-          genericError.message || `${genericError.status} status code`;
-
-        // Try to extract from body
-        if (genericError.body) {
-          try {
-            const bodyStr =
-              typeof genericError.body === 'string'
-                ? genericError.body
-                : JSON.stringify(genericError.body);
-            errorMessage += ` - ${bodyStr}`;
-          } catch {
-            // Ignore JSON stringify errors
-          }
-        }
-
-        throw new Error(
-          `${this.providerId} chat completion failed: ${errorMessage}`
-        );
-      }
-
-      this.handleError(error, 'chat completion');
-    }
-  }
-
-  override async listModels(): Promise<ModelInfo[]> {
-    try {
-      // Try to fetch models from the API
-      const response = await this.client.models.list();
-      const models: ModelInfo[] = [];
-
-      for await (const model of response) {
-        // Log the full model object to see what fields are available
-        this.logger.debug(`Model data: ${JSON.stringify(model)}`);
-
-        models.push({
-          id: model.id,
-          provider: this.getProviderId(),
-          display_name: model.id,
-          capabilities: {
-            input: { text: true },
-            output: { text: true, streaming: true },
-          },
-        });
-      }
-
-      // If no models returned from API, fall back to static list
-      if (models.length === 0) {
-        return getChatModels();
-      }
-
-      return models;
-    } catch (error) {
-      // If API call fails, fall back to static model list
-      this.logger.debug(
-        `Failed to fetch models from API, using static list: ${error}`
+      const errorMessage = formatErrorMessage(
+        errorResponse,
+        this.providerId,
+        this.logger
       );
-      return getChatModels();
-    }
-  }
-
-  override isInitialized(): boolean {
-    return true; // Client is always initialized now
-  }
-
-  override validateRequest(
-    request: BaseChatCompletionRequest
-  ): BaseChatCompletionRequest {
-    // Apply base validation
-    // Model-specific validation is handled by the API endpoint
-    return super.validateRequest(request);
-  }
-
-  async response(request: ResponseRequest): Promise<ResponseResponse> {
-    try {
-      // Convert input to proper format
-      let input: ResponseRequest['input'] | ResponseInputMessage[];
-      if (typeof request.input === 'string') {
-        input = request.input;
-      } else {
-        input = request.input.map((message) => ({
-          type: 'message',
-          role: message.role,
-          content: message.content,
-        }));
-      }
-
-      const responseParams: Record<string, unknown> = {
-        model: request.model,
-        input,
-        temperature: request.temperature,
-        max_output_tokens: request.max_output_tokens,
-        top_p: request.top_p,
-      };
-
-      // Add previous_response_id if provided for conversation continuity
-      if (request.previous_response_id) {
-        responseParams['previous_response_id'] = request.previous_response_id;
-      }
-
-      // Add tools if provided
-      if (request.tools) {
-        responseParams['tools'] = request.tools;
-      }
-      if (request.tool_choice) {
-        responseParams['tool_choice'] = request.tool_choice;
-      }
-
-      const response = await this.client.responses.create(responseParams);
-
-      const responseOutputs = (response.output ?? []) as OpenAIResponseOutput[];
-      const normalizedOutput: ResponseOutput[] = responseOutputs.map(
-        (item) => ({
-          id: item.id,
-          type: item.type as ResponseOutput['type'],
-          role: item.role as ResponseOutput['role'],
-          content: (item.content ?? []).map<ResponseContent>((contentItem) => ({
-            type: contentItem.type as ResponseContent['type'],
-            text: contentItem.text ?? '',
-            annotations: [] as ResponseAnnotation[],
-          })),
-          status: item.status,
-        })
-      );
-
-      return {
-        id: response.id,
-        object: response.object,
-        created_at: response.created_at,
-        model: response.model,
-        provider: this.getProviderId(),
-        status: response.status as 'in_progress' | 'completed' | 'failed',
-        output: normalizedOutput,
-        usage: {
-          input_tokens: response.usage?.input_tokens || 0,
-          output_tokens: response.usage?.output_tokens || 0,
-          total_tokens: response.usage?.total_tokens || 0,
-        },
-        previous_response_id: request.previous_response_id,
-      };
-    } catch (error) {
-      // Log the error for debugging
-      this.logger.info(`Response API error: ${error}`);
-
-      // Check if it's a 404 error (Responses API not supported)
-      if (
-        error &&
-        typeof error === 'object' &&
-        'status' in error &&
-        error.status === 404
-      ) {
-        this.logger.info(
-          'Responses API not supported, falling back to Chat Completions API'
-        );
-        return await this.fallbackToChatCompletion(request);
-      }
-
-      // Also check for other common "not found" patterns
-      if (error && typeof error === 'object' && 'message' in error) {
-        const errorMessage = String(error.message).toLowerCase();
-        if (
-          errorMessage.includes('404') ||
-          errorMessage.includes('not found') ||
-          errorMessage.includes('no such endpoint')
-        ) {
-          this.logger.info(
-            'Responses API not found, falling back to Chat Completions API'
-          );
-          return await this.fallbackToChatCompletion(request);
-        }
-      }
-
-      this.handleError(error, 'response');
+      throw new Error(errorMessage);
     }
   }
 
   /**
-   * Fallback method to convert ResponseRequest to ChatCompletionRequest and use Chat API
+   * Execute Chat Completions API request
    */
-  private async fallbackToChatCompletion(
-    request: ResponseRequest
-  ): Promise<ResponseResponse> {
-    // Convert ResponseRequest to ChatCompletionRequest
-    let messages: ChatMessage[];
+  private async executeChatCompletion(
+    request: BaseChatCompletionRequest,
+    context: 'direct' | 'fallback'
+  ): Promise<BaseChatCompletionResponse> {
+    let chatRequest = buildChatCompletionRequest(request);
 
-    if (typeof request.input === 'string') {
-      messages = [{ role: 'user', content: request.input }];
-    } else {
-      messages = request.input.map((msg) => ({
-        role: msg.role as 'system' | 'user' | 'assistant',
-        content: msg.content,
-      }));
+    // Apply hooks to transform the request
+    chatRequest = await this.hooks.execute('chat:request', chatRequest, {
+      request,
+      providerId: this.providerId,
+      apiType: 'chat',
+    });
+
+    this.logger.debug(
+      `[OpenAI Connector] Chat Completions API Request (${context}):`,
+      {
+        model: chatRequest.model,
+        max_tokens: chatRequest.max_tokens,
+        max_completion_tokens: chatRequest.max_completion_tokens,
+        max_output_tokens: (chatRequest as any).max_output_tokens,
+      }
+    );
+
+    let response = await this.client.chat.completions.create(chatRequest);
+
+    // Apply response hooks
+    if (this.hooks.has('response')) {
+      response = await this.hooks.execute('response', response, {
+        request,
+        providerId: this.providerId,
+        apiType: 'chat',
+      });
     }
+
+    // Add provider field and ensure content is never null
+    return {
+      ...response,
+      provider: this.providerId,
+      choices: response.choices.map(choice => ({
+        ...choice,
+        message: {
+          ...choice.message,
+          content: choice.message.content || '',
+        },
+      })),
+    } as BaseChatCompletionResponse;
+  }
+
+  /**
+   * Execute Responses API request
+   */
+  private async executeResponsesAPI(
+    request: BaseChatCompletionRequest
+  ): Promise<BaseChatCompletionResponse> {
+    const responsesRequest = buildResponsesRequest(request);
+
+    this.logger.debug('[OpenAI Connector] Responses API Request:', {
+      model: responsesRequest.model,
+      max_output_tokens: responsesRequest.max_output_tokens,
+    });
+
+    const responsesResponse = await this.client.responses.create(
+      responsesRequest
+    );
+    return convertResponsesToChatCompletion(responsesResponse, this.providerId);
+  }
+
+  override async response(request: ResponseRequest): Promise<ResponseResponse> {
+    // Map router's ResponseRequest to OpenAI's Responses API
+    const messages = Array.isArray(request.input)
+      ? request.input
+      : [{ role: 'user' as const, content: request.input }];
 
     const chatRequest: BaseChatCompletionRequest = {
       model: request.model,
@@ -460,66 +263,136 @@ export class OpenAIConnector extends BaseConnector {
       top_p: request.top_p,
     };
 
-    // Use the existing chatCompletion method
-    const chatResponse = await this.chatCompletion(chatRequest);
+    // Build Responses API request
+    let responsesRequest = buildResponsesRequest(chatRequest);
 
-    // Convert ChatCompletionResponse to ResponseResponse format
-    const message = chatResponse.choices[0]?.message;
-    if (!message) {
-      throw new Error('No response from chat completion');
+    // Apply hooks to transform the request
+    if (this.hooks.has('responses:request')) {
+      responsesRequest = await this.hooks.execute(
+        'responses:request',
+        responsesRequest,
+        {
+          request: chatRequest,
+          providerId: this.providerId,
+          apiType: 'responses',
+        }
+      );
     }
 
-    return {
-      id: chatResponse.id,
-      object: 'response',
-      created_at: Math.floor(Date.now() / 1000),
-      model: chatResponse.model,
-      provider: this.getProviderId(),
-      status: 'completed',
-      output: [
+    this.logger.debug(
+      '[OpenAI Connector] Responses API Request (response method):',
+      {
+        model: responsesRequest.model,
+        max_output_tokens: responsesRequest.max_output_tokens,
+      }
+    );
+
+    // Execute API call
+    let responsesResponse = await this.client.responses.create(
+      responsesRequest
+    );
+
+    // Apply response hooks
+    if (this.hooks.has('response')) {
+      responsesResponse = await this.hooks.execute(
+        'response',
+        responsesResponse,
         {
-          id: `msg_${Date.now()}`,
-          type: 'message',
-          role: message.role as 'assistant' | 'user',
-          content: [
-            {
-              type: 'output_text',
-              text: message.content || '',
-              annotations: [],
-            },
-          ],
-          status: 'completed',
-        },
-      ],
+          request: chatRequest,
+          providerId: this.providerId,
+          apiType: 'responses',
+        }
+      );
+    }
+
+    // Convert to router's ResponseResponse format
+    return {
+      id: responsesResponse.id,
+      object: responsesResponse.object,
+      created_at: responsesResponse.created_at,
+      model: responsesResponse.model,
+      provider: this.providerId,
+      status: (responsesResponse.status || 'completed') as 'in_progress' | 'completed' | 'failed',
+      output: responsesResponse.output.map((item, index) => ({
+        id: `${responsesResponse.id}-${index}`,
+        type: item.type as 'message' | 'function_call' | 'reasoning',
+        role: ('role' in item ? item.role : 'assistant') as 'assistant' | 'user',
+        content: ('content' in item ? item.content : []) as any,
+      })),
       usage: {
-        input_tokens: chatResponse.usage?.prompt_tokens || 0,
-        output_tokens: chatResponse.usage?.completion_tokens || 0,
-        total_tokens: chatResponse.usage?.total_tokens || 0,
+        input_tokens: responsesResponse.usage?.input_tokens || 0,
+        output_tokens: responsesResponse.usage?.output_tokens || 0,
+        total_tokens: responsesResponse.usage?.total_tokens || 0,
       },
-      previous_response_id: request.previous_response_id,
+      ...(request.previous_response_id && {
+        previous_response_id: request.previous_response_id,
+      }),
     };
   }
 
-  getModelInfo(modelId: string): OpenAIModelInfo | undefined {
-    return getModelInfo(modelId);
+  override async listModels(): Promise<ModelInfo[]> {
+    try {
+      // Try to fetch models from the remote API
+      const response = await this.client.models.list();
+      const models: ModelInfo[] = [];
+
+      for await (const model of response) {
+        // Create a more readable display name from the model ID
+        const displayName = model.id
+          .replace(/-/g, ' ')
+          .replace(/\b\w/g, (c) => c.toUpperCase());
+        
+        models.push({
+          id: model.id,
+          display_name: displayName,
+          provider: this.providerId,
+          capabilities: {
+            input: { text: true },
+            output: { text: true, streaming: true, function_calling: true },
+          },
+        });
+      }
+
+      return models;
+    } catch (error) {
+      // If remote listing fails, return empty array
+      this.logger.debug(`[${this.providerId}] Failed to list models:`, error);
+      return getChatModels(); // Returns empty array
+    }
+  }
+
+  async getModelInfo(modelId: string): Promise<ModelInfo | null> {
+    try {
+      // Try to fetch model info from the remote API
+      const model = await this.client.models.retrieve(modelId);
+
+      // Create a more readable display name from the model ID
+      const displayName = model.id
+        .replace(/-/g, ' ')
+        .replace(/\b\w/g, (c) => c.toUpperCase());
+      
+      return {
+        id: model.id,
+        display_name: displayName,
+        provider: this.providerId,
+        capabilities: {
+          input: { text: true },
+          output: { text: true, streaming: true, function_calling: true },
+        },
+      };
+    } catch (error) {
+      // If remote retrieval fails, return null
+      this.logger.debug(
+        `[${this.providerId}] Failed to retrieve model ${modelId}:`,
+        error
+      );
+      return null;
+    }
   }
 }
-
-// Factory for the connector registry
-export class OpenAIConnectorFactory implements ConnectorFactory {
-  getProviderId(): string {
-    return 'openai';
-  }
-
-  create(config: ConnectorConfig): OpenAIConnector {
-    return new OpenAIConnector(config as OpenAIConnectorConfig);
-  }
-}
-
-export default OpenAIConnectorFactory;
 
 /**
- * Factory function for cleaner syntax
+ * Factory function for creating OpenAI connector instances
  * Supports both object config and string baseURL shorthand
  */
 export function openai(
@@ -533,7 +406,6 @@ export function openai(
 
   // Override provider ID if specified (for custom gateways)
   if (providerId) {
-    // Note: providerId is readonly, so we need to use Object.defineProperty
     Object.defineProperty(connector, 'providerId', {
       value: providerId,
       writable: false,
@@ -544,3 +416,16 @@ export function openai(
 
   return connector;
 }
+
+export default openai;
+
+// Export hooks and types for users
+export {
+  type ConnectorHooks,
+  type ChatCompletionBodyTransform,
+  type ResponsesBodyTransform,
+  type ResponseTransform,
+  type TransformContext,
+  tokenParameterTransform,
+  customCodexTransform,
+} from './hooks.js';

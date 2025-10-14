@@ -146,16 +146,11 @@ export default async function runExecutor(
       targetVersions
     );
 
-    // Build PR title from releases
+    // Build PR title from releases (fallback if AI title generation fails)
     const prTitle = buildPRTitle(releases);
 
     // Convert draft PR to ready (if it was a draft placeholder)
     await markPRReady(existingPR);
-
-    // Update PR with new title and body (without AI summary initially)
-    console.log(`\n📝 Updating PR #${existingPR}...`);
-    const prBodyWithoutAI = buildPRBody('', releases);
-    await updatePR(existingPR, prBodyWithoutAI, prTitle);
 
     // Generate AI summary from branch diff if enabled
     if (finalAiCommand) {
@@ -229,8 +224,19 @@ export default async function runExecutor(
         );
       } catch (error) {
         console.warn('⚠️  Failed to generate AI content:', error);
-        console.log('   PR updated without AI enhancements');
+        console.log('   Updating PR without AI enhancements');
+        
+        // Fallback: Update PR with basic info
+        const prBodyWithoutAI = buildPRBody('', releases);
+        await updatePR(existingPR, prBodyWithoutAI, prTitle);
+        console.log(`✅ PR updated with basic info: "${prTitle}"`);
       }
+    } else {
+      // No AI command configured - update with basic info
+      console.log(`\n📝 Updating PR #${existingPR}...`);
+      const prBodyWithoutAI = buildPRBody('', releases);
+      await updatePR(existingPR, prBodyWithoutAI, prTitle);
+      console.log(`✅ PR updated: "${prTitle}"`);
     }
 
     // Add tracking comment

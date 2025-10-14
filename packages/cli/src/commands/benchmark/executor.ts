@@ -70,6 +70,15 @@ export async function benchmarkModel(
         ...(effectiveMaxTokens !== undefined && {
           max_tokens: effectiveMaxTokens,
         }),
+        ...(modelConfig.useLegacyCompletionAPI !== undefined && {
+          useLegacyCompletionAPI: modelConfig.useLegacyCompletionAPI,
+        }),
+        ...(modelConfig.fallbackToChatCompletion !== undefined && {
+          fallbackToChatCompletion: modelConfig.fallbackToChatCompletion,
+        }),
+        ...(modelConfig.useLegacyMaxTokens !== undefined && {
+          useLegacyMaxTokens: modelConfig.useLegacyMaxTokens,
+        }),
         ...(modelConfig.reasoning && { reasoning: modelConfig.reasoning }),
         ...(modelConfig.extra_body && { extra_body: modelConfig.extra_body }),
       });

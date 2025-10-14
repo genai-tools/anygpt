@@ -142,6 +142,14 @@ export async function enableAutoMerge(prNumber: string): Promise<void> {
         console.log(
           '   Enable it in Settings → General → Pull Requests → Allow auto-merge'
         );
+      } else if (
+        error.message?.includes('is in unstable status') ||
+        error.message?.includes('unstable status')
+      ) {
+        console.log('⚠️  Cannot enable auto-merge: PR has failing checks or conflicts');
+        console.log(
+          '   Auto-merge will be enabled automatically once checks pass and conflicts are resolved'
+        );
       } else {
         throw error;
       }
