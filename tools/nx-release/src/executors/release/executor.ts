@@ -200,6 +200,11 @@ export default async function runExecutor(
             console.log('\n🔄 Running pr-update to refresh PR description...');
             await execa('npx', ['nx', 'pr-update'], { stdio: 'inherit' });
 
+            // Re-enable auto-merge in case it was disabled or PR was reopened
+            if (autoMerge) {
+              await enableAutoMerge(existingPR, targetBranch);
+            }
+
             await openPRInBrowser(existingPR);
           } else {
             const prTitle = `Sync: ${commitsToSync} commit(s) from ${baseBranch}`;
@@ -274,6 +279,11 @@ export default async function runExecutor(
         // Run pr-update to regenerate AI summary and update PR description
         console.log('\n🔄 Running pr-update to refresh PR description...');
         await execa('npx', ['nx', 'pr-update'], { stdio: 'inherit' });
+
+        // Re-enable auto-merge in case it was disabled or PR was reopened
+        if (autoMerge) {
+          await enableAutoMerge(existingPR, targetBranch);
+        }
 
         await openPRInBrowser(existingPR);
       }
