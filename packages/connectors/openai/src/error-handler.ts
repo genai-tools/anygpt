@@ -8,7 +8,7 @@ export interface ErrorResponse {
     message?: string;
     type?: string;
     param?: string | null;
-    code?: string;
+    code?: string | null;
   };
   body?: unknown;
 }
@@ -54,7 +54,7 @@ export function formatErrorMessage(
   const hasReasoning = errorResponse.error.param === 'reasoning_effort';
 
   // Extract error message
-  let errorMessage =
+  const errorMessage =
     errorResponse.error.message || `${errorStatus} status code (no body)`;
 
   logger.debug(`[${providerId}] API Error Details:`, errorResponse);
@@ -93,7 +93,7 @@ export function shouldFallbackToChatCompletion(
 ): boolean {
   return (
     allowFallback &&
-    error &&
+    !!error &&
     typeof error === 'object' &&
     'status' in error &&
     ((error as { status?: number }).status === 404 ||
