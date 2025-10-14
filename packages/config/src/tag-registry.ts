@@ -165,7 +165,9 @@ function matchesPatterns(
         }
       } else {
         // Treat as glob pattern
-        if (minimatch(modelId, pattern)) return true;
+        // Use { matchBase: true } to ignore path separators in model IDs
+        // This allows '*codex*' to match 'ml-asset:static-model/gpt-5-codex'
+        if (minimatch(modelId, pattern, { matchBase: true })) return true;
       }
     } else if (pattern instanceof RegExp) {
       if (pattern.test(modelId)) return true;
