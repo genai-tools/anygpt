@@ -216,11 +216,18 @@ export class OpenAIConnector extends BaseConnector {
       });
     }
 
-    // Add provider field
+    // Add provider field and ensure content is never null
     return {
       ...response,
       provider: this.providerId,
-    };
+      choices: response.choices.map(choice => ({
+        ...choice,
+        message: {
+          ...choice.message,
+          content: choice.message.content || '',
+        },
+      })),
+    } as BaseChatCompletionResponse;
   }
 
   /**
@@ -305,11 +312,12 @@ export class OpenAIConnector extends BaseConnector {
       created_at: responsesResponse.created_at,
       model: responsesResponse.model,
       provider: this.providerId,
-      status: responsesResponse.status,
-      output: responsesResponse.output.map((item) => ({
-        type: item.type,
-        role: item.role || 'assistant',
-        content: item.content || [],
+      status: (responsesResponse.status || 'completed') as 'in_progress' | 'completed' | 'failed',
+      output: responsesResponse.output.map((item, index) => ({
+        id: `${responsesResponse.id}-${index}`,
+        type: item.type as 'message' | 'function_call' | 'reasoning',
+        role: ('role' in item ? item.role : 'assistant') as 'assistant' | 'user',
+        content: ('content' in item ? item.content : []) as any,
       })),
       usage: {
         input_tokens: responsesResponse.usage?.input_tokens || 0,
@@ -331,11 +339,12 @@ export class OpenAIConnector extends BaseConnector {
       for await (const model of response) {
         models.push({
           id: model.id,
-          name: model.id,
+          display_name: model.id,
           provider: this.providerId,
-          // Add other metadata if available
-          ...(model.created && { created: model.created }),
-          ...(model.owned_by && { owned_by: model.owned_by }),
+          capabilities: {
+            input: { text: true },
+            output: { text: true, streaming: true, function_calling: true },
+          },
         });
       }
 
@@ -347,17 +356,19 @@ export class OpenAIConnector extends BaseConnector {
     }
   }
 
-  override async getModelInfo(modelId: string): Promise<ModelInfo | null> {
+  async getModelInfo(modelId: string): Promise<ModelInfo | null> {
     try {
       // Try to fetch model info from the remote API
       const model = await this.client.models.retrieve(modelId);
 
       return {
         id: model.id,
-        name: model.id,
+        display_name: model.id,
         provider: this.providerId,
-        ...(model.created && { created: model.created }),
-        ...(model.owned_by && { owned_by: model.owned_by }),
+        capabilities: {
+          input: { text: true },
+          output: { text: true, streaming: true, function_calling: true },
+        },
       };
     } catch (error) {
       // If remote retrieval fails, return null
