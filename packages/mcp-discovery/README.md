@@ -16,10 +16,77 @@ npm install @anygpt/mcp-discovery
 
 ## Usage
 
+### Basic Setup
+
 ```typescript
 import { DiscoveryEngine } from '@anygpt/mcp-discovery';
 
-// Create discovery engine
+// Create discovery engine with default configuration
+const engine = new DiscoveryEngine({
+  enabled: true,
+  cache: {
+    enabled: true,
+    ttl: 3600 // 1 hour
+  }
+});
+```
+
+### Search for Tools
+
+```typescript
+// Free-text search across all tools
+const results = await engine.searchTools('github issue');
+
+// Search with options
+const filtered = await engine.searchTools('create', {
+  server: 'github',  // Filter by server
+  limit: 5           // Limit results
+});
+
+// Results include relevance scores
+results.forEach(result => {
+  console.log(`${result.server}:${result.tool} (${result.relevance})`);
+  console.log(`  ${result.summary}`);
+  console.log(`  Tags: ${result.tags.join(', ')}`);
+});
+```
+
+### List and Get Tool Details
+
+```typescript
+// List all servers
+const servers = await engine.listServers();
+
+// List tools from a specific server
+const githubTools = await engine.listTools('github');
+
+// Get detailed information about a tool
+const tool = await engine.getToolDetails('github', 'create_issue');
+console.log(tool?.description);
+console.log(tool?.parameters);
+```
+
+### Execute Tools
+
+```typescript
+// Execute a tool
+const result = await engine.executeTool('github', 'create_issue', {
+  repo: 'owner/repo',
+  title: 'Bug report',
+  body: 'Description of the bug'
+});
+
+if (result.success) {
+  console.log('Tool executed successfully:', result.result);
+} else {
+  console.error('Execution failed:', result.error?.message);
+}
+```
+
+### Advanced Configuration
+
+```typescript
+// Configure with tool rules for filtering
 const engine = new DiscoveryEngine({
   enabled: true,
   cache: {
@@ -27,31 +94,52 @@ const engine = new DiscoveryEngine({
     ttl: 3600
   },
   toolRules: [
+    // Enable all github tools
     {
       pattern: ['*github*'],
       enabled: true,
       tags: ['github']
+    },
+    // Disable dangerous tools
+    {
+      pattern: ['*delete*', '*remove*'],
+      enabled: false,
+      tags: ['dangerous']
+    },
+    // Server-specific rules
+    {
+      server: 'jira',
+      pattern: ['*ticket*'],
+      enabled: true,
+      tags: ['jira', 'tickets']
     }
   ]
 });
+```
 
-// List servers
-const servers = await engine.listServers();
+### Pattern Matching
 
-// Search tools
-const results = await engine.searchTools('github issue', {
-  limit: 10
-});
+Supports multiple pattern types:
 
-// Get tool details
-const tool = await engine.getToolDetails('github', 'create_issue');
+```typescript
+// Glob patterns
+{ pattern: ['*github*'] }           // Contains 'github'
+{ pattern: ['github_*'] }           // Starts with 'github_'
+{ pattern: ['*_issue'] }            // Ends with '_issue'
 
-// Execute tool
-const result = await engine.executeTool('github', 'create_issue', {
-  repo: 'owner/repo',
-  title: 'Bug report',
-  body: 'Description'
-});
+// Regex patterns
+{ pattern: ['/^create_/'] }         // Starts with 'create_'
+{ pattern: ['/^(create|update)_/'] } // Starts with 'create_' or 'update_'
+
+// Negation patterns
+{ pattern: ['!*delete*'] }          // Exclude tools with 'delete'
+{ pattern: ['!*dangerous*'] }       // Exclude dangerous tools
+
+// Combined patterns
+{
+  pattern: ['*github*', '!*delete*'],
+  enabled: true
+}
 ```
 
 ## Features
