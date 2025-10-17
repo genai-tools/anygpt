@@ -25,7 +25,7 @@ export async function mcpExecuteCommand(
       cache: { enabled: true, ttl: 3600 }
     };
     
-    const engine = new DiscoveryEngine(discoveryConfig);
+    const engine = new DiscoveryEngine(discoveryConfig, config.mcpServers);
     
     // Parse arguments
     let args: Record<string, unknown> = {};

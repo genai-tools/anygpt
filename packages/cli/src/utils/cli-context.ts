@@ -109,10 +109,11 @@ export async function setupCLIContext(
     const loadedConfig = module.default;
 
     // Check if it's a factory config (has providers with connector instances)
+    // A factory config has actual connector instances (with client property), not config objects
     const hasConnectorInstances =
       loadedConfig.providers &&
       Object.values(loadedConfig.providers).some(
-        (p: any) => p.connector && typeof p.connector === 'object'
+        (p: any) => p.connector && typeof p.connector === 'object' && p.connector.client !== undefined
       );
 
     if (hasConnectorInstances) {
@@ -159,7 +160,7 @@ export async function setupCLIContext(
 
       return {
         router,
-        config,
+        config, // Return full config including mcpServers and discovery
         configSource: configPath || 'default config search',
         providers: {}, // Standard configs don't have provider metadata
         logger: consoleLogger,
@@ -175,7 +176,7 @@ export async function setupCLIContext(
 
     return {
       router,
-      config,
+      config, // Return full config including mcpServers and discovery
       configSource: configPath || 'fallback config search',
       providers: {}, // Fallback configs don't have provider metadata
       logger: consoleLogger,
@@ -196,7 +197,13 @@ export function withCLIContext<T extends any[]>(
   return async (...args: T) => {
     // Extract global options from commander
     const command = args[args.length - 1] as any;
-    const globalOpts = command.parent?.opts() || {};
+    
+    // Walk up the command tree to find the root program options
+    let currentCommand = command;
+    while (currentCommand.parent) {
+      currentCommand = currentCommand.parent;
+    }
+    const globalOpts = currentCommand.opts() || {};
 
     try {
       const context = await setupCLIContext(globalOpts.config);

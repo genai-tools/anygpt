@@ -146,7 +146,7 @@ function mergeConfigs(
   base: AnyGPTConfig,
   override: Partial<AnyGPTConfig>
 ): AnyGPTConfig {
-  return {
+  const result: AnyGPTConfig = {
     ...base,
     ...override,
     providers: {
@@ -162,6 +162,32 @@ function mergeConfigs(
       },
     },
   };
+
+  // Only merge mcpServers if either base or override has them
+  if (base.mcpServers || override.mcpServers) {
+    result.mcpServers = {
+      ...base.mcpServers,
+      ...override.mcpServers,
+    };
+  }
+
+  // Only merge discovery if either base or override has it
+  if (base.discovery || override.discovery) {
+    result.discovery = {
+      ...base.discovery,
+      ...override.discovery,
+    };
+    
+    // Merge cache if either has it
+    if (base.discovery?.cache || override.discovery?.cache) {
+      result.discovery.cache = {
+        ...base.discovery?.cache,
+        ...override.discovery?.cache,
+      };
+    }
+  }
+
+  return result;
 }
 
 /**

@@ -24,7 +24,7 @@ export async function mcpSearchCommand(
       cache: { enabled: true, ttl: 3600 }
     };
     
-    const engine = new DiscoveryEngine(discoveryConfig);
+    const engine = new DiscoveryEngine(discoveryConfig, config.mcpServers);
     
     // Search for tools
     const results = await engine.searchTools(query, {

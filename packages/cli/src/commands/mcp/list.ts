@@ -23,7 +23,7 @@ export async function mcpListCommand(
       cache: { enabled: true, ttl: 3600 }
     };
     
-    const engine = new DiscoveryEngine(discoveryConfig);
+    const engine = new DiscoveryEngine(discoveryConfig, config.mcpServers);
     
     // Get all servers
     const servers = await engine.listServers();

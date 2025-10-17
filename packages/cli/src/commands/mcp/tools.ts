@@ -24,7 +24,7 @@ export async function mcpToolsCommand(
       cache: { enabled: true, ttl: 3600 }
     };
     
-    const engine = new DiscoveryEngine(discoveryConfig);
+    const engine = new DiscoveryEngine(discoveryConfig, config.mcpServers);
     
     // Get tools from server
     const tools = await engine.listTools(serverName);

@@ -80,7 +80,7 @@ export async function mcpConfigValidateCommand(
     };
     
     // Initialize engine to validate config
-    const engine = new DiscoveryEngine(discoveryConfig);
+    const engine = new DiscoveryEngine(discoveryConfig, config.mcpServers);
     
     if (options.json) {
       console.log(JSON.stringify({ valid: true, config: discoveryConfig }, null, 2));
@@ -118,7 +118,7 @@ export async function mcpConfigReloadCommand(
       cache: { enabled: true, ttl: 3600 }
     };
     
-    const engine = new DiscoveryEngine(discoveryConfig);
+    const engine = new DiscoveryEngine(discoveryConfig, config.mcpServers);
     await engine.reload();
     
     if (options.json) {

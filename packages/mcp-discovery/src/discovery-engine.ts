@@ -4,7 +4,8 @@ import type {
   SearchOptions,
   SearchResult,
   ToolMetadata,
-  ExecutionResult
+  ExecutionResult,
+  MCPServerConfig
 } from './types.js';
 import { SearchEngine } from './search-engine.js';
 import { ToolMetadataManager } from './tool-metadata-manager.js';
@@ -16,13 +17,15 @@ import { ToolExecutionProxy } from './tool-execution-proxy.js';
  */
 export class DiscoveryEngine {
   private config: DiscoveryConfig;
+  private mcpServers: Record<string, MCPServerConfig>;
   private searchEngine: SearchEngine;
   private metadataManager: ToolMetadataManager;
   private cache: CachingLayer;
   private executionProxy: ToolExecutionProxy;
 
-  constructor(config: DiscoveryConfig) {
+  constructor(config: DiscoveryConfig, mcpServers?: Record<string, MCPServerConfig>) {
     this.config = config;
+    this.mcpServers = mcpServers || {};
     this.searchEngine = new SearchEngine();
     this.metadataManager = new ToolMetadataManager();
     this.cache = new CachingLayer();
@@ -46,9 +49,25 @@ export class DiscoveryEngine {
       }
     }
 
-    // TODO: Implement actual server discovery
-    // For now, return empty array
-    const servers: ServerMetadata[] = [];
+    // Convert MCP server configs to ServerMetadata
+    const servers: ServerMetadata[] = Object.entries(this.mcpServers).map(([name, config]) => {
+      // Get tools for this server from metadata manager
+      const tools = this.metadataManager.getToolsByServer(name, true);
+      const enabledTools = tools.filter(t => t.enabled);
+
+      return {
+        name,
+        description: config.description || `MCP server: ${name}`,
+        toolCount: tools.length,
+        enabledCount: enabledTools.length,
+        status: 'connected', // TODO: Actually check connection status
+        config: {
+          command: config.command,
+          args: config.args || [],
+          env: config.env
+        }
+      };
+    });
 
     // Cache if enabled
     if (this.config.cache?.enabled && this.config.cache.ttl) {

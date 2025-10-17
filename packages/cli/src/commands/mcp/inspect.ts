@@ -24,7 +24,7 @@ export async function mcpInspectCommand(
       cache: { enabled: true, ttl: 3600 }
     };
     
-    const engine = new DiscoveryEngine(discoveryConfig);
+    const engine = new DiscoveryEngine(discoveryConfig, config.mcpServers);
     
     // Get tool details
     const tool = await engine.getToolDetails(serverName, toolName);

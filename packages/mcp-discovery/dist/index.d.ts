@@ -450,11 +450,12 @@ declare class ToolExecutionProxy {
  */
 declare class DiscoveryEngine {
   private config;
+  private mcpServers;
   private searchEngine;
   private metadataManager;
   private cache;
   private executionProxy;
-  constructor(config: DiscoveryConfig);
+  constructor(config: DiscoveryConfig, mcpServers?: Record<string, MCPServerConfig>);
   /**
    * List all available MCP servers
    *

@@ -38,6 +38,20 @@ export interface ProviderConfig {
 }
 
 /**
+ * MCP Server configuration
+ */
+export interface MCPServerConfig {
+  /** Command to execute */
+  command: string;
+  /** Command arguments */
+  args?: string[];
+  /** Environment variables */
+  env?: Record<string, string>;
+  /** Human-readable description */
+  description?: string;
+}
+
+/**
  * Main AnyGPT configuration
  */
 export interface AnyGPTConfig {
@@ -45,7 +59,30 @@ export interface AnyGPTConfig {
   version?: string;
   
   /** Provider configurations */
-  providers: Record<string, ProviderConfig>;
+  providers?: Record<string, ProviderConfig>;
+  
+  /** MCP Server configurations */
+  mcpServers?: Record<string, MCPServerConfig>;
+  
+  /** MCP Discovery configuration */
+  discovery?: {
+    enabled?: boolean;
+    cache?: {
+      enabled?: boolean;
+      ttl?: number;
+    };
+    sources?: Array<{
+      type: string;
+      path?: string;
+      url?: string;
+    }>;
+    toolRules?: Array<{
+      pattern: string | string[];
+      enabled?: boolean;
+      server?: string;
+      tags?: string[];
+    }>;
+  };
   
   /** Global settings */
   settings?: {

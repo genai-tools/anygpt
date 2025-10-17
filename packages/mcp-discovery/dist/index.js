@@ -575,12 +575,14 @@ var ToolExecutionProxy = class {
 */
 var DiscoveryEngine = class {
 	config;
+	mcpServers;
 	searchEngine;
 	metadataManager;
 	cache;
 	executionProxy;
-	constructor(config) {
+	constructor(config, mcpServers) {
 		this.config = config;
+		this.mcpServers = mcpServers || {};
 		this.searchEngine = new SearchEngine();
 		this.metadataManager = new ToolMetadataManager();
 		this.cache = new CachingLayer();
@@ -597,7 +599,22 @@ var DiscoveryEngine = class {
 			const cached = this.cache.getServerList();
 			if (cached) return cached;
 		}
-		const servers = [];
+		const servers = Object.entries(this.mcpServers).map(([name, config]) => {
+			const tools = this.metadataManager.getToolsByServer(name, true);
+			const enabledTools = tools.filter((t) => t.enabled);
+			return {
+				name,
+				description: config.description || `MCP server: ${name}`,
+				toolCount: tools.length,
+				enabledCount: enabledTools.length,
+				status: "connected",
+				config: {
+					command: config.command,
+					args: config.args || [],
+					env: config.env
+				}
+			};
+		});
 		if (this.config.cache?.enabled && this.config.cache.ttl) this.cache.cacheServerList(servers, this.config.cache.ttl);
 		return servers;
 	}
