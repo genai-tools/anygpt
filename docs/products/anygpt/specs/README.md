@@ -6,9 +6,10 @@ Technical specifications defining **WHAT** we build and **HOW** it works.
 
 ### Core Components
 
-- **[CLI Interface](./cli/README.md)** - Command-line interface design ([Use Case: Conversations](../use-cases/conversations.md))
-- **[MCP Server](./mcp-server.md)** - MCP protocol implementation ([Use Case: Cross-Component Agents](../use-cases/mcp-server.md))
-- **[Docker MCP Toolkit Integration](./docker-mcp-toolkit.md)** - Centralized MCP server deployment ([Use Case: Docker MCP Toolkit](../use-cases/docker-mcp-toolkit.md))
+- **[CLI Interface](./cli/README.md)** - Command-line interface design ([Use Case: Conversations](../cases/conversations.md))
+- **[MCP Server](./anygpt/docker-mcp/mcp-server.md)** - MCP protocol implementation ([Use Case: Cross-Component Agents](../cases/mcp-server.md))
+- **[MCP Discovery](./anygpt/mcp-discovery.md)** - On-demand tool discovery for multi-MCP environments ([Use Case: MCP Tool Discovery](../cases/mcp-tool-discovery.md))
+- **[Docker MCP Toolkit Integration](./anygpt/docker-mcp/docker-mcp-toolkit.md)** - Centralized MCP server deployment ([Use Case: Docker MCP Toolkit](../cases/docker-mcp-toolkit.md))
 
 ### CLI Commands
 
@@ -102,21 +103,25 @@ graph TD
 - Type validation and error reporting
 
 ### Provider Router
+
 **Responsibility**: Route requests to appropriate AI provider connectors
 
 **Requirements**:
+
 - Provider abstraction layer
 - Connector registry pattern
 - Request/response normalization
 - Error handling and retry logic
 
 **Routing Strategies** ([Use Case: Cost Optimization](../use-cases/cost-optimization.md)):
+
 - Route by explicit provider selection
 - Route by model name pattern matching
 - Route by cost/quality tradeoffs
 - Route by custom rules (complexity, user tier, etc.)
 
 **Failover Strategy** ([Use Case: Resilience & Failover](../use-cases/resilience-failover.md)):
+
 - Automatic retry on transient failures
 - Fallback to backup provider on primary failure
 - Circuit breaker pattern for failing providers
@@ -128,6 +133,7 @@ graph TD
 
 **Requirements**:
 {{ ... }}
+
 - Unified interface for all providers
 - Chat completion support
 - Model listing support

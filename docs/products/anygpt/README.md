@@ -44,6 +44,7 @@ Real-world usage scenarios demonstrating business value and practical applicatio
 - [Context Optimization](./cases/context-optimization.md) - Context forking and summarization
 - [MCP Server](./cases/mcp-server.md) - Cross-component agent interaction
 - [Docker MCP Toolkit](./cases/docker-mcp-toolkit.md) - Centralized MCP deployment
+- [MCP Tool Discovery](./cases/mcp-tool-discovery.md) - On-demand tool loading for multi-server environments
 - [Model Benchmarking](./cases/model-benchmarking.md) - Performance comparison
 - [Rapid Prototyping](./cases/rapid-prototyping.md) - Fast development with mock providers
 - [Local-First Development](./cases/local-first-development.md) - Offline-capable workflows

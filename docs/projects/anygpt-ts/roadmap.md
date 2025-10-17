@@ -12,7 +12,7 @@ See [architecture.md](./architecture.md) for high-level system design, component
 
 ## Feature List
 
-**Total features**: 15 (+ 2 future)
+**Total features**: 18 (+ 2 future)
 
 ### Phase 1: Foundation (4 features)
 
@@ -35,16 +35,20 @@ See [architecture.md](./architecture.md) for high-level system design, component
 - 3-4-cli-conversation-summarize
 - 3-5-cli-benchmark
 
-### Phase 4: Integrations (3 features)
+### Phase 4: Integrations (6 features)
 
 - 4-1-docker-mcp-container
 - 4-2-docker-compose-config
 - 4-3-docker-mcp-toolkit-integration
+- 4-4-mcp-discovery-engine
+- 4-5-mcp-discovery-server
+- 4-6-cli-discovery-commands
 
 ### Future (not prioritized)
 
 - mcp-server-tools
 - mcp-server-resources
+- mcp-source-imports (auto-import from Docker MCP, Claude Desktop, Windsurf)
 
 ## Implementation Phases
 
@@ -358,6 +362,68 @@ See [architecture.md](./architecture.md) for high-level system design, component
   - [ ] Multiple clients can connect
   - [ ] Configuration is centralized
 
+#### 4-4-mcp-discovery-engine
+
+- **Spec**: [MCP Discovery](../../../products/anygpt/specs/anygpt/mcp-discovery.md)
+- **Use Case**: [On-Demand MCP Tool Discovery](../../../products/anygpt/cases/mcp-tool-discovery.md)
+- **Purpose**: Core discovery logic, search, filtering, caching, and tool execution proxy
+- **Dependencies**: config-loader (Phase 1), glob-matcher from config package
+- **Key Features**:
+  - TypeScript configuration format (discovery section)
+  - Tool rules with pattern matching (glob, regex)
+  - Search engine (free-text with relevance scoring)
+  - Tool metadata management
+  - Caching strategy
+  - Configuration validation
+  - Tool execution proxy (connects to actual MCP servers)
+- **Acceptance**:
+  - [ ] Loads discovery configuration from TS config
+  - [ ] Pattern matching works (glob, regex, negation)
+  - [ ] Search returns relevant results with scores
+  - [ ] Caching improves performance
+  - [ ] Tool execution proxies to actual MCP servers
+  - [ ] All configuration examples from spec work
+
+#### 4-5-mcp-discovery-server
+
+- **Spec**: [MCP Discovery](../../../products/anygpt/specs/anygpt/mcp-discovery.md)
+- **Use Case**: [On-Demand MCP Tool Discovery](../../../products/anygpt/cases/mcp-tool-discovery.md)
+- **Purpose**: Expose discovery via MCP protocol (PRIMARY interface - true gateway)
+- **Dependencies**: mcp-discovery-engine (4-4), mcp-server-core (2-3)
+- **Key Features**:
+  - Implement 5 meta-tools (list_mcp_servers, search_tools, list_tools, get_tool_details, execute_tool)
+  - MCP protocol integration (stdio)
+  - Zero-configuration setup
+  - Agentic discovery and execution workflow
+  - Tool execution proxy (gateway capability)
+- **Acceptance**:
+  - [ ] All 5 meta-tools work via MCP protocol
+  - [ ] AI agents can discover tools autonomously
+  - [ ] AI agents can execute tools via execute_tool
+  - [ ] Token usage: ~600 tokens (5 meta-tools)
+  - [ ] Works with Claude Desktop, Windsurf, Cursor
+  - [ ] Agentic workflow example from spec works (discovery + execution)
+
+#### 4-6-cli-discovery-commands
+
+- **Spec**: [MCP Discovery](../../../products/anygpt/specs/anygpt/mcp-discovery.md)
+- **Use Case**: [On-Demand MCP Tool Discovery](../../../products/anygpt/cases/mcp-tool-discovery.md)
+- **Purpose**: CLI interface for debugging (SECONDARY interface)
+- **Dependencies**: mcp-discovery-engine (4-4), CLI infrastructure (Phase 2)
+- **Key Features**:
+  - anygpt mcp list - List MCP servers
+  - anygpt mcp search - Search for tools
+  - anygpt mcp tools - List tools from server
+  - anygpt mcp inspect - Inspect tool details
+  - anygpt mcp execute - Execute a tool (NEW!)
+  - anygpt mcp config - Manage configuration
+- **Acceptance**:
+  - [ ] All CLI commands work (including execute)
+  - [ ] Human-friendly output
+  - [ ] JSON output option works
+  - [ ] Tool execution works from CLI
+  - [ ] All CLI examples from spec work
+
 #### mcp-server-resources
 
 - **Spec**: [MCP Server - Resources](../../../products/anygpt/specs/mcp-server.md)
@@ -396,9 +462,9 @@ docs/projects/anygpt-ts/features/[feature-name]/
 - **Phase 1**: 4/4 features (100%) ✅
 - **Phase 2**: 3/3 features (100%) ✅
 - **Phase 3**: 5/5 features (100%) ✅
-- **Phase 4**: 0/3 features (0%)
+- **Phase 4**: 0/6 features (0%)
 
-**Overall**: 12/15 features (80%)
+**Overall**: 12/18 features (67%)
 
 ### Completed Features
 
