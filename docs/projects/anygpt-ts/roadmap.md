@@ -362,12 +362,14 @@ See [architecture.md](./architecture.md) for high-level system design, component
   - [ ] Multiple clients can connect
   - [ ] Configuration is centralized
 
-#### 4-4-mcp-discovery-engine
+#### 4-4-mcp-discovery-engine 🔄 DESIGN COMPLETE
 
 - **Spec**: [MCP Discovery](../../../products/anygpt/specs/anygpt/mcp-discovery.md)
 - **Use Case**: [On-Demand MCP Tool Discovery](../../../products/anygpt/cases/mcp-tool-discovery.md)
 - **Purpose**: Core discovery logic, search, filtering, caching, and tool execution proxy
 - **Dependencies**: config-loader (Phase 1), glob-matcher from config package
+- **Status**: 🔄 Design Complete (2025-10-17)
+- **Design**: [design.md](features/4-4-mcp-discovery-engine/design.md)
 - **Key Features**:
   - TypeScript configuration format (discovery section)
   - Tool rules with pattern matching (glob, regex)
@@ -384,12 +386,14 @@ See [architecture.md](./architecture.md) for high-level system design, component
   - [ ] Tool execution proxies to actual MCP servers
   - [ ] All configuration examples from spec work
 
-#### 4-5-mcp-discovery-server
+#### 4-5-mcp-discovery-server 🔄 DESIGN COMPLETE
 
 - **Spec**: [MCP Discovery](../../../products/anygpt/specs/anygpt/mcp-discovery.md)
 - **Use Case**: [On-Demand MCP Tool Discovery](../../../products/anygpt/cases/mcp-tool-discovery.md)
 - **Purpose**: Expose discovery via MCP protocol (PRIMARY interface - true gateway)
 - **Dependencies**: mcp-discovery-engine (4-4), mcp-server-core (2-3)
+- **Status**: 🔄 Design Complete (2025-10-17)
+- **Design**: [design.md](features/4-5-mcp-discovery-server/design.md)
 - **Key Features**:
   - Implement 5 meta-tools (list_mcp_servers, search_tools, list_tools, get_tool_details, execute_tool)
   - MCP protocol integration (stdio)
@@ -404,12 +408,14 @@ See [architecture.md](./architecture.md) for high-level system design, component
   - [ ] Works with Claude Desktop, Windsurf, Cursor
   - [ ] Agentic workflow example from spec works (discovery + execution)
 
-#### 4-6-cli-discovery-commands
+#### 4-6-cli-discovery-commands 🔄 DESIGN COMPLETE
 
 - **Spec**: [MCP Discovery](../../../products/anygpt/specs/anygpt/mcp-discovery.md)
 - **Use Case**: [On-Demand MCP Tool Discovery](../../../products/anygpt/cases/mcp-tool-discovery.md)
 - **Purpose**: CLI interface for debugging (SECONDARY interface)
 - **Dependencies**: mcp-discovery-engine (4-4), CLI infrastructure (Phase 2)
+- **Status**: 🔄 Design Complete (2025-10-17)
+- **Design**: [design.md](features/4-6-cli-discovery-commands/design.md)
 - **Key Features**:
   - anygpt mcp list - List MCP servers
   - anygpt mcp search - Search for tools
@@ -462,9 +468,10 @@ docs/projects/anygpt-ts/features/[feature-name]/
 - **Phase 1**: 4/4 features (100%) ✅
 - **Phase 2**: 3/3 features (100%) ✅
 - **Phase 3**: 5/5 features (100%) ✅
-- **Phase 4**: 0/6 features (0%)
+- **Phase 4**: 3/6 features (50%) 🔄 - Design phase complete for 4-4, 4-5, 4-6
 
-**Overall**: 12/18 features (67%)
+**Overall**: 12/18 features (67%)  
+**Design Complete**: 15/18 features (83%)
 
 ### Completed Features
 

@@ -1,13 +1,14 @@
 # MCP Discovery Server
 
-|                  |                                                                                         |
-| ---------------- | --------------------------------------------------------------------------------------- |
-| **Status**       | ❌ Not Started                                                                          |
-| **Progress**     | 0/0 tasks                                                                               |
-| **Spec**         | [MCP Discovery](../../../../products/anygpt/specs/anygpt/mcp-discovery.md)              |
-| **Use Case**     | [On-Demand MCP Tool Discovery](../../../../products/anygpt/cases/mcp-tool-discovery.md) |
-| **Architecture** | [System Design](../../architecture.md)                                                  |
-| **Roadmap**      | [Feature List](../../roadmap.md#4-5-mcp-discovery-server)                               |
+|                       |                                                                                         |
+| --------------------- | --------------------------------------------------------------------------------------- |
+| **Status**            | 🔄 Design Complete                                                                      |
+| **Progress**          | 0/37 tasks                                                                              |
+| **Spec**              | [MCP Discovery](../../../../products/anygpt/specs/anygpt/mcp-discovery.md)              |
+| **Use Case**          | [On-Demand MCP Tool Discovery](../../../../products/anygpt/cases/mcp-tool-discovery.md) |
+| **Architecture**      | [System Design](../../architecture.md)                                                  |
+| **Roadmap**           | [Feature List](../../roadmap.md#4-5-mcp-discovery-server)                               |
+| **Technical Design**  | [design.md](./design.md)                                                                |
 
 ## Overview
 
@@ -20,10 +21,11 @@ MCP protocol server that exposes the Discovery Engine via 5 meta-tools, enabling
 ## Status
 
 **Last Updated**: 2025-10-17  
-**Current Phase**: Not Started
+**Current Phase**: Design Complete
 
 ### Recent Updates
 
+- 2025-10-17: Design phase complete - MCP server architecture and meta-tool handlers defined
 - 2025-10-17: Feature created, awaiting design
 
 ## Design Summary

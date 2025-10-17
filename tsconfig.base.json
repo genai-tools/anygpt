@@ -21,6 +21,7 @@
       "@anygpt/cli": ["./packages/cli/src"],
       "@anygpt/config": ["./packages/config/src"],
       "@anygpt/mcp": ["./packages/mcp/src"],
+      "@anygpt/mcp-discovery": ["./packages/mcp-discovery/src"],
       "@anygpt/mock": ["./packages/connectors/mock/src"],
       "@anygpt/openai": ["./packages/connectors/openai/src"],
       "@anygpt/router": ["./packages/router/src"],

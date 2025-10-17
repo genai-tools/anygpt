@@ -1,13 +1,14 @@
 # CLI Discovery Commands
 
-|                  |                                                                                         |
-| ---------------- | --------------------------------------------------------------------------------------- |
-| **Status**       | ❌ Not Started                                                                          |
-| **Progress**     | 0/0 tasks                                                                               |
-| **Spec**         | [MCP Discovery](../../../../products/anygpt/specs/anygpt/mcp-discovery.md)              |
-| **Use Case**     | [On-Demand MCP Tool Discovery](../../../../products/anygpt/cases/mcp-tool-discovery.md) |
-| **Architecture** | [System Design](../../architecture.md)                                                  |
-| **Roadmap**      | [Feature List](../../roadmap.md#4-6-cli-discovery-commands)                             |
+|                       |                                                                                         |
+| --------------------- | --------------------------------------------------------------------------------------- |
+| **Status**            | 🔄 Design Complete                                                                      |
+| **Progress**          | 0/33 tasks                                                                              |
+| **Spec**              | [MCP Discovery](../../../../products/anygpt/specs/anygpt/mcp-discovery.md)              |
+| **Use Case**          | [On-Demand MCP Tool Discovery](../../../../products/anygpt/cases/mcp-tool-discovery.md) |
+| **Architecture**      | [System Design](../../architecture.md)                                                  |
+| **Roadmap**           | [Feature List](../../roadmap.md#4-6-cli-discovery-commands)                             |
+| **Technical Design**  | [design.md](./design.md)                                                                |
 
 ## Overview
 
@@ -18,10 +19,11 @@ CLI interface for MCP Discovery Engine, providing human-friendly commands for ex
 ## Status
 
 **Last Updated**: 2025-10-17  
-**Current Phase**: Not Started
+**Current Phase**: Design Complete
 
 ### Recent Updates
 
+- 2025-10-17: Design phase complete - CLI commands and output formatting defined
 - 2025-10-17: Feature created, awaiting design
 
 ## Design Summary

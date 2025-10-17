@@ -1,0 +1,51 @@
+{
+  "name": "@anygpt/mcp-discovery",
+  "version": "0.1.0",
+  "description": "MCP Discovery Engine - Core logic for on-demand MCP tool discovery",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "!**/*.tsbuildinfo"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/genai-tools/anygpt.git",
+    "directory": "packages/mcp-discovery"
+  },
+  "keywords": [
+    "mcp",
+    "discovery",
+    "tools",
+    "ai",
+    "gateway"
+  ],
+  "author": "AnyGPT Contributors",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/genai-tools/anygpt/issues"
+  },
+  "homepage": "https://github.com/genai-tools/anygpt#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build:dts": "tsc --project tsconfig.lib.json"
+  },
+  "dependencies": {
+    "@anygpt/config": "2.0.0",
+    "@anygpt/types": "1.2.0",
+    "@modelcontextprotocol/sdk": "1.20.0"
+  }
+}
