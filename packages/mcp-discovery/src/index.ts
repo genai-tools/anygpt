@@ -33,3 +33,12 @@ export { SearchEngine } from './search-engine.js';
 
 // Export tool metadata manager
 export { ToolMetadataManager } from './tool-metadata-manager.js';
+
+// Export caching layer
+export { CachingLayer } from './caching-layer.js';
+
+// Export tool execution proxy
+export { ToolExecutionProxy } from './tool-execution-proxy.js';
+
+// Export main discovery engine
+export { DiscoveryEngine } from './discovery-engine.js';

@@ -331,5 +331,184 @@ declare class ToolMetadataManager {
   private getToolKey;
 }
 //#endregion
-export { type CacheConfig, type ConfigSource, type ConfigSourceType, ConfigurationLoader, type DiscoveryConfig, type ExecutionError, type ExecutionResult, type MCPServerConfig, PatternMatcher, SearchEngine, type SearchOptions, type SearchResult, type ServerMetadata, type ToolExample, type ToolMetadata, ToolMetadataManager, type ToolParameter, type ToolRule, type ValidationResult };
+//#region src/caching-layer.d.ts
+/**
+ * Caching layer for discovery engine
+ * Supports TTL-based caching for servers and tool summaries
+ * Indefinite caching for tool details
+ */
+declare class CachingLayer {
+  private cache;
+  /**
+   * Cache server list with TTL
+   *
+   * @param servers - Array of server metadata
+   * @param ttl - Time-to-live in seconds
+   */
+  cacheServerList(servers: ServerMetadata[], ttl: number): void;
+  /**
+   * Get cached server list
+   *
+   * @returns Cached server list or null if not cached/expired
+   */
+  getServerList(): ServerMetadata[] | null;
+  /**
+   * Cache tool summaries for a specific server with TTL
+   *
+   * @param server - Server name
+   * @param tools - Array of tool metadata
+   * @param ttl - Time-to-live in seconds
+   */
+  cacheToolSummaries(server: string, tools: ToolMetadata[], ttl: number): void;
+  /**
+   * Get cached tool summaries for a specific server
+   *
+   * @param server - Server name
+   * @returns Cached tool summaries or null if not cached/expired
+   */
+  getToolSummaries(server: string): ToolMetadata[] | null;
+  /**
+   * Cache tool details indefinitely
+   *
+   * @param server - Server name
+   * @param tool - Tool name
+   * @param details - Tool metadata with full details
+   */
+  cacheToolDetails(server: string, tool: string, details: ToolMetadata): void;
+  /**
+   * Get cached tool details
+   *
+   * @param server - Server name
+   * @param tool - Tool name
+   * @returns Cached tool details or null if not cached
+   */
+  getToolDetails(server: string, tool: string): ToolMetadata | null;
+  /**
+   * Invalidate a specific cache key
+   *
+   * @param key - Cache key to invalidate (e.g., 'servers', 'tools:github')
+   */
+  invalidate(key: string): void;
+  /**
+   * Invalidate all caches
+   */
+  invalidateAll(): void;
+  /**
+   * Get cached value if not expired
+   *
+   * @param key - Cache key
+   * @returns Cached value or null if not cached/expired
+   */
+  private get;
+}
+//#endregion
+//#region src/tool-execution-proxy.d.ts
+/**
+ * Tool execution proxy for connecting to MCP servers
+ *
+ * Note: This is the initial implementation that provides the interface.
+ * Full MCP SDK integration will be added in the next iteration.
+ */
+declare class ToolExecutionProxy {
+  private connections;
+  /**
+   * Execute a tool on a remote MCP server
+   *
+   * @param server - Server name
+   * @param tool - Tool name
+   * @param args - Tool arguments
+   * @returns Execution result
+   */
+  execute(server: string, tool: string, args: any): Promise<ExecutionResult>;
+  /**
+   * Connect to an MCP server
+   *
+   * @param server - Server name
+   * @param config - Server configuration
+   */
+  connect(server: string, config: MCPServerConfig): Promise<void>;
+  /**
+   * Disconnect from an MCP server
+   *
+   * @param server - Server name
+   */
+  disconnect(server: string): Promise<void>;
+  /**
+   * Check if connected to a server
+   *
+   * @param server - Server name
+   * @returns true if connected
+   */
+  isConnected(server: string): boolean;
+}
+//#endregion
+//#region src/discovery-engine.d.ts
+/**
+ * Main discovery engine facade that coordinates all components
+ */
+declare class DiscoveryEngine {
+  private config;
+  private configLoader;
+  private patternMatcher;
+  private searchEngine;
+  private metadataManager;
+  private cache;
+  private executionProxy;
+  constructor(config: DiscoveryConfig);
+  /**
+   * List all available MCP servers
+   *
+   * @returns Array of server metadata
+   */
+  listServers(): Promise<ServerMetadata[]>;
+  /**
+   * Search for tools across all servers
+   *
+   * @param query - Search query
+   * @param options - Search options
+   * @returns Array of search results
+   */
+  searchTools(query: string, options?: SearchOptions): Promise<SearchResult[]>;
+  /**
+   * List tools from a specific server
+   *
+   * @param server - Server name
+   * @param includeDisabled - Include disabled tools
+   * @returns Array of tool metadata
+   */
+  listTools(server: string, includeDisabled?: boolean): Promise<ToolMetadata[]>;
+  /**
+   * Get detailed information about a specific tool
+   *
+   * @param server - Server name
+   * @param tool - Tool name
+   * @returns Tool metadata or null if not found
+   */
+  getToolDetails(server: string, tool: string): Promise<ToolMetadata | null>;
+  /**
+   * Execute a tool from any discovered MCP server
+   *
+   * @param server - Server name
+   * @param tool - Tool name
+   * @param args - Tool arguments
+   * @returns Execution result
+   */
+  executeTool(server: string, tool: string, args: any): Promise<ExecutionResult>;
+  /**
+   * Reload configuration
+   */
+  reload(): Promise<void>;
+  /**
+   * Get current configuration
+   *
+   * @returns Current discovery configuration
+   */
+  getConfig(): DiscoveryConfig;
+  /**
+   * Apply configuration to components
+   */
+  private applyConfiguration;
+}
+//#endregion
+export { type CacheConfig, CachingLayer, type ConfigSource, type ConfigSourceType, ConfigurationLoader, type DiscoveryConfig, DiscoveryEngine, type ExecutionError, type ExecutionResult, type MCPServerConfig, PatternMatcher, SearchEngine, type SearchOptions, type SearchResult, type ServerMetadata, type ToolExample, ToolExecutionProxy, type ToolMetadata, ToolMetadataManager, type ToolParameter, type ToolRule, type ValidationResult };
 //# sourceMappingURL=index.d.ts.map

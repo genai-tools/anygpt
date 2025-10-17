@@ -385,5 +385,323 @@ var ToolMetadataManager = class {
 };
 
 //#endregion
-export { ConfigurationLoader, PatternMatcher, SearchEngine, ToolMetadataManager };
+//#region src/caching-layer.ts
+/**
+* Caching layer for discovery engine
+* Supports TTL-based caching for servers and tool summaries
+* Indefinite caching for tool details
+*/
+var CachingLayer = class {
+	cache = /* @__PURE__ */ new Map();
+	/**
+	* Cache server list with TTL
+	* 
+	* @param servers - Array of server metadata
+	* @param ttl - Time-to-live in seconds
+	*/
+	cacheServerList(servers, ttl) {
+		this.cache.set("servers", {
+			data: servers,
+			expiresAt: Date.now() + ttl * 1e3
+		});
+	}
+	/**
+	* Get cached server list
+	* 
+	* @returns Cached server list or null if not cached/expired
+	*/
+	getServerList() {
+		return this.get("servers");
+	}
+	/**
+	* Cache tool summaries for a specific server with TTL
+	* 
+	* @param server - Server name
+	* @param tools - Array of tool metadata
+	* @param ttl - Time-to-live in seconds
+	*/
+	cacheToolSummaries(server, tools, ttl) {
+		const key = `tools:${server}`;
+		this.cache.set(key, {
+			data: tools,
+			expiresAt: Date.now() + ttl * 1e3
+		});
+	}
+	/**
+	* Get cached tool summaries for a specific server
+	* 
+	* @param server - Server name
+	* @returns Cached tool summaries or null if not cached/expired
+	*/
+	getToolSummaries(server) {
+		const key = `tools:${server}`;
+		return this.get(key);
+	}
+	/**
+	* Cache tool details indefinitely
+	* 
+	* @param server - Server name
+	* @param tool - Tool name
+	* @param details - Tool metadata with full details
+	*/
+	cacheToolDetails(server, tool, details) {
+		const key = `tool:${server}:${tool}`;
+		this.cache.set(key, {
+			data: details,
+			expiresAt: null
+		});
+	}
+	/**
+	* Get cached tool details
+	* 
+	* @param server - Server name
+	* @param tool - Tool name
+	* @returns Cached tool details or null if not cached
+	*/
+	getToolDetails(server, tool) {
+		const key = `tool:${server}:${tool}`;
+		return this.get(key);
+	}
+	/**
+	* Invalidate a specific cache key
+	* 
+	* @param key - Cache key to invalidate (e.g., 'servers', 'tools:github')
+	*/
+	invalidate(key) {
+		this.cache.delete(key);
+	}
+	/**
+	* Invalidate all caches
+	*/
+	invalidateAll() {
+		this.cache.clear();
+	}
+	/**
+	* Get cached value if not expired
+	* 
+	* @param key - Cache key
+	* @returns Cached value or null if not cached/expired
+	*/
+	get(key) {
+		const entry = this.cache.get(key);
+		if (!entry) return null;
+		if (entry.expiresAt !== null && Date.now() > entry.expiresAt) {
+			this.cache.delete(key);
+			return null;
+		}
+		return entry.data;
+	}
+};
+
+//#endregion
+//#region src/tool-execution-proxy.ts
+/**
+* Tool execution proxy for connecting to MCP servers
+* 
+* Note: This is the initial implementation that provides the interface.
+* Full MCP SDK integration will be added in the next iteration.
+*/
+var ToolExecutionProxy = class {
+	connections = /* @__PURE__ */ new Map();
+	/**
+	* Execute a tool on a remote MCP server
+	* 
+	* @param server - Server name
+	* @param tool - Tool name
+	* @param args - Tool arguments
+	* @returns Execution result
+	*/
+	async execute(server, tool, args) {
+		if (args === null || args === void 0) return {
+			success: false,
+			error: {
+				code: "INVALID_ARGUMENTS",
+				message: "Tool arguments cannot be null or undefined",
+				server,
+				tool
+			}
+		};
+		if (!this.isConnected(server)) return {
+			success: false,
+			error: {
+				code: "SERVER_NOT_CONNECTED",
+				message: `Server ${server} is not connected`,
+				server,
+				tool
+			}
+		};
+		return {
+			success: false,
+			error: {
+				code: "NOT_IMPLEMENTED",
+				message: "Tool execution proxy is not yet fully implemented",
+				server,
+				tool
+			}
+		};
+	}
+	/**
+	* Connect to an MCP server
+	* 
+	* @param server - Server name
+	* @param config - Server configuration
+	*/
+	async connect(server, config) {
+		this.connections.set(server, true);
+	}
+	/**
+	* Disconnect from an MCP server
+	* 
+	* @param server - Server name
+	*/
+	async disconnect(server) {
+		this.connections.delete(server);
+	}
+	/**
+	* Check if connected to a server
+	* 
+	* @param server - Server name
+	* @returns true if connected
+	*/
+	isConnected(server) {
+		return this.connections.get(server) === true;
+	}
+};
+
+//#endregion
+//#region src/discovery-engine.ts
+/**
+* Main discovery engine facade that coordinates all components
+*/
+var DiscoveryEngine = class {
+	config;
+	configLoader;
+	patternMatcher;
+	searchEngine;
+	metadataManager;
+	cache;
+	executionProxy;
+	constructor(config) {
+		this.config = config;
+		this.configLoader = new ConfigurationLoader();
+		this.patternMatcher = new PatternMatcher();
+		this.searchEngine = new SearchEngine();
+		this.metadataManager = new ToolMetadataManager();
+		this.cache = new CachingLayer();
+		this.executionProxy = new ToolExecutionProxy();
+		this.applyConfiguration();
+	}
+	/**
+	* List all available MCP servers
+	* 
+	* @returns Array of server metadata
+	*/
+	async listServers() {
+		if (this.config.cache?.enabled) {
+			const cached = this.cache.getServerList();
+			if (cached) return cached;
+		}
+		const servers = [];
+		if (this.config.cache?.enabled && this.config.cache.ttl) this.cache.cacheServerList(servers, this.config.cache.ttl);
+		return servers;
+	}
+	/**
+	* Search for tools across all servers
+	* 
+	* @param query - Search query
+	* @param options - Search options
+	* @returns Array of search results
+	*/
+	async searchTools(query, options) {
+		const tools = this.metadataManager.getAllTools(options?.includeDisabled);
+		this.searchEngine.index(tools);
+		return this.searchEngine.search(query, options);
+	}
+	/**
+	* List tools from a specific server
+	* 
+	* @param server - Server name
+	* @param includeDisabled - Include disabled tools
+	* @returns Array of tool metadata
+	*/
+	async listTools(server, includeDisabled = false) {
+		if (this.config.cache?.enabled && !includeDisabled) {
+			const cached = this.cache.getToolSummaries(server);
+			if (cached) return cached;
+		}
+		const tools = this.metadataManager.getToolsByServer(server, includeDisabled);
+		if (this.config.cache?.enabled && this.config.cache.ttl && !includeDisabled) this.cache.cacheToolSummaries(server, tools, this.config.cache.ttl);
+		return tools;
+	}
+	/**
+	* Get detailed information about a specific tool
+	* 
+	* @param server - Server name
+	* @param tool - Tool name
+	* @returns Tool metadata or null if not found
+	*/
+	async getToolDetails(server, tool) {
+		if (this.config.cache?.enabled) {
+			const cached = this.cache.getToolDetails(server, tool);
+			if (cached) return cached;
+		}
+		const toolMetadata = this.metadataManager.getTool(server, tool);
+		if (this.config.cache?.enabled && toolMetadata) this.cache.cacheToolDetails(server, tool, toolMetadata);
+		return toolMetadata;
+	}
+	/**
+	* Execute a tool from any discovered MCP server
+	* 
+	* @param server - Server name
+	* @param tool - Tool name
+	* @param args - Tool arguments
+	* @returns Execution result
+	*/
+	async executeTool(server, tool, args) {
+		const toolMetadata = this.metadataManager.getTool(server, tool);
+		if (!toolMetadata) return {
+			success: false,
+			error: {
+				code: "TOOL_NOT_FOUND",
+				message: `Tool ${tool} not found on server ${server}`,
+				server,
+				tool
+			}
+		};
+		if (!toolMetadata.enabled) return {
+			success: false,
+			error: {
+				code: "TOOL_DISABLED",
+				message: `Tool ${tool} is disabled`,
+				server,
+				tool
+			}
+		};
+		return this.executionProxy.execute(server, tool, args);
+	}
+	/**
+	* Reload configuration
+	*/
+	async reload() {
+		this.cache.invalidateAll();
+		this.applyConfiguration();
+	}
+	/**
+	* Get current configuration
+	* 
+	* @returns Current discovery configuration
+	*/
+	getConfig() {
+		return this.config;
+	}
+	/**
+	* Apply configuration to components
+	*/
+	applyConfiguration() {
+		if (this.config.toolRules && this.config.toolRules.length > 0) this.metadataManager.applyRules(this.config.toolRules);
+	}
+};
+
+//#endregion
+export { CachingLayer, ConfigurationLoader, DiscoveryEngine, PatternMatcher, SearchEngine, ToolExecutionProxy, ToolMetadataManager };
 //# sourceMappingURL=index.js.map
