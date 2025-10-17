@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import { DiscoveryEngine } from '@anygpt/mcp-discovery';
-import type { DiscoveryConfig, ToolMetadata } from '@anygpt/mcp-discovery';
+import type { DiscoveryConfig } from '@anygpt/mcp-discovery';
+import { mockServers, mockTools, mockGitHubTools, mockJiraTools, mockFilesystemTools } from './fixtures/mock-servers.js';
 
 /**
  * E2E Tests for MCP Discovery Engine
