@@ -15,6 +15,16 @@ import { configCommand } from './commands/config.js';
 import { listModelsCommand } from './commands/list-models.js';
 import { listTagsCommand } from './commands/list-tags.js';
 import { benchmarkCommand } from './commands/benchmark.js';
+import { 
+  mcpListCommand,
+  mcpSearchCommand,
+  mcpToolsCommand,
+  mcpInspectCommand,
+  mcpExecuteCommand,
+  mcpConfigShowCommand,
+  mcpConfigValidateCommand,
+  mcpConfigReloadCommand
+} from './commands/mcp.js';
 import { withCLIContext } from './utils/cli-context.js';
 
 const program = new Command();
@@ -321,5 +331,72 @@ conversation
       process.exit(1);
     }
   });
+
+// MCP Discovery commands
+const mcp = program
+  .command('mcp')
+  .description('Manage MCP servers and tools');
+
+mcp
+  .command('list')
+  .description('List all configured MCP servers')
+  .option('--status', 'show connection status')
+  .option('--tools', 'show tool counts')
+  .option('--json', 'output as JSON')
+  .action(withCLIContext(mcpListCommand));
+
+mcp
+  .command('search <query>')
+  .description('Search for tools across all MCP servers')
+  .option('--server <name>', 'filter by server name')
+  .option('--limit <number>', 'maximum number of results', parseInt, 10)
+  .option('--json', 'output as JSON')
+  .action(withCLIContext(mcpSearchCommand));
+
+mcp
+  .command('tools <server>')
+  .description('List tools from a specific MCP server')
+  .option('--all', 'show all tools including disabled')
+  .option('--tags', 'show tool tags')
+  .option('--json', 'output as JSON')
+  .action(withCLIContext(mcpToolsCommand));
+
+mcp
+  .command('inspect <server> <tool>')
+  .description('Get detailed information about a specific tool')
+  .option('--examples', 'show usage examples')
+  .option('--json', 'output as JSON')
+  .action(withCLIContext(mcpInspectCommand));
+
+mcp
+  .command('execute <server> <tool>')
+  .description('Execute a tool from any discovered MCP server')
+  .option('--args <json>', 'tool arguments as JSON string')
+  .option('--json', 'output as JSON')
+  .option('--stream', 'stream output (if supported)')
+  .action(withCLIContext(mcpExecuteCommand));
+
+// MCP config subcommands
+const mcpConfig = mcp
+  .command('config')
+  .description('Manage MCP discovery configuration');
+
+mcpConfig
+  .command('show')
+  .description('Show current configuration')
+  .option('--json', 'output as JSON')
+  .action(withCLIContext(mcpConfigShowCommand));
+
+mcpConfig
+  .command('validate')
+  .description('Validate configuration')
+  .option('--json', 'output as JSON')
+  .action(withCLIContext(mcpConfigValidateCommand));
+
+mcpConfig
+  .command('reload')
+  .description('Reload configuration')
+  .option('--json', 'output as JSON')
+  .action(withCLIContext(mcpConfigReloadCommand));
 
 program.parse();
