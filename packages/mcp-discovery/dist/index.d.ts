@@ -234,5 +234,102 @@ declare class PatternMatcher {
   findMatchingRules(toolName: string, serverName: string, rules: ToolRule[]): ToolRule[];
 }
 //#endregion
-export { type CacheConfig, type ConfigSource, type ConfigSourceType, ConfigurationLoader, type DiscoveryConfig, type ExecutionError, type ExecutionResult, type MCPServerConfig, PatternMatcher, type SearchOptions, type SearchResult, type ServerMetadata, type ToolExample, type ToolMetadata, type ToolParameter, type ToolRule, type ValidationResult };
+//#region src/search-engine.d.ts
+/**
+ * Search engine for tool discovery with relevance scoring
+ */
+declare class SearchEngine {
+  private tools;
+  /**
+   * Index tools for search
+   *
+   * @param tools - Array of tool metadata to index
+   */
+  index(tools: ToolMetadata[]): void;
+  /**
+   * Search for tools with relevance scoring
+   *
+   * @param query - Search query
+   * @param options - Search options
+   * @returns Array of search results sorted by relevance
+   */
+  search(query: string, options?: SearchOptions): SearchResult[];
+  /**
+   * Calculate relevance score for a tool
+   *
+   * @param tool - Tool metadata
+   * @param query - Lowercase query string
+   * @param queryTokens - Query split into tokens
+   * @returns Relevance score (0-1)
+   */
+  private calculateRelevance;
+}
+//#endregion
+//#region src/tool-metadata-manager.d.ts
+/**
+ * Tool metadata manager for storing and filtering tools
+ */
+declare class ToolMetadataManager {
+  private tools;
+  private patternMatcher;
+  /**
+   * Add or update a tool
+   *
+   * @param tool - Tool metadata to add
+   */
+  addTool(tool: ToolMetadata): void;
+  /**
+   * Get a specific tool
+   *
+   * @param server - Server name
+   * @param tool - Tool name
+   * @returns Tool metadata or null if not found
+   */
+  getTool(server: string, tool: string): ToolMetadata | null;
+  /**
+   * Get all tools from a specific server
+   *
+   * @param server - Server name
+   * @param includeDisabled - Include disabled tools
+   * @returns Array of tool metadata
+   */
+  getToolsByServer(server: string, includeDisabled?: boolean): ToolMetadata[];
+  /**
+   * Get all tools from all servers
+   *
+   * @param includeDisabled - Include disabled tools
+   * @returns Array of tool metadata
+   */
+  getAllTools(includeDisabled?: boolean): ToolMetadata[];
+  /**
+   * Apply filtering rules to all tools
+   *
+   * @param rules - Array of tool rules
+   */
+  applyRules(rules: ToolRule[]): void;
+  /**
+   * Get total tool count for a server
+   *
+   * @param server - Server name
+   * @returns Total tool count
+   */
+  getToolCount(server: string): number;
+  /**
+   * Get enabled tool count for a server
+   *
+   * @param server - Server name
+   * @returns Enabled tool count
+   */
+  getEnabledCount(server: string): number;
+  /**
+   * Generate a unique key for a tool
+   *
+   * @param server - Server name
+   * @param tool - Tool name
+   * @returns Unique key
+   */
+  private getToolKey;
+}
+//#endregion
+export { type CacheConfig, type ConfigSource, type ConfigSourceType, ConfigurationLoader, type DiscoveryConfig, type ExecutionError, type ExecutionResult, type MCPServerConfig, PatternMatcher, SearchEngine, type SearchOptions, type SearchResult, type ServerMetadata, type ToolExample, type ToolMetadata, ToolMetadataManager, type ToolParameter, type ToolRule, type ValidationResult };
 //# sourceMappingURL=index.d.ts.map

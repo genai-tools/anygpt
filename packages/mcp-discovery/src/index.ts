@@ -27,3 +27,9 @@ export type { ValidationResult } from './configuration-loader.js';
 
 // Export pattern matcher
 export { PatternMatcher } from './pattern-matcher.js';
+
+// Export search engine
+export { SearchEngine } from './search-engine.js';
+
+// Export tool metadata manager
+export { ToolMetadataManager } from './tool-metadata-manager.js';

@@ -208,5 +208,182 @@ var PatternMatcher = class {
 };
 
 //#endregion
-export { ConfigurationLoader, PatternMatcher };
+//#region src/search-engine.ts
+/**
+* Search engine for tool discovery with relevance scoring
+*/
+var SearchEngine = class {
+	tools = [];
+	/**
+	* Index tools for search
+	* 
+	* @param tools - Array of tool metadata to index
+	*/
+	index(tools) {
+		this.tools = tools;
+	}
+	/**
+	* Search for tools with relevance scoring
+	* 
+	* @param query - Search query
+	* @param options - Search options
+	* @returns Array of search results sorted by relevance
+	*/
+	search(query, options) {
+		const queryLower = query.toLowerCase();
+		const queryTokens = queryLower.split(/\s+/).filter((t) => t.length > 0);
+		let filteredTools = this.tools;
+		if (options?.server) filteredTools = filteredTools.filter((t) => t.server === options.server);
+		if (!options?.includeDisabled) filteredTools = filteredTools.filter((t) => t.enabled);
+		const results = [];
+		for (const tool of filteredTools) {
+			const relevance = this.calculateRelevance(tool, queryLower, queryTokens);
+			if (relevance > 0) results.push({
+				server: tool.server,
+				tool: tool.name,
+				summary: tool.summary,
+				relevance,
+				tags: tool.tags
+			});
+		}
+		results.sort((a, b) => b.relevance - a.relevance);
+		if (options?.limit && options.limit > 0) return results.slice(0, options.limit);
+		return results;
+	}
+	/**
+	* Calculate relevance score for a tool
+	* 
+	* @param tool - Tool metadata
+	* @param query - Lowercase query string
+	* @param queryTokens - Query split into tokens
+	* @returns Relevance score (0-1)
+	*/
+	calculateRelevance(tool, query, queryTokens) {
+		const toolNameLower = tool.name.toLowerCase();
+		const summaryLower = tool.summary.toLowerCase();
+		const tagsLower = tool.tags.map((t) => t.toLowerCase());
+		let score = 0;
+		if (toolNameLower === query) score += 1;
+		else if (toolNameLower.includes(query)) score += .8;
+		if (summaryLower.includes(query)) score += .6;
+		for (const token of queryTokens) {
+			if (toolNameLower.includes(token)) score += .4;
+			if (summaryLower.includes(token)) score += .2;
+		}
+		for (const tag of tagsLower) {
+			if (query.includes(tag) || tag.includes(query)) score += .3;
+			for (const token of queryTokens) if (tag.includes(token)) score += .15;
+		}
+		return Math.min(score, 1);
+	}
+};
+
+//#endregion
+//#region src/tool-metadata-manager.ts
+/**
+* Tool metadata manager for storing and filtering tools
+*/
+var ToolMetadataManager = class {
+	tools = /* @__PURE__ */ new Map();
+	patternMatcher = new PatternMatcher();
+	/**
+	* Add or update a tool
+	* 
+	* @param tool - Tool metadata to add
+	*/
+	addTool(tool) {
+		const key = this.getToolKey(tool.server, tool.name);
+		this.tools.set(key, tool);
+	}
+	/**
+	* Get a specific tool
+	* 
+	* @param server - Server name
+	* @param tool - Tool name
+	* @returns Tool metadata or null if not found
+	*/
+	getTool(server, tool) {
+		const key = this.getToolKey(server, tool);
+		return this.tools.get(key) || null;
+	}
+	/**
+	* Get all tools from a specific server
+	* 
+	* @param server - Server name
+	* @param includeDisabled - Include disabled tools
+	* @returns Array of tool metadata
+	*/
+	getToolsByServer(server, includeDisabled = false) {
+		const tools = [];
+		for (const tool of this.tools.values()) if (tool.server === server) {
+			if (includeDisabled || tool.enabled) tools.push(tool);
+		}
+		return tools;
+	}
+	/**
+	* Get all tools from all servers
+	* 
+	* @param includeDisabled - Include disabled tools
+	* @returns Array of tool metadata
+	*/
+	getAllTools(includeDisabled = false) {
+		const tools = [];
+		for (const tool of this.tools.values()) if (includeDisabled || tool.enabled) tools.push(tool);
+		return tools;
+	}
+	/**
+	* Apply filtering rules to all tools
+	* 
+	* @param rules - Array of tool rules
+	*/
+	applyRules(rules) {
+		const hasWhitelist = rules.some((r) => r.enabled === true);
+		for (const tool of this.tools.values()) {
+			let enabled = !hasWhitelist;
+			const tags = [...tool.tags];
+			for (const rule of rules) {
+				if (!this.patternMatcher.matchRule(tool.name, tool.server, rule)) continue;
+				if (rule.enabled !== void 0) enabled = rule.enabled;
+				if (rule.tags) tags.push(...rule.tags);
+			}
+			tool.enabled = enabled;
+			tool.tags = [...new Set(tags)];
+		}
+	}
+	/**
+	* Get total tool count for a server
+	* 
+	* @param server - Server name
+	* @returns Total tool count
+	*/
+	getToolCount(server) {
+		let count = 0;
+		for (const tool of this.tools.values()) if (tool.server === server) count++;
+		return count;
+	}
+	/**
+	* Get enabled tool count for a server
+	* 
+	* @param server - Server name
+	* @returns Enabled tool count
+	*/
+	getEnabledCount(server) {
+		let count = 0;
+		for (const tool of this.tools.values()) if (tool.server === server && tool.enabled) count++;
+		return count;
+	}
+	/**
+	* Generate a unique key for a tool
+	* 
+	* @param server - Server name
+	* @param tool - Tool name
+	* @returns Unique key
+	*/
+	getToolKey(server, tool) {
+		return `${server}:${tool}`;
+	}
+};
+
+//#endregion
+export { ConfigurationLoader, PatternMatcher, SearchEngine, ToolMetadataManager };
 //# sourceMappingURL=index.js.map

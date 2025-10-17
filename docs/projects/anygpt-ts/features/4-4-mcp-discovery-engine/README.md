@@ -2,8 +2,8 @@
 
 |                       |                                                                                         |
 | --------------------- | --------------------------------------------------------------------------------------- |
-| **Status**            | 🚧 In Progress - Phase 1 Complete                                                       |
-| **Progress**          | 4/42 tasks (10%)                                                                        |
+| **Status**            | 🚧 In Progress - Phases 1-3 Complete                                                    |
+| **Progress**          | 12/42 tasks (29%)                                                                       |
 | **Spec**              | [MCP Discovery](../../../../products/anygpt/specs/anygpt/mcp-discovery.md)              |
 | **Use Case**          | [On-Demand MCP Tool Discovery](../../../../products/anygpt/cases/mcp-tool-discovery.md) |
 | **Architecture**      | [System Design](../../architecture.md)                                                  |
@@ -19,14 +19,15 @@ Core discovery logic for on-demand MCP tool discovery. Provides search, filterin
 ## Status
 
 **Last Updated**: 2025-10-17  
-**Current Phase**: Phase 1 - Configuration & Pattern Matching ✅
+**Current Phase**: Phases 1-3 Complete ✅
 
 ### Recent Updates
 
+- 2025-10-17: Phase 3 complete - ToolMetadataManager implemented with 18 tests passing
+- 2025-10-17: Phase 2 complete - SearchEngine implemented with 15 tests passing
 - 2025-10-17: Phase 1 complete - ConfigurationLoader and PatternMatcher implemented with 20 tests passing
 - 2025-10-17: Package structure created (@anygpt/mcp-discovery)
 - 2025-10-17: Design phase complete - detailed architecture and implementation strategy defined
-- 2025-10-17: Feature created, awaiting design
 
 ## Design Summary
 
@@ -97,7 +98,7 @@ Core discovery logic for on-demand MCP tool discovery. Provides search, filterin
 - **Integration Tests**: Tool metadata management, execution proxy
 - **Contract Tests**: Spec compliance
 
-**Total Tests**: 20 passing  
+**Total Tests**: 53 passing  
 **Coverage Target**: 85%+
 
 ## Implementation Plan
@@ -115,19 +116,32 @@ Core discovery logic for on-demand MCP tool discovery. Provides search, filterin
 - Type definitions for all interfaces
 - Package structure with build/test configuration
 
-### Phase 2: Search Engine
+### Phase 2: Search Engine ✅
 
-- [ ] Build search index from tool metadata
-- [ ] Implement relevance scoring algorithm
-- [ ] Free-text search with ranking
-- [ ] Result limiting
+- [x] Build search index from tool metadata
+- [x] Implement relevance scoring algorithm
+- [x] Free-text search with ranking
+- [x] Result limiting
 
-### Phase 3: Tool Metadata Management
+**Completed Components**:
+- `SearchEngine` - 15 tests passing
+- Relevance scoring with exact, partial, and tag matches
+- Server-specific filtering
+- Disabled tool filtering
 
-- [ ] Store tool metadata structure
-- [ ] Apply pattern-based filtering
-- [ ] Track enabled/disabled status
-- [ ] Tag accumulation
+### Phase 3: Tool Metadata Management ✅
+
+- [x] Store tool metadata structure
+- [x] Apply pattern-based filtering
+- [x] Track enabled/disabled status
+- [x] Tag accumulation
+
+**Completed Components**:
+- `ToolMetadataManager` - 18 tests passing
+- Tool storage and retrieval
+- Rule-based filtering with whitelist mode
+- Tag accumulation from multiple rules
+- Server-specific tool counts
 
 ### Phase 4: Caching Layer
 
