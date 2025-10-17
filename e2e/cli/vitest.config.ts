@@ -3,9 +3,10 @@ import { resolve } from 'path';
 
 export default defineConfig({
   test: {
+    name: 'cli-e2e',
     globals: true,
     environment: 'node',
-    include: ['tests/**/*.e2e.spec.ts'],
+    include: ['tests/**/*.e2e.spec.ts', '**/*.e2e.test.ts'],
     exclude: ['node_modules', 'dist'],
     testTimeout: 60000, // E2E tests can take longer
     hookTimeout: 30000,
