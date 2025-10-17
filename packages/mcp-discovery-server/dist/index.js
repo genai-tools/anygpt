@@ -1,3 +1,3 @@
-import { DiscoveryMCPServer } from "./server-C8IwLs5S.js";
+import { DiscoveryMCPServer } from "./server-L-nyejKI.js";
 
 export { DiscoveryMCPServer };

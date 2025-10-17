@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
@@ -175,6 +176,7 @@ export class DiscoveryMCPServer {
   /**
    * Handle tool call
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async handleToolCall(name: string, args: any): Promise<any> {
     switch (name) {
       case 'list_mcp_servers':

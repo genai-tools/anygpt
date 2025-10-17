@@ -1,6 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { ToolExecutionProxy } from './tool-execution-proxy.js';
-import type { MCPServerConfig } from './types.js';
 
 describe('ToolExecutionProxy', () => {
   let proxy: ToolExecutionProxy;
@@ -15,11 +14,6 @@ describe('ToolExecutionProxy', () => {
     });
 
     it('should mark server as connected after connection', async () => {
-      const config: MCPServerConfig = {
-        command: 'echo',
-        args: ['test']
-      };
-
       // Note: This is a mock test - actual connection would require MCP server
       // For now, we'll test the interface
       expect(proxy.isConnected('github')).toBe(false);
@@ -38,6 +32,7 @@ describe('ToolExecutionProxy', () => {
     });
 
     it('should return error for invalid tool arguments', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await proxy.execute('github', 'create_issue', null as any);
 
       expect(result.success).toBe(false);

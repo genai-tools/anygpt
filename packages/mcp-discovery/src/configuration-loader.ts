@@ -1,4 +1,4 @@
-import type { DiscoveryConfig, ToolRule, CacheConfig } from './types.js';
+import type { DiscoveryConfig } from './types.js';
 
 /**
  * Validation result
@@ -32,6 +32,7 @@ export class ConfigurationLoader {
   /**
    * Validate discovery configuration
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   validate(config: any): ValidationResult {
     const errors: string[] = [];
 
@@ -59,6 +60,7 @@ export class ConfigurationLoader {
       if (!Array.isArray(config.sources)) {
         errors.push('sources must be an array');
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         config.sources.forEach((source: any, index: number) => {
           if (typeof source.type !== 'string') {
             errors.push(`sources[${index}].type must be a string`);
@@ -75,6 +77,7 @@ export class ConfigurationLoader {
       if (!Array.isArray(config.toolRules)) {
         errors.push('toolRules must be an array');
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         config.toolRules.forEach((rule: any, index: number) => {
           if (!Array.isArray(rule.pattern)) {
             errors.push(`toolRules[${index}].pattern must be an array`);

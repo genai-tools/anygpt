@@ -6,8 +6,6 @@ import type {
   ToolMetadata,
   ExecutionResult
 } from './types.js';
-import { ConfigurationLoader } from './configuration-loader.js';
-import { PatternMatcher } from './pattern-matcher.js';
 import { SearchEngine } from './search-engine.js';
 import { ToolMetadataManager } from './tool-metadata-manager.js';
 import { CachingLayer } from './caching-layer.js';
@@ -18,8 +16,6 @@ import { ToolExecutionProxy } from './tool-execution-proxy.js';
  */
 export class DiscoveryEngine {
   private config: DiscoveryConfig;
-  private configLoader: ConfigurationLoader;
-  private patternMatcher: PatternMatcher;
   private searchEngine: SearchEngine;
   private metadataManager: ToolMetadataManager;
   private cache: CachingLayer;
@@ -27,8 +23,6 @@ export class DiscoveryEngine {
 
   constructor(config: DiscoveryConfig) {
     this.config = config;
-    this.configLoader = new ConfigurationLoader();
-    this.patternMatcher = new PatternMatcher();
     this.searchEngine = new SearchEngine();
     this.metadataManager = new ToolMetadataManager();
     this.cache = new CachingLayer();
@@ -147,6 +141,7 @@ export class DiscoveryEngine {
   async executeTool(
     server: string,
     tool: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     args: any
   ): Promise<ExecutionResult> {
     // Check if tool is enabled

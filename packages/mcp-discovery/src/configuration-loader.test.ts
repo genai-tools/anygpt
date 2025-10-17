@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect } from 'vitest';
 import { ConfigurationLoader } from './configuration-loader.js';
 import type { DiscoveryConfig } from './types.js';

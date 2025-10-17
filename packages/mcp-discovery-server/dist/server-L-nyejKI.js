@@ -1,68 +1,9 @@
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import "minimatch";
 
-//#region src/configuration-loader.ts
-/**
-* Configuration loader for discovery engine
-*/
-var ConfigurationLoader = class {
-	/**
-	* Get default configuration
-	*/
-	getDefaultConfig() {
-		return {
-			enabled: true,
-			cache: {
-				enabled: true,
-				ttl: 3600
-			},
-			sources: [],
-			toolRules: []
-		};
-	}
-	/**
-	* Validate discovery configuration
-	*/
-	validate(config) {
-		const errors = [];
-		if (typeof config.enabled !== "boolean") errors.push("enabled must be a boolean");
-		if (config.cache !== void 0) if (typeof config.cache !== "object" || config.cache === null) errors.push("cache must be an object");
-		else {
-			if (typeof config.cache.enabled !== "boolean") errors.push("cache.enabled must be a boolean");
-			if (typeof config.cache.ttl !== "number" || config.cache.ttl <= 0) errors.push("cache.ttl must be a positive number");
-		}
-		if (config.sources !== void 0) if (!Array.isArray(config.sources)) errors.push("sources must be an array");
-		else config.sources.forEach((source, index) => {
-			if (typeof source.type !== "string") errors.push(`sources[${index}].type must be a string`);
-			if (typeof source.path !== "string") errors.push(`sources[${index}].path must be a string`);
-		});
-		if (config.toolRules !== void 0) if (!Array.isArray(config.toolRules)) errors.push("toolRules must be an array");
-		else config.toolRules.forEach((rule, index) => {
-			if (!Array.isArray(rule.pattern)) errors.push(`toolRules[${index}].pattern must be an array`);
-			if (rule.server !== void 0 && typeof rule.server !== "string") errors.push(`toolRules[${index}].server must be a string`);
-			if (rule.enabled !== void 0 && typeof rule.enabled !== "boolean") errors.push(`toolRules[${index}].enabled must be a boolean`);
-			if (rule.tags !== void 0 && !Array.isArray(rule.tags)) errors.push(`toolRules[${index}].tags must be an array`);
-		});
-		return {
-			valid: errors.length === 0,
-			errors
-		};
-	}
-	/**
-	* Merge partial configuration with defaults
-	*/
-	mergeWithDefaults(partial) {
-		const defaults = this.getDefaultConfig();
-		return {
-			enabled: partial.enabled ?? defaults.enabled,
-			cache: partial.cache ?? defaults.cache,
-			sources: partial.sources ?? defaults.sources,
-			toolRules: partial.toolRules ?? defaults.toolRules
-		};
-	}
-};
-
-//#endregion
-//#region ../config/dist/index.js
+//#region ../mcp-discovery/dist/index.js
 var ConnectorRegistry = class {
 	factories = /* @__PURE__ */ new Map();
 	registerConnector(factory) {
@@ -164,9 +105,6 @@ function matchesGlobPatterns(modelId, patterns) {
 	for (const posPattern of positivePatterns) if (posPattern.test(modelId)) return true;
 	return false;
 }
-
-//#endregion
-//#region src/pattern-matcher.ts
 /**
 * Pattern matcher for tool filtering
 * Reuses glob-matcher from @anygpt/config
@@ -206,9 +144,6 @@ var PatternMatcher = class {
 		return rules.filter((rule) => this.matchRule(toolName, serverName, rule));
 	}
 };
-
-//#endregion
-//#region src/search-engine.ts
 /**
 * Search engine for tool discovery with relevance scoring
 */
@@ -277,9 +212,6 @@ var SearchEngine = class {
 		return Math.min(score, 1);
 	}
 };
-
-//#endregion
-//#region src/tool-metadata-manager.ts
 /**
 * Tool metadata manager for storing and filtering tools
 */
@@ -383,9 +315,6 @@ var ToolMetadataManager = class {
 		return `${server}:${tool}`;
 	}
 };
-
-//#endregion
-//#region src/caching-layer.ts
 /**
 * Caching layer for discovery engine
 * Supports TTL-based caching for servers and tool summaries
@@ -492,9 +421,6 @@ var CachingLayer = class {
 		return entry.data;
 	}
 };
-
-//#endregion
-//#region src/tool-execution-proxy.ts
 /**
 * Tool execution proxy for connecting to MCP servers
 * 
@@ -567,9 +493,6 @@ var ToolExecutionProxy = class {
 		return this.connections.get(server) === true;
 	}
 };
-
-//#endregion
-//#region src/discovery-engine.ts
 /**
 * Main discovery engine facade that coordinates all components
 */
@@ -699,5 +622,217 @@ var DiscoveryEngine = class {
 };
 
 //#endregion
-export { CachingLayer, ConfigurationLoader, DiscoveryEngine, PatternMatcher, SearchEngine, ToolExecutionProxy, ToolMetadataManager };
-//# sourceMappingURL=index.js.map
+//#region src/server.ts
+/**
+* MCP Discovery Server - PRIMARY interface for AI agents
+* Exposes 5 meta-tools for tool discovery and execution
+*/
+var DiscoveryMCPServer = class {
+	server;
+	engine;
+	tools;
+	constructor(config) {
+		this.engine = new DiscoveryEngine(config);
+		this.server = new Server({
+			name: "mcp-discovery-server",
+			version: "0.1.0"
+		}, { capabilities: { tools: {} } });
+		this.tools = this.defineTools();
+		this.setupHandlers();
+	}
+	/**
+	* Define the 5 meta-tools
+	*/
+	defineTools() {
+		return [
+			{
+				name: "list_mcp_servers",
+				description: "List all available MCP servers that can be discovered",
+				inputSchema: {
+					type: "object",
+					properties: {},
+					required: []
+				}
+			},
+			{
+				name: "search_tools",
+				description: "Search for tools across all MCP servers using free-text query",
+				inputSchema: {
+					type: "object",
+					properties: {
+						query: {
+							type: "string",
+							description: "Search query (e.g., \"github issue\", \"read file\")"
+						},
+						server: {
+							type: "string",
+							description: "Optional: Filter by server name"
+						},
+						limit: {
+							type: "number",
+							description: "Optional: Maximum number of results (default: 10)"
+						}
+					},
+					required: ["query"]
+				}
+			},
+			{
+				name: "list_tools",
+				description: "List all tools from a specific MCP server",
+				inputSchema: {
+					type: "object",
+					properties: {
+						server: {
+							type: "string",
+							description: "Server name (e.g., \"github\", \"filesystem\")"
+						},
+						includeDisabled: {
+							type: "boolean",
+							description: "Include disabled tools (default: false)"
+						}
+					},
+					required: ["server"]
+				}
+			},
+			{
+				name: "get_tool_details",
+				description: "Get detailed information about a specific tool",
+				inputSchema: {
+					type: "object",
+					properties: {
+						server: {
+							type: "string",
+							description: "Server name"
+						},
+						tool: {
+							type: "string",
+							description: "Tool name"
+						}
+					},
+					required: ["server", "tool"]
+				}
+			},
+			{
+				name: "execute_tool",
+				description: "Execute a tool from any MCP server (gateway capability)",
+				inputSchema: {
+					type: "object",
+					properties: {
+						server: {
+							type: "string",
+							description: "Server name"
+						},
+						tool: {
+							type: "string",
+							description: "Tool name"
+						},
+						arguments: {
+							type: "object",
+							description: "Tool arguments"
+						}
+					},
+					required: [
+						"server",
+						"tool",
+						"arguments"
+					]
+				}
+			}
+		];
+	}
+	/**
+	* Setup MCP protocol handlers
+	*/
+	setupHandlers() {
+		this.server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: this.tools }));
+		this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
+			const { name, arguments: args } = request.params;
+			try {
+				const result = await this.handleToolCall(name, args || {});
+				return { content: [{
+					type: "text",
+					text: JSON.stringify(result, null, 2)
+				}] };
+			} catch (error) {
+				const errorMessage = error instanceof Error ? error.message : "Unknown error";
+				return {
+					content: [{
+						type: "text",
+						text: JSON.stringify({ error: errorMessage }, null, 2)
+					}],
+					isError: true
+				};
+			}
+		});
+	}
+	/**
+	* Handle tool call
+	*/
+	async handleToolCall(name, args) {
+		switch (name) {
+			case "list_mcp_servers": return this.handleListServers();
+			case "search_tools": return this.handleSearchTools(args);
+			case "list_tools": return this.handleListTools(args);
+			case "get_tool_details": return this.handleGetToolDetails(args);
+			case "execute_tool": return this.handleExecuteTool(args);
+			default: throw new Error(`Unknown tool: ${name}`);
+		}
+	}
+	/**
+	* Handle list_mcp_servers
+	*/
+	async handleListServers() {
+		return { servers: await this.engine.listServers() };
+	}
+	/**
+	* Handle search_tools
+	*/
+	async handleSearchTools(args) {
+		if (!args.query) throw new Error("Missing required parameter: query");
+		return { results: await this.engine.searchTools(args.query, {
+			server: args.server,
+			limit: args.limit || 10
+		}) };
+	}
+	/**
+	* Handle list_tools
+	*/
+	async handleListTools(args) {
+		if (!args.server) throw new Error("Missing required parameter: server");
+		return { tools: await this.engine.listTools(args.server, args.includeDisabled || false) };
+	}
+	/**
+	* Handle get_tool_details
+	*/
+	async handleGetToolDetails(args) {
+		if (!args.server) throw new Error("Missing required parameter: server");
+		if (!args.tool) throw new Error("Missing required parameter: tool");
+		return { tool: await this.engine.getToolDetails(args.server, args.tool) };
+	}
+	/**
+	* Handle execute_tool
+	*/
+	async handleExecuteTool(args) {
+		if (!args.server) throw new Error("Missing required parameter: server");
+		if (!args.tool) throw new Error("Missing required parameter: tool");
+		if (args.arguments === void 0) throw new Error("Missing required parameter: arguments");
+		return await this.engine.executeTool(args.server, args.tool, args.arguments);
+	}
+	/**
+	* Get registered tools
+	*/
+	getTools() {
+		return this.tools;
+	}
+	/**
+	* Start the server
+	*/
+	async start() {
+		const transport = new StdioServerTransport();
+		await this.server.connect(transport);
+	}
+};
+
+//#endregion
+export { DiscoveryMCPServer };
+//# sourceMappingURL=server-L-nyejKI.js.map

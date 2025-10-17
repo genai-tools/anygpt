@@ -8,12 +8,15 @@ interface CacheEntry<T> {
   expiresAt: number | null; // null = never expires
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 /**
  * Caching layer for discovery engine
  * Supports TTL-based caching for servers and tool summaries
  * Indefinite caching for tool details
  */
 export class CachingLayer {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private cache: Map<string, CacheEntry<any>> = new Map();
 
   /**

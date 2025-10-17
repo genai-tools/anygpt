@@ -50,7 +50,6 @@
   },
   "dependencies": {
     "@anygpt/mcp-discovery": "0.1.0",
-    "@anygpt/types": "1.2.0",
     "@modelcontextprotocol/sdk": "1.20.0"
   }
 }

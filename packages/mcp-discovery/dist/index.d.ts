@@ -79,7 +79,7 @@ interface ServerMetadata {
   config: MCPServerConfig;
 }
 /**
- * Tool parameter
+ * Tool parameter definition
  */
 interface ToolParameter {
   /** Parameter name */
@@ -87,9 +87,11 @@ interface ToolParameter {
   /** Parameter type */
   type: string;
   /** Parameter description */
-  description: string;
+  description?: string;
   /** Whether parameter is required */
   required: boolean;
+  /** Default value */
+  default?: any;
 }
 /**
  * Tool example
@@ -166,7 +168,7 @@ interface ExecutionError {
 interface ExecutionResult {
   /** Whether execution was successful */
   success: boolean;
-  /** Execution result (if successful) */
+  /** Execution result data */
   result?: any;
   /** Execution error (if failed) */
   error?: ExecutionError;
@@ -424,9 +426,9 @@ declare class ToolExecutionProxy {
    * Connect to an MCP server
    *
    * @param server - Server name
-   * @param config - Server configuration
+   * @param _config - Server configuration (unused in stub implementation)
    */
-  connect(server: string, config: MCPServerConfig): Promise<void>;
+  connect(server: string, _config: MCPServerConfig): Promise<void>;
   /**
    * Disconnect from an MCP server
    *
@@ -448,8 +450,6 @@ declare class ToolExecutionProxy {
  */
 declare class DiscoveryEngine {
   private config;
-  private configLoader;
-  private patternMatcher;
   private searchEngine;
   private metadataManager;
   private cache;

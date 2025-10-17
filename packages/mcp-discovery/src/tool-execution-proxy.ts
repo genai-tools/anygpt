@@ -20,6 +20,7 @@ export class ToolExecutionProxy {
   async execute(
     server: string,
     tool: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     args: any
   ): Promise<ExecutionResult> {
     // Validate arguments
@@ -65,9 +66,9 @@ export class ToolExecutionProxy {
    * Connect to an MCP server
    * 
    * @param server - Server name
-   * @param config - Server configuration
+   * @param _config - Server configuration (unused in stub implementation)
    */
-  async connect(server: string, config: MCPServerConfig): Promise<void> {
+  async connect(server: string, _config: MCPServerConfig): Promise<void> {
     // TODO: Implement actual MCP server connection using SDK
     // For now, just mark as connected
     this.connections.set(server, true);

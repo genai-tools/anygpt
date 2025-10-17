@@ -86,7 +86,7 @@ export interface ServerMetadata {
 }
 
 /**
- * Tool parameter
+ * Tool parameter definition
  */
 export interface ToolParameter {
   /** Parameter name */
@@ -94,9 +94,12 @@ export interface ToolParameter {
   /** Parameter type */
   type: string;
   /** Parameter description */
-  description: string;
+  description?: string;
   /** Whether parameter is required */
   required: boolean;
+  /** Default value */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default?: any;
 }
 
 /**
@@ -106,6 +109,7 @@ export interface ToolExample {
   /** Example description */
   description: string;
   /** Example parameters */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   parameters: Record<string, any>;
 }
 
@@ -179,7 +183,8 @@ export interface ExecutionError {
 export interface ExecutionResult {
   /** Whether execution was successful */
   success: boolean;
-  /** Execution result (if successful) */
+  /** Execution result data */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   result?: any;
   /** Execution error (if failed) */
   error?: ExecutionError;

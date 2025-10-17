@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { DiscoveryMCPServer } from "./server-C8IwLs5S.js";
+import { DiscoveryMCPServer } from "./server-L-nyejKI.js";
 
 //#region src/cli.ts
 /**
