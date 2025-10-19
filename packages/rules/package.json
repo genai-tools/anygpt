@@ -1,0 +1,27 @@
+{
+  "name": "@anygpt/rules",
+  "version": "0.1.0",
+  "description": "Type-safe rule engine for matching and transforming objects",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "rules",
+    "rule-engine",
+    "pattern-matching",
+    "typescript",
+    "type-safe"
+  ],
+  "author": "AnyGPT",
+  "license": "MIT"
+}
