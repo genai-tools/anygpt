@@ -4,7 +4,55 @@
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import type { MCPServerConfig, ToolMetadata } from './types.js';
+import type { MCPServerConfig, ToolMetadata, ToolParameter } from './types.js';
+
+/**
+ * JSON Schema property definition
+ */
+interface JsonSchemaProperty {
+  type?: string;
+  description?: string;
+  title?: string;
+  default?: unknown;
+  [key: string]: unknown;
+}
+
+/**
+ * JSON Schema definition
+ */
+interface JsonSchema {
+  type?: string;
+  properties?: Record<string, JsonSchemaProperty>;
+  required?: string[];
+  [key: string]: unknown;
+}
+
+/**
+ * Convert JSON Schema to ToolParameter array
+ */
+function convertJsonSchemaToParameters(
+  inputSchema: JsonSchema | undefined
+): ToolParameter[] {
+  if (!inputSchema || typeof inputSchema !== 'object') {
+    return [];
+  }
+
+  const properties = inputSchema.properties || {};
+  const required = inputSchema.required || [];
+  const parameters: ToolParameter[] = [];
+
+  for (const [name, schema] of Object.entries(properties)) {
+    parameters.push({
+      name,
+      type: schema.type || 'string',
+      description: schema.description || schema.title || '',
+      required: required.includes(name),
+      default: schema.default,
+    });
+  }
+
+  return parameters;
+}
 
 export interface MCPConnection {
   client: Client;
@@ -23,7 +71,10 @@ export class MCPClientManager {
   /**
    * Connect to an MCP server
    */
-  async connect(serverName: string, config: MCPServerConfig): Promise<MCPConnection> {
+  async connect(
+    serverName: string,
+    config: MCPServerConfig
+  ): Promise<MCPConnection> {
     let stderrOutput = '';
 
     try {
@@ -69,22 +120,24 @@ export class MCPClientManager {
     } catch (error) {
       // Use captured stderr if available, otherwise use error message
       let errorMessage = stderrOutput.trim();
-      
+
       if (!errorMessage && error instanceof Error) {
         errorMessage = error.message;
-        
+
         // Add helpful context based on error type
         if (errorMessage.includes('ENOENT')) {
           errorMessage = `Command not found: ${config.command}`;
         } else if (errorMessage.includes('EACCES')) {
           errorMessage = `Permission denied: ${config.command}`;
         } else if (errorMessage.includes('spawn')) {
-          errorMessage = `Failed to spawn: ${config.command} ${config.args?.join(' ') || ''}`;
+          errorMessage = `Failed to spawn: ${config.command} ${
+            config.args?.join(' ') || ''
+          }`;
         }
       } else if (!errorMessage) {
         errorMessage = String(error);
       }
-      
+
       const errorConnection: MCPConnection = {
         client: null as any,
         transport: null as any,
@@ -108,12 +161,12 @@ export class MCPClientManager {
         if (connection.status === 'connected' && connection.client) {
           await connection.client.close();
         }
-        
+
         // Then close transport to kill child process
         if (connection.transport) {
           await connection.transport.close();
         }
-        
+
         connection.status = 'disconnected';
       } catch (error) {
         // Ignore disconnect errors
@@ -150,7 +203,7 @@ export class MCPClientManager {
 
     try {
       const response = await connection.client.listTools();
-      
+
       return response.tools.map((tool) => ({
         name: tool.name,
         summary: tool.description || '',
@@ -158,10 +211,10 @@ export class MCPClientManager {
         server: serverName,
         enabled: true, // Default to enabled, will be filtered by rules
         tags: [], // Initialize with empty tags array
-        inputSchema: tool.inputSchema,
+        parameters: convertJsonSchemaToParameters(tool.inputSchema),
       }));
-    } catch (error) {
-      console.error(`Failed to list tools from ${serverName}:`, error);
+    } catch {
+      // Silently return empty array on error
       return [];
     }
   }
