@@ -24,13 +24,14 @@ CLI Tool → @anygpt/config → @anygpt/connectors → Provider SDKs
 
 ### Core Packages
 
-| Package                                  | Purpose                             | Dependencies                   |
-| ---------------------------------------- | ----------------------------------- | ------------------------------ |
-| **[@anygpt/types](./packages/types/)**   | Pure type definitions               | None (0 runtime deps)          |
-| **[@anygpt/config](./packages/config/)** | Configuration management            | @anygpt/types                  |
-| **[@anygpt/router](./packages/router/)** | Core routing and connector registry | None                           |
-| **[@anygpt/cli](./packages/cli/)**       | Command-line interface              | @anygpt/config, @anygpt/mock   |
-| **[@anygpt/mcp](./packages/mcp/)**       | MCP server implementation           | @anygpt/router, @anygpt/openai |
+| Package                                                | Purpose                             | Dependencies                   |
+| ------------------------------------------------------ | ----------------------------------- | ------------------------------ |
+| **[@anygpt/types](./packages/types/)**                 | Pure type definitions               | None (0 runtime deps)          |
+| **[@anygpt/config](./packages/config/)**               | Configuration management            | @anygpt/types                  |
+| **[@anygpt/router](./packages/router/)**               | Core routing and connector registry | None                           |
+| **[@anygpt/mcp-discovery](./packages/mcp-discovery/)** | MCP server discovery and management | @anygpt/types                  |
+| **[@anygpt/cli](./packages/cli/)**                     | Command-line interface              | @anygpt/config, @anygpt/mock   |
+| **[@anygpt/mcp](./packages/mcp/)**                     | MCP server implementation           | @anygpt/router, @anygpt/openai |
 
 ### Connector Packages
 
@@ -80,6 +81,8 @@ anygpt-mcp
 
 ### 1. CLI Usage
 
+#### AI Chat Commands
+
 ```bash
 # Discover available models and tags
 anygpt list-tags
@@ -107,6 +110,31 @@ anygpt conversation list
 anygpt conversation fork --tag opus --name "binary-tree-v2"
 ```
 
+#### MCP Management Commands
+
+```bash
+# List all MCP servers
+anygpt mcp list
+anygpt mcp list --enabled    # Only enabled servers
+anygpt mcp list --disabled   # Only disabled servers
+
+# Search for tools across all servers
+anygpt mcp search "github"
+anygpt mcp search "create" --server github-official
+
+# Inspect tool details (auto-resolves server)
+anygpt mcp inspect search
+anygpt mcp inspect create_issue --server github-official
+
+# Execute tools with natural syntax
+anygpt mcp execute search "how to cook paella"
+anygpt mcp execute search "query" 5  # Multiple parameters
+
+# List tools from specific server
+anygpt mcp tools github-official
+anygpt mcp tools github-official --all  # Include disabled tools
+```
+
 ### 2. Router as Library
 
 ```typescript
@@ -130,7 +158,59 @@ const response = await connector.chatCompletion({
 });
 ```
 
-### 3. Configuration-Driven Setup
+### 3. Docker MCP Plugin
+
+Auto-discover and configure Docker MCP servers:
+
+```typescript
+// anygpt.config.ts
+import { defineConfig } from '@anygpt/config';
+import DockerMCP from '@anygpt/docker-mcp-plugin';
+
+export default defineConfig({
+  plugins: [
+    DockerMCP({
+      serverRules: [
+        // Disable specific servers
+        {
+          when: { name: 'sequentialthinking' },
+          set: { enabled: false },
+        },
+      ],
+    }),
+  ],
+});
+```
+
+**What it does:**
+
+- Discovers all Docker MCP servers automatically
+- Creates separate MCP server instance for each
+- Supports server-level enable/disable rules
+- Disabled servers still visible for discovery
+
+**Generated configuration:**
+
+```typescript
+{
+  mcpServers: {
+    'github-official': {
+      command: 'docker',
+      args: ['mcp', 'gateway', 'run', '--servers', 'github-official'],
+      source: 'docker-mcp-plugin',
+      metadata: { toolCount: 49 }
+    },
+    'duckduckgo': {
+      command: 'docker',
+      args: ['mcp', 'gateway', 'run', '--servers', 'duckduckgo'],
+      source: 'docker-mcp-plugin',
+      metadata: { toolCount: 2 }
+    }
+  }
+}
+```
+
+### 4. Configuration-Driven Setup
 
 ```typescript
 import { setupRouter } from '@anygpt/config';
@@ -146,7 +226,7 @@ const response = await router.chatCompletion({
 });
 ```
 
-**Example factory config file (`.anygpt/anygpt.config.ts`):**
+**Factory config example (`.anygpt/anygpt.config.ts`):**
 
 ```typescript
 import { config } from '@anygpt/config';
@@ -211,7 +291,7 @@ const config: AnyGPTConfig = {
 export default config;
 ```
 
-### 4. MCP Server Usage
+### 5. MCP Server Usage
 
 ```bash
 # Run MCP server
@@ -290,18 +370,29 @@ npx nx run-many -t lint
 - **Runtime connector loading**: No hardcoded dependencies
 - **Multiple config sources**: TypeScript, JavaScript, JSON files
 - **Environment support**: User home, system-wide, project-local configs
+- **Plugin system**: Auto-discovery and configuration generation
+
+### 🔍 **MCP Discovery & Management**
+
+- **Auto-discovery**: Automatically finds and configures Docker MCP servers
+- **Tool-focused CLI**: Execute tools without knowing which server provides them
+- **Server rules**: Enable/disable servers while maintaining visibility
+- **Variadic arguments**: Natural command-line syntax for tool execution
+- **On-demand loading**: Load only what you need, when you need it
 
 ### 🚀 **Developer Experience**
 
 - **Full TypeScript support**: Complete type safety across all packages
-- **Comprehensive CLI**: Stateful conversations, forking, summarization
+- **Comprehensive CLI**: Stateful conversations, forking, summarization, MCP management
 - **Testing utilities**: Mock connector for development and testing
+- **Progress indicators**: Visual feedback for long-running operations
 
 ### 🔌 **Extensible Design**
 
 - **Connector pattern**: Easy to add new AI providers
-- **Plugin architecture**: Extensible command system
+- **Plugin architecture**: Extensible command system with auto-discovery
 - **MCP compliance**: Full protocol implementation
+- **Separate server instances**: Each MCP server runs independently
 
 ### ✅ **Comprehensive Testing**
 
