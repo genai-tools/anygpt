@@ -1,3 +1,8 @@
+---
+trigger: model_decision
+description: Whenever you want to run a terminal command
+---
+
 # Agent Command Rules
 
 ## Critical: No Interactive Commands
@@ -52,3 +57,27 @@ PAGER=cat git log
 - [ ] Will exit on its own
 
 **Golden Rule**: If it might wait for input or open UI, DON'T RUN IT.
+
+## Testing with Vitest/Nx
+```bash
+# ❌ Bad - Opens interactive watch mode (press q to quit)
+npx nx test my-package
+vitest
+
+# ✅ Good - Non-interactive, exits automatically
+npx nx test my-package --run --reporter=verbose
+npx nx test my-package -- --run --reporter=json
+vitest run --reporter=verbose
+
+# ✅ With coverage
+npx nx test my-package --coverage --run
+```
+
+## Why This Matters
+Interactive commands will:
+- Block the terminal waiting for input
+- Require manual intervention (press 'q', 'Ctrl+C')
+- Prevent automation and CI/CD
+- Cause agent workflows to hang
+
+**Always use `--run` flag with Nx test commands\!**

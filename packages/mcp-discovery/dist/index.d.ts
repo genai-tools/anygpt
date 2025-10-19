@@ -1,7 +1,10 @@
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { Rule } from "@anygpt/rules";
+import { ToolRuleTarget as ToolRuleTarget$1 } from "@anygpt/types";
+
 //#region src/types.d.ts
-/**
- * Discovery configuration types
- */
+
 /**
  * Cache configuration
  */
@@ -10,19 +13,6 @@ interface CacheConfig {
   enabled: boolean;
   /** Time-to-live in seconds */
   ttl: number;
-}
-/**
- * Tool rule for pattern-based filtering
- */
-interface ToolRule {
-  /** Glob or regex patterns to match tool names */
-  pattern: string[];
-  /** Optional: server name to apply rule to */
-  server?: string;
-  /** Whether tools matching this pattern are enabled */
-  enabled?: boolean;
-  /** Tags to apply to matching tools */
-  tags?: string[];
 }
 /**
  * Configuration source type
@@ -38,6 +28,25 @@ interface ConfigSource {
   path: string;
 }
 /**
+ * Server initialization progress event
+ */
+interface ServerProgress {
+  /** Server name */
+  server: string;
+  /** Progress status */
+  status: 'connecting' | 'discovering' | 'connected' | 'error';
+  /** Status message */
+  message?: string;
+  /** Error if status is 'error' */
+  error?: string;
+  /** Number of tools discovered (if status is 'connected') */
+  toolCount?: number;
+}
+/**
+ * Progress callback for initialization
+ */
+type ProgressCallback = (progress: ServerProgress) => void;
+/**
  * Discovery configuration
  */
 interface DiscoveryConfig {
@@ -47,8 +56,8 @@ interface DiscoveryConfig {
   cache?: CacheConfig;
   /** Configuration sources */
   sources?: ConfigSource[];
-  /** Tool filtering rules */
-  toolRules?: ToolRule[];
+  /** Rules for filtering and tagging tools */
+  rules?: Rule<ToolRuleTarget>[];
 }
 /**
  * MCP server configuration
@@ -60,6 +69,10 @@ interface MCPServerConfig {
   args: string[];
   /** Environment variables */
   env?: Record<string, string>;
+  /** Source/origin of this server config (e.g., 'docker-mcp-plugin', 'config-file', 'claude-desktop') */
+  source?: string;
+  /** Optional description */
+  description?: string;
 }
 /**
  * Server metadata
@@ -202,40 +215,6 @@ declare class ConfigurationLoader {
   mergeWithDefaults(partial: Partial<DiscoveryConfig>): DiscoveryConfig;
 }
 //#endregion
-//#region src/pattern-matcher.d.ts
-/**
- * Pattern matcher for tool filtering
- * Reuses glob-matcher from @anygpt/config
- */
-declare class PatternMatcher {
-  /**
-   * Check if a tool name matches any of the patterns
-   *
-   * @param toolName - Tool name to match
-   * @param patterns - Array of glob or regex patterns
-   * @returns true if tool matches any pattern
-   */
-  matchTool(toolName: string, patterns: string[]): boolean;
-  /**
-   * Check if a tool matches a specific rule
-   *
-   * @param toolName - Tool name to match
-   * @param serverName - Server name
-   * @param rule - Tool rule to check
-   * @returns true if tool matches the rule
-   */
-  matchRule(toolName: string, serverName: string, rule: ToolRule): boolean;
-  /**
-   * Find all rules that match a tool
-   *
-   * @param toolName - Tool name to match
-   * @param serverName - Server name
-   * @param rules - Array of tool rules
-   * @returns Array of matching rules
-   */
-  findMatchingRules(toolName: string, serverName: string, rules: ToolRule[]): ToolRule[];
-}
-//#endregion
 //#region src/search-engine.d.ts
 /**
  * Search engine for tool discovery with relevance scoring
@@ -273,13 +252,28 @@ declare class SearchEngine {
  */
 declare class ToolMetadataManager {
   private tools;
-  private patternMatcher;
   /**
    * Add or update a tool
    *
    * @param tool - Tool metadata to add
    */
   addTool(tool: ToolMetadata): void;
+  /**
+   * Add multiple tools at once
+   *
+   * @param tools - Array of tool metadata to add
+   */
+  addTools(tools: ToolMetadata[]): void;
+  /**
+   * Clear all tools for a specific server
+   *
+   * @param server - Server name
+   */
+  clearServerTools(server: string): void;
+  /**
+   * Clear all tools
+   */
+  clearAll(): void;
   /**
    * Get a specific tool
    *
@@ -304,11 +298,11 @@ declare class ToolMetadataManager {
    */
   getAllTools(includeDisabled?: boolean): ToolMetadata[];
   /**
-   * Apply filtering rules to all tools
+   * Apply filtering rules to all tools using rule engine
    *
-   * @param rules - Array of tool rules
+   * @param rules - Array of rules from @anygpt/rules
    */
-  applyRules(rules: ToolRule[]): void;
+  applyRules(rules: Rule<ToolRuleTarget$1>[]): void;
   /**
    * Get total tool count for a server
    *
@@ -444,6 +438,53 @@ declare class ToolExecutionProxy {
   isConnected(server: string): boolean;
 }
 //#endregion
+//#region src/mcp-client.d.ts
+interface MCPConnection {
+  client: Client;
+  transport: StdioClientTransport;
+  serverName: string;
+  status: 'connected' | 'disconnected' | 'error';
+  error?: string;
+}
+/**
+ * MCP Client Manager - handles connections to MCP servers
+ */
+declare class MCPClientManager {
+  private connections;
+  /**
+   * Connect to an MCP server
+   */
+  connect(serverName: string, config: MCPServerConfig): Promise<MCPConnection>;
+  /**
+   * Disconnect from an MCP server
+   */
+  disconnect(serverName: string): Promise<void>;
+  /**
+   * Disconnect from all servers
+   */
+  disconnectAll(): Promise<void>;
+  /**
+   * Get connection for a server
+   */
+  getConnection(serverName: string): MCPConnection | undefined;
+  /**
+   * List tools from a connected server
+   */
+  listTools(serverName: string): Promise<ToolMetadata[]>;
+  /**
+   * Execute a tool on a connected server
+   */
+  executeTool(serverName: string, toolName: string, args: any): Promise<any>;
+  /**
+   * Check if a server is connected
+   */
+  isConnected(serverName: string): boolean;
+  /**
+   * Get all connection statuses
+   */
+  getConnectionStatuses(): Map<string, 'connected' | 'disconnected' | 'error'>;
+}
+//#endregion
 //#region src/discovery-engine.d.ts
 /**
  * Main discovery engine facade that coordinates all components
@@ -455,7 +496,15 @@ declare class DiscoveryEngine {
   private metadataManager;
   private cache;
   private executionProxy;
+  private clientManager;
+  private initialized;
   constructor(config: DiscoveryConfig, mcpServers?: Record<string, MCPServerConfig>);
+  /**
+   * Initialize connections and discover tools from all servers
+   *
+   * @param onProgress - Optional callback for progress updates
+   */
+  initialize(onProgress?: (progress: ServerProgress) => void): Promise<void>;
   /**
    * List all available MCP servers
    *
@@ -500,6 +549,10 @@ declare class DiscoveryEngine {
    */
   reload(): Promise<void>;
   /**
+   * Cleanup and disconnect from all servers
+   */
+  dispose(): Promise<void>;
+  /**
    * Get current configuration
    *
    * @returns Current discovery configuration
@@ -511,5 +564,5 @@ declare class DiscoveryEngine {
   private applyConfiguration;
 }
 //#endregion
-export { type CacheConfig, CachingLayer, type ConfigSource, type ConfigSourceType, ConfigurationLoader, type DiscoveryConfig, DiscoveryEngine, type ExecutionError, type ExecutionResult, type MCPServerConfig, PatternMatcher, SearchEngine, type SearchOptions, type SearchResult, type ServerMetadata, type ToolExample, ToolExecutionProxy, type ToolMetadata, ToolMetadataManager, type ToolParameter, type ToolRule, type ValidationResult };
+export { type CacheConfig, CachingLayer, type ConfigSource, type ConfigSourceType, ConfigurationLoader, type DiscoveryConfig, DiscoveryEngine, type ExecutionError, type ExecutionResult, MCPClientManager, type MCPConnection, type MCPServerConfig, type ProgressCallback, SearchEngine, type SearchOptions, type SearchResult, type ServerMetadata, type ServerProgress, type ToolExample, ToolExecutionProxy, type ToolMetadata, ToolMetadataManager, type ToolParameter, type ValidationResult };
 //# sourceMappingURL=index.d.ts.map

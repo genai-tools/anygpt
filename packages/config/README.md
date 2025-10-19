@@ -14,6 +14,7 @@ Shared configuration management for AnyGPT with dynamic connector loading and po
 ## Documentation
 
 - **[Model Rules Guide](./docs/MODEL_RULES.md)** - Comprehensive guide to pattern-based model configuration
+- **[Rule Engine](./docs/rules.md)** - Type-safe rule engine for matching and transforming objects
 
 ## 🔒 Private Configuration
 

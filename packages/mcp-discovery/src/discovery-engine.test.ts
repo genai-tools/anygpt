@@ -13,7 +13,7 @@ describe('DiscoveryEngine', () => {
         enabled: true,
         ttl: 3600
       },
-      toolRules: []
+      rules: []
     };
     engine = new DiscoveryEngine(config);
   });

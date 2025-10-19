@@ -25,7 +25,7 @@ export class ConfigurationLoader {
         ttl: 3600 // 1 hour
       },
       sources: [],
-      toolRules: []
+      rules: []
     };
   }
 
@@ -72,26 +72,10 @@ export class ConfigurationLoader {
       }
     }
 
-    // Validate tool rules
-    if (config.toolRules !== undefined) {
-      if (!Array.isArray(config.toolRules)) {
-        errors.push('toolRules must be an array');
-      } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        config.toolRules.forEach((rule: any, index: number) => {
-          if (!Array.isArray(rule.pattern)) {
-            errors.push(`toolRules[${index}].pattern must be an array`);
-          }
-          if (rule.server !== undefined && typeof rule.server !== 'string') {
-            errors.push(`toolRules[${index}].server must be a string`);
-          }
-          if (rule.enabled !== undefined && typeof rule.enabled !== 'boolean') {
-            errors.push(`toolRules[${index}].enabled must be a boolean`);
-          }
-          if (rule.tags !== undefined && !Array.isArray(rule.tags)) {
-            errors.push(`toolRules[${index}].tags must be an array`);
-          }
-        });
+    // Validate rules (basic check - detailed validation handled by RuleEngine)
+    if (config.rules !== undefined) {
+      if (!Array.isArray(config.rules)) {
+        errors.push('rules must be an array');
       }
     }
 
@@ -111,7 +95,7 @@ export class ConfigurationLoader {
       enabled: partial.enabled ?? defaults.enabled,
       cache: partial.cache ?? defaults.cache,
       sources: partial.sources ?? defaults.sources,
-      toolRules: partial.toolRules ?? defaults.toolRules
+      rules: partial.rules ?? defaults.rules
     };
   }
 }

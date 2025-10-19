@@ -16,7 +16,7 @@ describe('ConfigurationLoader', () => {
           ttl: 3600
         },
         sources: [],
-        toolRules: []
+        rules: []
       });
     });
   });
@@ -30,11 +30,11 @@ describe('ConfigurationLoader', () => {
           enabled: true,
           ttl: 3600
         },
-        toolRules: [
+        rules: [
           {
-            pattern: ['*github*'],
-            enabled: true,
-            tags: ['github']
+            when: { name: { match: /github/ } },
+            set: { enabled: true },
+            push: { tags: ['vcs'] }
           }
         ]
       };
@@ -74,17 +74,12 @@ describe('ConfigurationLoader', () => {
       const loader = new ConfigurationLoader();
       const config: DiscoveryConfig = {
         enabled: true,
-        toolRules: [
-          {
-            pattern: 'not-an-array' as any, // Should be array
-            enabled: true
-          }
-        ]
+        rules: 'not-an-array' as any // Should be array
       };
 
       const result = loader.validate(config);
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('toolRules[0].pattern must be an array');
+      expect(result.errors).toContain('rules must be an array');
     });
 
     it('should allow configuration without optional fields', () => {
@@ -115,7 +110,7 @@ describe('ConfigurationLoader', () => {
           ttl: 3600
         },
         sources: [],
-        toolRules: []
+        rules: []
       });
     });
 
@@ -136,25 +131,25 @@ describe('ConfigurationLoader', () => {
       });
     });
 
-    it('should preserve tool rules', () => {
+    it('should preserve rules', () => {
       const loader = new ConfigurationLoader();
       const partial: Partial<DiscoveryConfig> = {
-        toolRules: [
+        rules: [
           {
-            pattern: ['*test*'],
-            enabled: true,
-            tags: ['test']
+            when: { name: { match: /test/ } },
+            set: { enabled: true },
+            push: { tags: ['test'] }
           }
         ]
       };
 
       const merged = loader.mergeWithDefaults(partial);
 
-      expect(merged.toolRules).toEqual([
+      expect(merged.rules).toEqual([
         {
-          pattern: ['*test*'],
-          enabled: true,
-          tags: ['test']
+          when: { name: { match: /test/ } },
+          set: { enabled: true },
+          push: { tags: ['test'] }
         }
       ]);
     });

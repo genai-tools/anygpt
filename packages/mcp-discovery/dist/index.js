@@ -1,4 +1,5 @@
-import "minimatch";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
 //#region src/configuration-loader.ts
 /**
@@ -16,7 +17,7 @@ var ConfigurationLoader = class {
 				ttl: 3600
 			},
 			sources: [],
-			toolRules: []
+			rules: []
 		};
 	}
 	/**
@@ -35,13 +36,9 @@ var ConfigurationLoader = class {
 			if (typeof source.type !== "string") errors.push(`sources[${index}].type must be a string`);
 			if (typeof source.path !== "string") errors.push(`sources[${index}].path must be a string`);
 		});
-		if (config.toolRules !== void 0) if (!Array.isArray(config.toolRules)) errors.push("toolRules must be an array");
-		else config.toolRules.forEach((rule, index) => {
-			if (!Array.isArray(rule.pattern)) errors.push(`toolRules[${index}].pattern must be an array`);
-			if (rule.server !== void 0 && typeof rule.server !== "string") errors.push(`toolRules[${index}].server must be a string`);
-			if (rule.enabled !== void 0 && typeof rule.enabled !== "boolean") errors.push(`toolRules[${index}].enabled must be a boolean`);
-			if (rule.tags !== void 0 && !Array.isArray(rule.tags)) errors.push(`toolRules[${index}].tags must be an array`);
-		});
+		if (config.rules !== void 0) {
+			if (!Array.isArray(config.rules)) errors.push("rules must be an array");
+		}
 		return {
 			valid: errors.length === 0,
 			errors
@@ -56,154 +53,8 @@ var ConfigurationLoader = class {
 			enabled: partial.enabled ?? defaults.enabled,
 			cache: partial.cache ?? defaults.cache,
 			sources: partial.sources ?? defaults.sources,
-			toolRules: partial.toolRules ?? defaults.toolRules
+			rules: partial.rules ?? defaults.rules
 		};
-	}
-};
-
-//#endregion
-//#region ../config/dist/index.js
-var ConnectorRegistry = class {
-	factories = /* @__PURE__ */ new Map();
-	registerConnector(factory) {
-		const connectorType = factory.getProviderId();
-		if (!this.factories.has(connectorType)) this.factories.set(connectorType, factory);
-	}
-	createConnector(providerId, config$1 = {}) {
-		const factory = this.factories.get(providerId);
-		if (!factory) throw new Error(`No connector registered for provider: ${providerId}`);
-		return factory.create(config$1);
-	}
-	getConnector(providerId, config$1 = {}) {
-		return this.createConnector(providerId, config$1);
-	}
-	hasConnector(providerId) {
-		return this.factories.has(providerId);
-	}
-	getAvailableProviders() {
-		return Array.from(this.factories.keys());
-	}
-	unregisterConnector(providerId) {
-		return this.factories.delete(providerId);
-	}
-	clear() {
-		this.factories.clear();
-	}
-	async getAllModels() {
-		const results = [];
-		for (const [providerId, factory] of this.factories) try {
-			const models = await factory.create({}).listModels();
-			results.push({
-				provider: providerId,
-				models
-			});
-		} catch (error) {
-			console.warn(`Failed to get models from ${providerId}:`, error);
-		}
-		return results;
-	}
-};
-new ConnectorRegistry();
-/**
-* Simple glob pattern matcher for model filtering
-* Supports: *, ?, [abc], {a,b,c}, ! for negation, and regex patterns
-* 
-* Regex patterns should be wrapped in /.../ or /.../<flags>
-* Examples:
-*   - /gpt-[45]/ - matches gpt-4 or gpt-5
-*   - /^claude.*sonnet$/i - case-insensitive match
-*/
-/**
-* Check if a pattern is a regex pattern (wrapped in /.../)
-*/
-function isRegexPattern(pattern) {
-	return pattern.startsWith("/") && pattern.lastIndexOf("/") > 0;
-}
-/**
-* Parse a regex pattern string into a RegExp object
-*/
-function parseRegexPattern(pattern) {
-	const lastSlash = pattern.lastIndexOf("/");
-	const regexBody = pattern.substring(1, lastSlash);
-	const flags = pattern.substring(lastSlash + 1);
-	return new RegExp(regexBody, flags || "i");
-}
-/**
-* Convert a glob pattern to a regular expression
-*/
-function globToRegex(pattern) {
-	const regex = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\{([^}]+)\}/g, (_, group) => `(${group.replace(/,/g, "|")})`).replace(/\\\[([^\]]+)\\\]/g, "[$1]").replace(/\*/g, ".*").replace(/\?/g, ".");
-	return new RegExp(`^${regex}$`, "i");
-}
-/**
-* Check if a model ID matches any of the glob/regex patterns
-* Supports negation patterns starting with !, regex patterns wrapped in /.../, and RegExp objects
-* 
-* @param modelId - The model ID to test
-* @param patterns - Array of glob strings, regex strings, or RegExp objects (can include negation patterns with !)
-* @returns true if the model matches (considering both positive and negative patterns)
-*/
-function matchesGlobPatterns(modelId, patterns) {
-	if (!patterns || patterns.length === 0) return true;
-	const positivePatterns = [];
-	const negativePatterns = [];
-	for (const pattern of patterns) {
-		if (pattern instanceof RegExp) {
-			positivePatterns.push(pattern);
-			continue;
-		}
-		if (pattern.startsWith("!")) {
-			const actualPattern = pattern.substring(1);
-			if (isRegexPattern(actualPattern)) negativePatterns.push(parseRegexPattern(actualPattern));
-			else negativePatterns.push(globToRegex(actualPattern));
-		} else if (isRegexPattern(pattern)) positivePatterns.push(parseRegexPattern(pattern));
-		else positivePatterns.push(globToRegex(pattern));
-	}
-	for (const negPattern of negativePatterns) if (negPattern.test(modelId)) return false;
-	if (positivePatterns.length === 0) return true;
-	for (const posPattern of positivePatterns) if (posPattern.test(modelId)) return true;
-	return false;
-}
-
-//#endregion
-//#region src/pattern-matcher.ts
-/**
-* Pattern matcher for tool filtering
-* Reuses glob-matcher from @anygpt/config
-*/
-var PatternMatcher = class {
-	/**
-	* Check if a tool name matches any of the patterns
-	* 
-	* @param toolName - Tool name to match
-	* @param patterns - Array of glob or regex patterns
-	* @returns true if tool matches any pattern
-	*/
-	matchTool(toolName, patterns) {
-		return matchesGlobPatterns(toolName, patterns);
-	}
-	/**
-	* Check if a tool matches a specific rule
-	* 
-	* @param toolName - Tool name to match
-	* @param serverName - Server name
-	* @param rule - Tool rule to check
-	* @returns true if tool matches the rule
-	*/
-	matchRule(toolName, serverName, rule) {
-		if (rule.server && rule.server !== serverName) return false;
-		return this.matchTool(toolName, rule.pattern);
-	}
-	/**
-	* Find all rules that match a tool
-	* 
-	* @param toolName - Tool name to match
-	* @param serverName - Server name
-	* @param rules - Array of tool rules
-	* @returns Array of matching rules
-	*/
-	findMatchingRules(toolName, serverName, rules) {
-		return rules.filter((rule) => this.matchRule(toolName, serverName, rule));
 	}
 };
 
@@ -279,13 +130,113 @@ var SearchEngine = class {
 };
 
 //#endregion
+//#region ../rules/dist/index.js
+/**
+* Rule Engine - applies rules to objects
+* 
+* Note: T cannot have fields named 'and', 'or', or 'not' as they are reserved
+* for logical operators. T must only contain primitive values (string, number, boolean)
+* or arrays of primitives.
+*/
+var RuleEngine = class {
+	constructor(rules, defaultRule) {
+		this.rules = rules;
+		this.defaultRule = defaultRule;
+	}
+	/**
+	* Apply all matching rules to an object
+	*/
+	apply(item) {
+		let result = this.defaultRule ? {
+			...item,
+			...this.defaultRule
+		} : { ...item };
+		for (const rule of this.rules) if (this.matches(item, rule.when)) {
+			if (rule.set) result = {
+				...result,
+				...rule.set
+			};
+			if (rule.push) for (const key in rule.push) {
+				const pushValue = rule.push[key];
+				const currentValue = result[key];
+				if (Array.isArray(currentValue) && Array.isArray(pushValue)) result = {
+					...result,
+					[key]: [...currentValue, ...pushValue]
+				};
+			}
+		}
+		return result;
+	}
+	/**
+	* Apply rules to multiple objects
+	*/
+	applyAll(items) {
+		return items.map((item) => this.apply(item));
+	}
+	/**
+	* Check if an object matches a condition
+	*/
+	matches(item, condition) {
+		if ("and" in condition && Array.isArray(condition.and)) return condition.and.every((c) => this.matches(item, c));
+		if ("or" in condition && Array.isArray(condition.or)) return condition.or.some((c) => this.matches(item, c));
+		if ("not" in condition && condition.not) return !this.matches(item, condition.not);
+		const fieldCondition = condition;
+		for (const key in fieldCondition) {
+			const operator = fieldCondition[key];
+			const value = item[key];
+			if (!this.matchesOperator(value, operator)) return false;
+		}
+		return true;
+	}
+	/**
+	* Check if a value matches a pattern (regex or exact match)
+	*/
+	matchesPattern(value, pattern) {
+		if (pattern instanceof RegExp) return pattern.test(String(value));
+		return value === pattern;
+	}
+	/**
+	* Normalize shortcut syntax to full operator format
+	*/
+	normalizeOperator(operator) {
+		if (!operator) return null;
+		if (typeof operator === "object" && !Array.isArray(operator) && !(operator instanceof RegExp)) return operator;
+		if (operator instanceof RegExp) return { match: operator };
+		if (Array.isArray(operator)) return { in: operator };
+		return { eq: operator };
+	}
+	/**
+	* Check if a value matches an operator
+	*/
+	matchesOperator(value, operator) {
+		const normalized = this.normalizeOperator(operator);
+		if (!normalized) return true;
+		const op = normalized;
+		if ("eq" in op) return value === op["eq"];
+		if ("in" in op && Array.isArray(op["in"])) {
+			const inArray = op["in"];
+			if (Array.isArray(value)) return value.some((v) => inArray.some((pattern) => this.matchesPattern(v, pattern)));
+			return inArray.some((pattern) => this.matchesPattern(value, pattern));
+		}
+		if ("match" in op) {
+			const matchValue = op["match"];
+			return (Array.isArray(matchValue) ? matchValue : [matchValue]).some((pattern) => {
+				if (pattern instanceof RegExp) return pattern.test(String(value));
+				const regexPattern = String(pattern).replace(/\*/g, "___GLOB_STAR___").replace(/\?/g, "___GLOB_QUESTION___").replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/___GLOB_STAR___/g, ".*").replace(/___GLOB_QUESTION___/g, ".");
+				return (/* @__PURE__ */ new RegExp(`^${regexPattern}$`)).test(String(value));
+			});
+		}
+		return true;
+	}
+};
+
+//#endregion
 //#region src/tool-metadata-manager.ts
 /**
 * Tool metadata manager for storing and filtering tools
 */
 var ToolMetadataManager = class {
 	tools = /* @__PURE__ */ new Map();
-	patternMatcher = new PatternMatcher();
 	/**
 	* Add or update a tool
 	* 
@@ -294,6 +245,30 @@ var ToolMetadataManager = class {
 	addTool(tool) {
 		const key = this.getToolKey(tool.server, tool.name);
 		this.tools.set(key, tool);
+	}
+	/**
+	* Add multiple tools at once
+	* 
+	* @param tools - Array of tool metadata to add
+	*/
+	addTools(tools) {
+		for (const tool of tools) this.addTool(tool);
+	}
+	/**
+	* Clear all tools for a specific server
+	* 
+	* @param server - Server name
+	*/
+	clearServerTools(server) {
+		const keysToDelete = [];
+		for (const [key, tool] of this.tools.entries()) if (tool.server === server) keysToDelete.push(key);
+		for (const key of keysToDelete) this.tools.delete(key);
+	}
+	/**
+	* Clear all tools
+	*/
+	clearAll() {
+		this.tools.clear();
 	}
 	/**
 	* Get a specific tool
@@ -332,22 +307,23 @@ var ToolMetadataManager = class {
 		return tools;
 	}
 	/**
-	* Apply filtering rules to all tools
+	* Apply filtering rules to all tools using rule engine
 	* 
-	* @param rules - Array of tool rules
+	* @param rules - Array of rules from @anygpt/rules
 	*/
 	applyRules(rules) {
-		const hasWhitelist = rules.some((r) => r.enabled === true);
+		if (!rules || rules.length === 0) return;
+		const engine = new RuleEngine(rules);
 		for (const tool of this.tools.values()) {
-			let enabled = !hasWhitelist;
-			const tags = [...tool.tags];
-			for (const rule of rules) {
-				if (!this.patternMatcher.matchRule(tool.name, tool.server, rule)) continue;
-				if (rule.enabled !== void 0) enabled = rule.enabled;
-				if (rule.tags) tags.push(...rule.tags);
-			}
-			tool.enabled = enabled;
-			tool.tags = [...new Set(tags)];
+			const target = {
+				server: tool.server,
+				name: tool.name,
+				enabled: tool.enabled,
+				tags: [...tool.tags]
+			};
+			const result = engine.apply(target);
+			tool.enabled = result.enabled;
+			tool.tags = [...new Set(result.tags)];
 		}
 	}
 	/**
@@ -569,6 +545,141 @@ var ToolExecutionProxy = class {
 };
 
 //#endregion
+//#region src/mcp-client.ts
+/**
+* MCP Client Manager - handles connections to MCP servers
+*/
+var MCPClientManager = class {
+	connections = /* @__PURE__ */ new Map();
+	/**
+	* Connect to an MCP server
+	*/
+	async connect(serverName, config) {
+		let stderrOutput = "";
+		try {
+			const transport = new StdioClientTransport({
+				command: config.command,
+				args: config.args || [],
+				env: config.env ? {
+					...process.env,
+					...config.env
+				} : process.env,
+				stderr: "pipe"
+			});
+			const stderrStream = transport.stderr;
+			if (stderrStream) stderrStream.on("data", (chunk) => {
+				stderrOutput += chunk.toString();
+			});
+			const client = new Client({
+				name: "anygpt-discovery",
+				version: "1.0.0"
+			}, { capabilities: {} });
+			await client.connect(transport);
+			const connection = {
+				client,
+				transport,
+				serverName,
+				status: "connected"
+			};
+			this.connections.set(serverName, connection);
+			return connection;
+		} catch (error) {
+			let errorMessage = stderrOutput.trim();
+			if (!errorMessage && error instanceof Error) {
+				errorMessage = error.message;
+				if (errorMessage.includes("ENOENT")) errorMessage = `Command not found: ${config.command}`;
+				else if (errorMessage.includes("EACCES")) errorMessage = `Permission denied: ${config.command}`;
+				else if (errorMessage.includes("spawn")) errorMessage = `Failed to spawn: ${config.command} ${config.args?.join(" ") || ""}`;
+			} else if (!errorMessage) errorMessage = String(error);
+			const errorConnection = {
+				client: null,
+				transport: null,
+				serverName,
+				status: "error",
+				error: errorMessage || "Unknown error"
+			};
+			this.connections.set(serverName, errorConnection);
+			return errorConnection;
+		}
+	}
+	/**
+	* Disconnect from an MCP server
+	*/
+	async disconnect(serverName) {
+		const connection = this.connections.get(serverName);
+		if (connection) try {
+			if (connection.status === "connected" && connection.client) await connection.client.close();
+			if (connection.transport) await connection.transport.close();
+			connection.status = "disconnected";
+		} catch (error) {}
+		this.connections.delete(serverName);
+	}
+	/**
+	* Disconnect from all servers
+	*/
+	async disconnectAll() {
+		const disconnectPromises = Array.from(this.connections.keys()).map((name) => this.disconnect(name));
+		await Promise.all(disconnectPromises);
+	}
+	/**
+	* Get connection for a server
+	*/
+	getConnection(serverName) {
+		return this.connections.get(serverName);
+	}
+	/**
+	* List tools from a connected server
+	*/
+	async listTools(serverName) {
+		const connection = this.connections.get(serverName);
+		if (!connection || connection.status !== "connected") return [];
+		try {
+			return (await connection.client.listTools()).tools.map((tool) => ({
+				name: tool.name,
+				summary: tool.description || "",
+				description: tool.description,
+				server: serverName,
+				enabled: true,
+				tags: [],
+				inputSchema: tool.inputSchema
+			}));
+		} catch (error) {
+			console.error(`Failed to list tools from ${serverName}:`, error);
+			return [];
+		}
+	}
+	/**
+	* Execute a tool on a connected server
+	*/
+	async executeTool(serverName, toolName, args) {
+		const connection = this.connections.get(serverName);
+		if (!connection || connection.status !== "connected") throw new Error(`Server ${serverName} is not connected`);
+		try {
+			return await connection.client.callTool({
+				name: toolName,
+				arguments: args
+			});
+		} catch (error) {
+			throw new Error(`Failed to execute tool ${toolName} on ${serverName}: ${error instanceof Error ? error.message : String(error)}`);
+		}
+	}
+	/**
+	* Check if a server is connected
+	*/
+	isConnected(serverName) {
+		return this.connections.get(serverName)?.status === "connected";
+	}
+	/**
+	* Get all connection statuses
+	*/
+	getConnectionStatuses() {
+		const statuses = /* @__PURE__ */ new Map();
+		for (const [name, conn] of this.connections.entries()) statuses.set(name, conn.status);
+		return statuses;
+	}
+};
+
+//#endregion
 //#region src/discovery-engine.ts
 /**
 * Main discovery engine facade that coordinates all components
@@ -580,6 +691,8 @@ var DiscoveryEngine = class {
 	metadataManager;
 	cache;
 	executionProxy;
+	clientManager;
+	initialized = false;
 	constructor(config, mcpServers) {
 		this.config = config;
 		this.mcpServers = mcpServers || {};
@@ -587,7 +700,62 @@ var DiscoveryEngine = class {
 		this.metadataManager = new ToolMetadataManager();
 		this.cache = new CachingLayer();
 		this.executionProxy = new ToolExecutionProxy();
+		this.clientManager = new MCPClientManager();
 		this.applyConfiguration();
+	}
+	/**
+	* Initialize connections and discover tools from all servers
+	* 
+	* @param onProgress - Optional callback for progress updates
+	*/
+	async initialize(onProgress) {
+		if (this.initialized) return;
+		const { Readable } = await import("node:stream");
+		const serverEntries = Object.entries(this.mcpServers);
+		await Readable.from(serverEntries).map(async ([name, config]) => {
+			if (config.enabled === false) {
+				onProgress?.({
+					server: name,
+					status: "error",
+					error: "Server is disabled"
+				});
+				return;
+			}
+			try {
+				onProgress?.({
+					server: name,
+					status: "connecting",
+					message: "Connecting to server..."
+				});
+				const connection = await this.clientManager.connect(name, config);
+				if (connection.status === "connected") {
+					onProgress?.({
+						server: name,
+						status: "discovering",
+						message: "Discovering tools..."
+					});
+					const tools = await this.clientManager.listTools(name);
+					this.metadataManager.addTools(tools);
+					onProgress?.({
+						server: name,
+						status: "connected",
+						toolCount: tools.length
+					});
+				} else onProgress?.({
+					server: name,
+					status: "error",
+					error: connection.error || "Failed to connect"
+				});
+			} catch (error) {
+				onProgress?.({
+					server: name,
+					status: "error",
+					error: error instanceof Error ? error.message : String(error)
+				});
+			}
+		}, { concurrency: 5 }).toArray();
+		if (this.config.rules && this.config.rules.length > 0) this.metadataManager.applyRules(this.config.rules);
+		this.initialized = true;
 	}
 	/**
 	* List all available MCP servers
@@ -595,10 +763,12 @@ var DiscoveryEngine = class {
 	* @returns Array of server metadata
 	*/
 	async listServers() {
+		await this.initialize();
 		if (this.config.cache?.enabled) {
 			const cached = this.cache.getServerList();
 			if (cached) return cached;
 		}
+		const statuses = this.clientManager.getConnectionStatuses();
 		const servers = Object.entries(this.mcpServers).map(([name, config]) => {
 			const tools = this.metadataManager.getToolsByServer(name, true);
 			const enabledTools = tools.filter((t) => t.enabled);
@@ -607,7 +777,7 @@ var DiscoveryEngine = class {
 				description: config.description || `MCP server: ${name}`,
 				toolCount: tools.length,
 				enabledCount: enabledTools.length,
-				status: "connected",
+				status: statuses.get(name) || "disconnected",
 				config: {
 					command: config.command,
 					args: config.args || [],
@@ -626,6 +796,7 @@ var DiscoveryEngine = class {
 	* @returns Array of search results
 	*/
 	async searchTools(query, options) {
+		await this.initialize();
 		const tools = this.metadataManager.getAllTools(options?.includeDisabled);
 		this.searchEngine.index(tools);
 		return this.searchEngine.search(query, options);
@@ -638,6 +809,7 @@ var DiscoveryEngine = class {
 	* @returns Array of tool metadata
 	*/
 	async listTools(server, includeDisabled = false) {
+		await this.initialize();
 		if (this.config.cache?.enabled && !includeDisabled) {
 			const cached = this.cache.getToolSummaries(server);
 			if (cached) return cached;
@@ -671,6 +843,7 @@ var DiscoveryEngine = class {
 	* @returns Execution result
 	*/
 	async executeTool(server, tool, args) {
+		await this.initialize();
 		const toolMetadata = this.metadataManager.getTool(server, tool);
 		if (!toolMetadata) return {
 			success: false,
@@ -690,14 +863,39 @@ var DiscoveryEngine = class {
 				tool
 			}
 		};
-		return this.executionProxy.execute(server, tool, args);
+		try {
+			return {
+				success: true,
+				result: await this.clientManager.executeTool(server, tool, args)
+			};
+		} catch (error) {
+			return {
+				success: false,
+				error: {
+					code: "EXECUTION_ERROR",
+					message: error instanceof Error ? error.message : String(error),
+					server,
+					tool
+				}
+			};
+		}
 	}
 	/**
 	* Reload configuration
 	*/
 	async reload() {
+		await this.clientManager.disconnectAll();
 		this.cache.invalidateAll();
-		this.applyConfiguration();
+		this.metadataManager.clearAll();
+		this.initialized = false;
+		await this.initialize();
+	}
+	/**
+	* Cleanup and disconnect from all servers
+	*/
+	async dispose() {
+		await this.clientManager.disconnectAll();
+		this.initialized = false;
 	}
 	/**
 	* Get current configuration
@@ -711,10 +909,10 @@ var DiscoveryEngine = class {
 	* Apply configuration to components
 	*/
 	applyConfiguration() {
-		if (this.config.toolRules && this.config.toolRules.length > 0) this.metadataManager.applyRules(this.config.toolRules);
+		if (this.config.rules && this.config.rules.length > 0) this.metadataManager.applyRules(this.config.rules);
 	}
 };
 
 //#endregion
-export { CachingLayer, ConfigurationLoader, DiscoveryEngine, PatternMatcher, SearchEngine, ToolExecutionProxy, ToolMetadataManager };
+export { CachingLayer, ConfigurationLoader, DiscoveryEngine, MCPClientManager, SearchEngine, ToolExecutionProxy, ToolMetadataManager };
 //# sourceMappingURL=index.js.map

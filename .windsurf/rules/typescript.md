@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # TypeScript Rules
 
 ## Type Safety

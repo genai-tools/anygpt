@@ -1,0 +1,53 @@
+{
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Read a file safely",
+      "arguments": [
+        {
+          "name": "path",
+          "type": "string",
+          "desc": "File path to read"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "name": "delete_file",
+      "description": "Delete a file permanently",
+      "arguments": [
+        {
+          "name": "path",
+          "type": "string",
+          "desc": "File path to delete"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "name": "destroy_database",
+      "description": "Destroy the entire database",
+      "arguments": [
+        {
+          "name": "database_name",
+          "type": "string",
+          "desc": "Name of database to destroy"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "name": "force_update",
+      "description": "Force update without confirmation",
+      "arguments": [
+        {
+          "name": "resource_id",
+          "type": "string",
+          "desc": "Resource to force update"
+        }
+      ],
+      "enabled": true
+    }
+  ],
+  "readme": "# Test Server B\n\nServer with dangerous operations for testing rule filtering."
+}

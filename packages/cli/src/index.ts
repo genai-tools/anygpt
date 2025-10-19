@@ -340,8 +340,11 @@ const mcp = program
 mcp
   .command('list')
   .description('List all configured MCP servers')
-  .option('--status', 'show connection status')
-  .option('--tools', 'show tool counts')
+  .option('--tools', 'show tool list with descriptions')
+  .option('--compact', 'show tools in compact comma-separated format (use with --tools)')
+  .option('--enabled', 'show only enabled servers')
+  .option('--disabled', 'show only disabled servers')
+  .option('--all', 'show all servers (default)')
   .option('--json', 'output as JSON')
   .action(withCLIContext(mcpListCommand));
 
@@ -362,16 +365,18 @@ mcp
   .action(withCLIContext(mcpToolsCommand));
 
 mcp
-  .command('inspect <server> <tool>')
-  .description('Get detailed information about a specific tool')
+  .command('inspect <tool>')
+  .description('Get detailed information about a tool (auto-resolves server if tool name is unique)')
+  .option('--server <name>', 'specify server name (optional if tool is unique)')
   .option('--examples', 'show usage examples')
   .option('--json', 'output as JSON')
   .action(withCLIContext(mcpInspectCommand));
 
 mcp
-  .command('execute <server> <tool>')
-  .description('Execute a tool from any discovered MCP server')
-  .option('--args <json>', 'tool arguments as JSON string')
+  .command('execute <tool> [args...]')
+  .description('Execute a tool (auto-resolves server if tool name is unique)')
+  .option('--server <name>', 'specify server name (optional if tool is unique)')
+  .option('--args <json>', 'tool arguments as JSON string (overrides positional args)')
   .option('--json', 'output as JSON')
   .option('--stream', 'stream output (if supported)')
   .action(withCLIContext(mcpExecuteCommand));

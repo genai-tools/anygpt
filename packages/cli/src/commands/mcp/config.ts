@@ -1,4 +1,5 @@
 import { DiscoveryEngine } from '@anygpt/mcp-discovery';
+import type { MCPServerConfig } from '@anygpt/mcp-discovery';
 import type { CLIContext } from '../../utils/cli-context.js';
 
 interface ConfigOptions {
@@ -57,6 +58,22 @@ export async function mcpConfigShowCommand(
       }
     }
     
+    // Show MCP servers
+    const serverCount = Object.keys(config.mcpServers || {}).length;
+    if (serverCount > 0) {
+      console.log(`\n  MCP Servers (${serverCount}):`);
+      for (const [name, serverConfig] of Object.entries(config.mcpServers || {})) {
+        const cfg = serverConfig as MCPServerConfig;
+        console.log(`    • ${name}`);
+        console.log(`      Command: ${cfg.command} ${cfg.args?.join(' ') || ''}`);
+        if (cfg.env && Object.keys(cfg.env).length > 0) {
+          console.log(`      Env vars: ${Object.keys(cfg.env).join(', ')}`);
+        }
+      }
+    } else {
+      console.log(`\n  MCP Servers: None configured`);
+    }
+    
     console.log('');
   } catch (error) {
     logger.error('Failed to show config:', error);
@@ -73,15 +90,15 @@ export async function mcpConfigValidateCommand(
 ): Promise<void> {
   const { config, logger } = context;
 
+  const discoveryConfig = config.discovery || {
+    enabled: true,
+    cache: { enabled: true, ttl: 3600 }
+  };
+  
+  // Initialize engine to validate config
+  const engine = new DiscoveryEngine(discoveryConfig, config.mcpServers);
+
   try {
-    const discoveryConfig = config.discovery || {
-      enabled: true,
-      cache: { enabled: true, ttl: 3600 }
-    };
-    
-    // Initialize engine to validate config
-    const engine = new DiscoveryEngine(discoveryConfig, config.mcpServers);
-    
     if (options.json) {
       console.log(JSON.stringify({ valid: true, config: discoveryConfig }, null, 2));
       return;
@@ -100,6 +117,9 @@ export async function mcpConfigValidateCommand(
     console.log(`\n✗ Configuration is invalid\n`);
     logger.error('Validation failed:', error);
     throw error;
+  } finally {
+    // Always cleanup: disconnect from all MCP servers
+    await engine.dispose();
   }
 }
 
@@ -112,13 +132,14 @@ export async function mcpConfigReloadCommand(
 ): Promise<void> {
   const { config, logger } = context;
 
+  const discoveryConfig = config.discovery || {
+    enabled: true,
+    cache: { enabled: true, ttl: 3600 }
+  };
+  
+  const engine = new DiscoveryEngine(discoveryConfig, config.mcpServers);
+
   try {
-    const discoveryConfig = config.discovery || {
-      enabled: true,
-      cache: { enabled: true, ttl: 3600 }
-    };
-    
-    const engine = new DiscoveryEngine(discoveryConfig, config.mcpServers);
     await engine.reload();
     
     if (options.json) {
@@ -130,5 +151,8 @@ export async function mcpConfigReloadCommand(
   } catch (error) {
     logger.error('Failed to reload config:', error);
     throw error;
+  } finally {
+    // Always cleanup: disconnect from all MCP servers
+    await engine.dispose();
   }
 }

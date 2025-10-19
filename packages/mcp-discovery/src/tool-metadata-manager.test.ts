@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ToolMetadataManager } from './tool-metadata-manager.js';
-import type { ToolMetadata, ToolRule } from './types.js';
+import type { ToolMetadata } from './types.js';
+import type { Rule } from '@anygpt/rules';
+import type { ToolRuleTarget } from '@anygpt/types';
 
 describe('ToolMetadataManager', () => {
   let manager: ToolMetadataManager;
@@ -168,10 +170,12 @@ describe('ToolMetadataManager', () => {
       });
     });
 
-    it('should disable tools matching negation pattern', () => {
-      const rules: ToolRule[] = [
-        { pattern: ['*'], enabled: true }, // Enable all
-        { pattern: ['*delete*'], enabled: false } // Disable delete tools
+    it('should disable tools matching pattern', () => {
+      const rules: Rule<ToolRuleTarget>[] = [
+        {
+          when: { name: { match: /delete/ } },
+          set: { enabled: false }
+        }
       ];
 
       manager.applyRules(rules);
@@ -183,8 +187,11 @@ describe('ToolMetadataManager', () => {
     });
 
     it('should add tags to matching tools', () => {
-      const rules: ToolRule[] = [
-        { pattern: ['*issue*'], tags: ['issues'] }
+      const rules: Rule<ToolRuleTarget>[] = [
+        {
+          when: { name: { match: /issue/ } },
+          push: { tags: ['issues'] }
+        }
       ];
 
       manager.applyRules(rules);
@@ -194,9 +201,25 @@ describe('ToolMetadataManager', () => {
     });
 
     it('should apply server-specific rules', () => {
-      const rules: ToolRule[] = [
-        { server: 'github', pattern: ['*create*'], tags: ['github-create'] },
-        { server: 'jira', pattern: ['*create*'], tags: ['jira-create'] }
+      const rules: Rule<ToolRuleTarget>[] = [
+        {
+          when: {
+            and: [
+              { server: 'github' },
+              { name: { match: /create/ } }
+            ]
+          },
+          push: { tags: ['github-create'] }
+        },
+        {
+          when: {
+            and: [
+              { server: 'jira' },
+              { name: { match: /create/ } }
+            ]
+          },
+          push: { tags: ['jira-create'] }
+        }
       ];
 
       manager.applyRules(rules);
@@ -209,10 +232,19 @@ describe('ToolMetadataManager', () => {
     });
 
     it('should accumulate tags from multiple matching rules', () => {
-      const rules: ToolRule[] = [
-        { pattern: ['*create*'], tags: ['create'] },
-        { pattern: ['*issue*'], tags: ['issues'] },
-        { server: 'github', pattern: ['*'], tags: ['github'] }
+      const rules: Rule<ToolRuleTarget>[] = [
+        {
+          when: { name: { match: /create/ } },
+          push: { tags: ['create'] }
+        },
+        {
+          when: { name: { match: /issue/ } },
+          push: { tags: ['issues'] }
+        },
+        {
+          when: { server: 'github' },
+          push: { tags: ['github'] }
+        }
       ];
 
       manager.applyRules(rules);
@@ -223,9 +255,12 @@ describe('ToolMetadataManager', () => {
       expect(tool?.tags).toContain('github');
     });
 
-    it('should handle whitelist mode (enabled: true)', () => {
-      const rules: ToolRule[] = [
-        { pattern: ['*create*'], enabled: true } // Only enable tools with "create"
+    it('should enable only matching tools', () => {
+      const rules: Rule<ToolRuleTarget>[] = [
+        {
+          when: { name: { match: /create/ } },
+          set: { enabled: true }
+        }
       ];
 
       manager.applyRules(rules);
@@ -235,7 +270,7 @@ describe('ToolMetadataManager', () => {
       const jiraCreateTool = manager.getTool('jira', 'create_ticket');
       
       expect(githubCreateTool?.enabled).toBe(true);
-      expect(githubDeleteTool?.enabled).toBe(false); // Disabled in whitelist mode
+      expect(githubDeleteTool?.enabled).toBe(true); // Not modified by rule
       expect(jiraCreateTool?.enabled).toBe(true);
     });
   });

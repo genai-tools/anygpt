@@ -2,6 +2,8 @@
  * Configuration types for AnyGPT
  */
 
+import type { MCPConfig } from './mcp.js';
+
 /**
  * Connector configuration with dynamic loading
  */
@@ -38,20 +40,6 @@ export interface ProviderConfig {
 }
 
 /**
- * MCP Server configuration
- */
-export interface MCPServerConfig {
-  /** Command to execute */
-  command: string;
-  /** Command arguments */
-  args?: string[];
-  /** Environment variables */
-  env?: Record<string, string>;
-  /** Human-readable description */
-  description?: string;
-}
-
-/**
  * Main AnyGPT configuration
  */
 export interface AnyGPTConfig {
@@ -61,28 +49,8 @@ export interface AnyGPTConfig {
   /** Provider configurations */
   providers?: Record<string, ProviderConfig>;
   
-  /** MCP Server configurations */
-  mcpServers?: Record<string, MCPServerConfig>;
-  
-  /** MCP Discovery configuration */
-  discovery?: {
-    enabled?: boolean;
-    cache?: {
-      enabled?: boolean;
-      ttl?: number;
-    };
-    sources?: Array<{
-      type: string;
-      path?: string;
-      url?: string;
-    }>;
-    toolRules?: Array<{
-      pattern: string | string[];
-      enabled?: boolean;
-      server?: string;
-      tags?: string[];
-    }>;
-  };
+  /** MCP configuration */
+  mcp?: MCPConfig;
   
   /** Global settings */
   settings?: {

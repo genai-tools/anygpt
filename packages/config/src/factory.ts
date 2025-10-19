@@ -2,7 +2,7 @@
  * Config factory for direct connector instantiation
  */
 
-import type { IConnector, ExtraBodyParams } from '@anygpt/types';
+import type { IConnector, ExtraBodyParams, MCPConfig } from '@anygpt/types';
 
 /**
  * Reasoning effort levels matching OpenAI's ReasoningEffort type
@@ -120,6 +120,8 @@ export interface FactoryConfig {
     modelRules?: ModelRule[];
   };
   providers: Record<string, FactoryProviderConfig>;
+  // MCP configuration
+  mcp?: MCPConfig;
 }
 
 /**

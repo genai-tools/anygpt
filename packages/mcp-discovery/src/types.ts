@@ -2,6 +2,9 @@
  * Discovery configuration types
  */
 
+import type { Rule } from '@anygpt/rules';
+import type { MCPToolRuleTarget } from '@anygpt/types';
+
 /**
  * Cache configuration
  */
@@ -10,20 +13,6 @@ export interface CacheConfig {
   enabled: boolean;
   /** Time-to-live in seconds */
   ttl: number;
-}
-
-/**
- * Tool rule for pattern-based filtering
- */
-export interface ToolRule {
-  /** Glob or regex patterns to match tool names */
-  pattern: string[];
-  /** Optional: server name to apply rule to */
-  server?: string;
-  /** Whether tools matching this pattern are enabled */
-  enabled?: boolean;
-  /** Tags to apply to matching tools */
-  tags?: string[];
 }
 
 /**
@@ -42,6 +31,27 @@ export interface ConfigSource {
 }
 
 /**
+ * Server initialization progress event
+ */
+export interface ServerProgress {
+  /** Server name */
+  server: string;
+  /** Progress status */
+  status: 'connecting' | 'discovering' | 'connected' | 'error';
+  /** Status message */
+  message?: string;
+  /** Error if status is 'error' */
+  error?: string;
+  /** Number of tools discovered (if status is 'connected') */
+  toolCount?: number;
+}
+
+/**
+ * Progress callback for initialization
+ */
+export type ProgressCallback = (progress: ServerProgress) => void;
+
+/**
  * Discovery configuration
  */
 export interface DiscoveryConfig {
@@ -51,8 +61,8 @@ export interface DiscoveryConfig {
   cache?: CacheConfig;
   /** Configuration sources */
   sources?: ConfigSource[];
-  /** Tool filtering rules */
-  toolRules?: ToolRule[];
+  /** Rules for filtering and tagging tools */
+  rules?: Rule<ToolRuleTarget>[];
 }
 
 /**
@@ -65,6 +75,10 @@ export interface MCPServerConfig {
   args: string[];
   /** Environment variables */
   env?: Record<string, string>;
+  /** Source/origin of this server config (e.g., 'docker-mcp-plugin', 'config-file', 'claude-desktop') */
+  source?: string;
+  /** Optional description */
+  description?: string;
 }
 
 /**

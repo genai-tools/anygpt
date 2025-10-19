@@ -3,7 +3,7 @@
  */
 
 import { GenAIRouter } from '@anygpt/router';
-import { loadConfig } from './loader.js';
+import { loadConfig, normalizeMCPServers } from './loader.js';
 import { loadConnectors } from './connector-loader.js';
 import type { AnyGPTConfig, ConfigLoadOptions } from '@anygpt/types';
 import type {
@@ -51,9 +51,15 @@ export async function setupRouterFromFactory(
   factoryConfig: FactoryConfig,
   logger?: Logger
 ): Promise<{ router: GenAIRouter; config: FactoryConfig }> {
+  // Normalize mcpServers if present (convert array format to object format)
+  const normalizedConfig = {
+    ...factoryConfig,
+    mcpServers: normalizeMCPServers(factoryConfig.mcpServers),
+  };
+
   // Convert factory providers to router provider format for validation
   const routerProviders: Record<string, RouterProviderConfig> = {};
-  for (const providerId of Object.keys(factoryConfig.providers)) {
+  for (const providerId of Object.keys(normalizedConfig.providers)) {
     routerProviders[providerId] = {
       type: providerId, // Use provider ID as type for factory configs
       api: {
@@ -66,14 +72,14 @@ export async function setupRouterFromFactory(
 
   // Create router with basic settings and provider configs for validation
   const router = new GenAIRouter({
-    timeout: factoryConfig.defaults?.timeout || 30000,
-    maxRetries: factoryConfig.defaults?.maxRetries || 3,
+    timeout: normalizedConfig.defaults?.timeout || 30000,
+    maxRetries: normalizedConfig.defaults?.maxRetries || 3,
     providers: routerProviders,
   });
 
   // Register each connector directly with the router
   for (const [providerId, providerConfig] of Object.entries(
-    factoryConfig.providers
+    normalizedConfig.providers
   )) {
     const connector = providerConfig.connector;
 
@@ -100,7 +106,7 @@ export async function setupRouterFromFactory(
     router.registerConnector(factory);
   }
 
-  return { router, config: factoryConfig };
+  return { router, config: normalizedConfig };
 }
 /**
  * Convert AnyGPT config providers to router format

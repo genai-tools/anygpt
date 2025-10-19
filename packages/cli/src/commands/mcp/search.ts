@@ -17,15 +17,15 @@ export async function mcpSearchCommand(
 ): Promise<void> {
   const { config, logger } = context;
 
+  // Initialize discovery engine
+  const discoveryConfig = config.discovery || {
+    enabled: true,
+    cache: { enabled: true, ttl: 3600 }
+  };
+  
+  const engine = new DiscoveryEngine(discoveryConfig, config.mcpServers);
+
   try {
-    // Initialize discovery engine
-    const discoveryConfig = config.discovery || {
-      enabled: true,
-      cache: { enabled: true, ttl: 3600 }
-    };
-    
-    const engine = new DiscoveryEngine(discoveryConfig, config.mcpServers);
-    
     // Search for tools
     const results = await engine.searchTools(query, {
       server: options.server,
@@ -51,7 +51,11 @@ export async function mcpSearchCommand(
     for (const result of results) {
       console.log(`  ${result.server}/${result.tool}`);
       console.log(`    ${result.summary}`);
-      console.log(`    Score: ${result.score.toFixed(2)}`);
+      
+      // Only show score if it exists
+      if (result.score !== undefined && result.score !== null) {
+        console.log(`    Score: ${result.score.toFixed(2)}`);
+      }
       
       if (result.tags && result.tags.length > 0) {
         console.log(`    Tags: ${result.tags.join(', ')}`);
@@ -62,5 +66,8 @@ export async function mcpSearchCommand(
   } catch (error) {
     logger.error('Failed to search tools:', error);
     throw error;
+  } finally {
+    // Always cleanup: disconnect from all MCP servers
+    await engine.dispose();
   }
 }

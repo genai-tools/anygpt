@@ -20,6 +20,7 @@
     "paths": {
       "@anygpt/cli": ["./packages/cli/src"],
       "@anygpt/config": ["./packages/config/src"],
+      "@anygpt/docker-mcp-plugin": ["./packages/plugins/docker-mcp/src"],
       "@anygpt/mcp": ["./packages/mcp/src"],
       "@anygpt/mcp-discovery": ["./packages/mcp-discovery/src"],
       "@anygpt/mcp-discovery-server": ["./packages/mcp-discovery-server/src"],

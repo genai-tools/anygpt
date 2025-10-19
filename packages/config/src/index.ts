@@ -75,6 +75,14 @@ export {
 // Glob pattern matching for model filtering
 export { matchesGlobPatterns } from './glob-matcher.js';
 
+// Plugin system (unplugin-style)
+export { defineConfig, resolveConfig } from './plugins/define-config.js';
+export type { Plugin, PluginContext, PluginFactory, BasePluginOptions } from './plugins/types.js';
+
+// Re-export rule engine from @anygpt/rules for convenience
+export { RuleEngine } from '@anygpt/rules';
+export type { Rule, RuleCondition, LogicalCondition, RuleOperator } from '@anygpt/rules';
+
 // Note: Connector factory functions (like openai()) should be imported directly
 // from their packages to keep config package connector-agnostic:
 // import { openai } from '@anygpt/openai';

@@ -1,0 +1,75 @@
+{
+  "tools": [
+    {
+      "name": "create_resource",
+      "description": "Create a new resource",
+      "arguments": [
+        {
+          "name": "data",
+          "type": "object",
+          "desc": "Resource data"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "name": "get_resource",
+      "description": "Get resource by ID",
+      "arguments": [
+        {
+          "name": "id",
+          "type": "string",
+          "desc": "Resource ID"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "name": "update_resource",
+      "description": "Update existing resource",
+      "arguments": [
+        {
+          "name": "id",
+          "type": "string",
+          "desc": "Resource ID"
+        },
+        {
+          "name": "data",
+          "type": "object",
+          "desc": "Updated data"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "name": "remove_resource",
+      "description": "Remove a resource",
+      "arguments": [
+        {
+          "name": "id",
+          "type": "string",
+          "desc": "Resource ID to remove"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "name": "search_resources",
+      "description": "Search for resources",
+      "arguments": [
+        {
+          "name": "query",
+          "type": "string",
+          "desc": "Search query"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "name": "list_all",
+      "description": "List all resources",
+      "enabled": true
+    }
+  ],
+  "readme": "# Test Server C\n\nServer with mixed CRUD operations for comprehensive testing."
+}

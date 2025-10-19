@@ -44,6 +44,9 @@
     "build:dts": "tsc --project tsconfig.lib.json"
   },
   "dependencies": {
-    "@anygpt/config": "2.0.0"
+    "@anygpt/config": "2.0.0",
+    "@anygpt/rules": "0.1.0",
+    "@anygpt/types": "1.2.0",
+    "@modelcontextprotocol/sdk": "1.20.0"
   }
 }

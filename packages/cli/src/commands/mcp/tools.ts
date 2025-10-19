@@ -17,15 +17,15 @@ export async function mcpToolsCommand(
 ): Promise<void> {
   const { config, logger } = context;
 
+  // Initialize discovery engine
+  const discoveryConfig = config.discovery || {
+    enabled: true,
+    cache: { enabled: true, ttl: 3600 }
+  };
+  
+  const engine = new DiscoveryEngine(discoveryConfig, config.mcpServers);
+
   try {
-    // Initialize discovery engine
-    const discoveryConfig = config.discovery || {
-      enabled: true,
-      cache: { enabled: true, ttl: 3600 }
-    };
-    
-    const engine = new DiscoveryEngine(discoveryConfig, config.mcpServers);
-    
     // Get tools from server
     const tools = await engine.listTools(serverName);
     
@@ -64,5 +64,8 @@ export async function mcpToolsCommand(
   } catch (error) {
     logger.error('Failed to list tools:', error);
     throw error;
+  } finally {
+    // Always cleanup: disconnect from all MCP servers
+    await engine.dispose();
   }
 }

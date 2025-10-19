@@ -1,0 +1,22 @@
+{
+  "tools": [
+    {
+      "name": "get_data",
+      "description": "Get some data",
+      "arguments": [
+        {
+          "name": "id",
+          "type": "string",
+          "desc": "The ID of the data to retrieve"
+        }
+      ],
+      "enabled": true
+    },
+    {
+      "name": "list_items",
+      "description": "List all items",
+      "enabled": true
+    }
+  ],
+  "readme": "# Test Server A\n\nA basic test server with simple read operations."
+}

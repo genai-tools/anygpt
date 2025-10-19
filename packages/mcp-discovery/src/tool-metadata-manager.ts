@@ -1,12 +1,13 @@
-import type { ToolMetadata, ToolRule } from './types.js';
-import { PatternMatcher } from './pattern-matcher.js';
+import type { ToolMetadata } from './types.js';
+import type { Rule } from '@anygpt/rules';
+import type { ToolRuleTarget } from '@anygpt/types';
+import { RuleEngine } from '@anygpt/rules';
 
 /**
  * Tool metadata manager for storing and filtering tools
  */
 export class ToolMetadataManager {
   private tools: Map<string, ToolMetadata> = new Map();
-  private patternMatcher: PatternMatcher = new PatternMatcher();
 
   /**
    * Add or update a tool
@@ -16,6 +17,41 @@ export class ToolMetadataManager {
   addTool(tool: ToolMetadata): void {
     const key = this.getToolKey(tool.server, tool.name);
     this.tools.set(key, tool);
+  }
+
+  /**
+   * Add multiple tools at once
+   * 
+   * @param tools - Array of tool metadata to add
+   */
+  addTools(tools: ToolMetadata[]): void {
+    for (const tool of tools) {
+      this.addTool(tool);
+    }
+  }
+
+  /**
+   * Clear all tools for a specific server
+   * 
+   * @param server - Server name
+   */
+  clearServerTools(server: string): void {
+    const keysToDelete: string[] = [];
+    for (const [key, tool] of this.tools.entries()) {
+      if (tool.server === server) {
+        keysToDelete.push(key);
+      }
+    }
+    for (const key of keysToDelete) {
+      this.tools.delete(key);
+    }
+  }
+
+  /**
+   * Clear all tools
+   */
+  clearAll(): void {
+    this.tools.clear();
   }
 
   /**
@@ -70,41 +106,33 @@ export class ToolMetadataManager {
   }
 
   /**
-   * Apply filtering rules to all tools
+   * Apply filtering rules to all tools using rule engine
    * 
-   * @param rules - Array of tool rules
+   * @param rules - Array of rules from @anygpt/rules
    */
-  applyRules(rules: ToolRule[]): void {
-    // Check if whitelist mode (any rule has enabled: true)
-    const hasWhitelist = rules.some(r => r.enabled === true);
+  applyRules(rules: Rule<ToolRuleTarget>[]): void {
+    if (!rules || rules.length === 0) {
+      return;
+    }
+
+    const engine = new RuleEngine(rules);
 
     // Apply rules to each tool
     for (const tool of this.tools.values()) {
-      // Start with default enabled status
-      let enabled = !hasWhitelist; // In whitelist mode, default is disabled
-      const tags: string[] = [...tool.tags];
+      // Convert ToolMetadata to ToolRuleTarget
+      const target: ToolRuleTarget = {
+        server: tool.server,
+        name: tool.name,
+        enabled: tool.enabled,
+        tags: [...tool.tags]
+      };
 
-      // Process rules in order
-      for (const rule of rules) {
-        // Check if rule matches this tool
-        if (!this.patternMatcher.matchRule(tool.name, tool.server, rule)) {
-          continue;
-        }
+      // Apply rules
+      const result = engine.apply(target);
 
-        // First matching rule with enabled field sets the status
-        if (rule.enabled !== undefined) {
-          enabled = rule.enabled;
-        }
-
-        // Accumulate tags from all matching rules
-        if (rule.tags) {
-          tags.push(...rule.tags);
-        }
-      }
-
-      // Update tool with new enabled status and tags
-      tool.enabled = enabled;
-      tool.tags = [...new Set(tags)]; // Deduplicate tags
+      // Update tool with results
+      tool.enabled = result.enabled;
+      tool.tags = [...new Set(result.tags)]; // Deduplicate tags
     }
   }
 

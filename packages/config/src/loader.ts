@@ -5,9 +5,10 @@
 import { readFile, access } from 'fs/promises';
 import { join, resolve } from 'path';
 import { homedir } from 'os';
-import type { AnyGPTConfig, ConfigLoadOptions } from '@anygpt/types';
+import type { AnyGPTConfig, ConfigLoadOptions, MCPServerConfig } from '@anygpt/types';
 import { getDefaultConfig } from './defaults.js';
 import { ConfigParseError, ConfigValidationError } from './errors.js';
+import { resolveConfig, type ConfigWithPlugins } from './plugins/define-config.js';
 
 /**
  * Default configuration paths to search
@@ -140,13 +141,46 @@ async function findConfigFile(): Promise<string | null> {
 }
 
 /**
+ * Normalize MCP servers from array to object format
+ */
+export function normalizeMCPServers(
+  mcpServers: Record<string, MCPServerConfig> | MCPServerConfig[] | undefined
+): Record<string, MCPServerConfig> | undefined {
+  if (!mcpServers) {
+    return undefined;
+  }
+
+  // Already in object format
+  if (!Array.isArray(mcpServers)) {
+    return mcpServers;
+  }
+
+  // Convert array to object format
+  const normalized: Record<string, MCPServerConfig> = {};
+  
+  for (const server of mcpServers) {
+    if (!server.name) {
+      throw new ConfigValidationError([
+        'MCP server in array format must have a "name" field'
+      ]);
+    }
+    
+    // Extract name and create config without it
+    const { name, ...config } = server;
+    normalized[name] = config;
+  }
+
+  return normalized;
+}
+
+/**
  * Merge configurations with deep merge
  */
 function mergeConfigs(
   base: AnyGPTConfig,
   override: Partial<AnyGPTConfig>
 ): AnyGPTConfig {
-  const result: AnyGPTConfig = {
+  const result: AnyGPTConfig & Record<string, unknown> = {
     ...base,
     ...override,
     providers: {
@@ -163,26 +197,34 @@ function mergeConfigs(
     },
   };
 
-  // Only merge mcpServers if either base or override has them
-  if (base.mcpServers || override.mcpServers) {
-    result.mcpServers = {
-      ...base.mcpServers,
-      ...override.mcpServers,
+  // Normalize and merge mcpServers if either base or override has them
+  const baseWithMcp = base as typeof base & { mcpServers?: Record<string, MCPServerConfig> };
+  const overrideWithMcp = override as typeof override & { mcpServers?: Record<string, MCPServerConfig> };
+  if (baseWithMcp.mcpServers || overrideWithMcp.mcpServers) {
+    const normalizedBase = normalizeMCPServers(baseWithMcp.mcpServers);
+    const normalizedOverride = normalizeMCPServers(overrideWithMcp.mcpServers);
+    result['mcpServers'] = {
+      ...normalizedBase,
+      ...normalizedOverride,
     };
   }
 
   // Only merge discovery if either base or override has it
-  if (base.discovery || override.discovery) {
-    result.discovery = {
-      ...base.discovery,
-      ...override.discovery,
+  const baseWithDiscovery = base as typeof base & { discovery?: Record<string, unknown> };
+  const overrideWithDiscovery = override as typeof override & { discovery?: Record<string, unknown> };
+  if (baseWithDiscovery.discovery || overrideWithDiscovery.discovery) {
+    result['discovery'] = {
+      ...baseWithDiscovery.discovery,
+      ...overrideWithDiscovery.discovery,
     };
     
     // Merge cache if either has it
-    if (base.discovery?.cache || override.discovery?.cache) {
-      result.discovery.cache = {
-        ...base.discovery?.cache,
-        ...override.discovery?.cache,
+    const baseCache = baseWithDiscovery.discovery?.['cache'] as Record<string, unknown> | undefined;
+    const overrideCache = overrideWithDiscovery.discovery?.['cache'] as Record<string, unknown> | undefined;
+    if (baseCache || overrideCache) {
+      (result['discovery'] as Record<string, unknown>)['cache'] = {
+        ...baseCache,
+        ...overrideCache,
       };
     }
   }
@@ -198,21 +240,24 @@ export async function loadConfig(
 ): Promise<AnyGPTConfig> {
   const { configPath, mergeDefaults = !configPath } = options; // Don't merge defaults when explicit config provided
 
-  let config: AnyGPTConfig;
+  let configWithPlugins: ConfigWithPlugins;
 
   if (configPath) {
     // Load specific config file
-    config = await loadConfigFile(configPath);
+    configWithPlugins = await loadConfigFile(configPath);
   } else {
     // Find and load default config
     const foundPath = await findConfigFile();
     if (foundPath) {
-      config = await loadConfigFile(foundPath);
+      configWithPlugins = await loadConfigFile(foundPath);
     } else {
       // No config file found, use defaults
-      config = getDefaultConfig();
+      configWithPlugins = getDefaultConfig();
     }
   }
+
+  // Process plugins first (if any)
+  let config = await resolveConfig(configWithPlugins);
 
   // Merge with defaults if requested
   const defaultConfig = getDefaultConfig();

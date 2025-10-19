@@ -39,5 +39,8 @@
   "homepage": "https://github.com/genai-tools/anygpt#readme",
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "@anygpt/rules": "0.1.0"
   }
 }

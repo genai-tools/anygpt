@@ -56,6 +56,17 @@ export type {
   IConnectorRegistry,
 } from './connector.js';
 
+// MCP types
+export type {
+  MCPServerConfig,
+  MCPServerRuleTarget,
+  MCPToolRuleTarget,
+  MCPDiscoverySource,
+  MCPDiscoveryCache,
+  MCPDiscoveryConfig,
+  MCPConfig,
+} from './mcp.js';
+
 // Configuration types
 export type {
   ConnectorConfig,
