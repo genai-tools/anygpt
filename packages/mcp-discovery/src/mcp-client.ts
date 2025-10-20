@@ -29,6 +29,10 @@ interface JsonSchema {
 
 /**
  * Convert JSON Schema to ToolParameter array
+ *
+ * Parameters are ordered by:
+ * 1. Required parameters first (alphabetically)
+ * 2. Optional parameters second (alphabetically)
  */
 function convertJsonSchemaToParameters(
   inputSchema: JsonSchema | undefined
@@ -50,6 +54,15 @@ function convertJsonSchemaToParameters(
       default: schema.default,
     });
   }
+
+  // Sort parameters: required first (alphabetically), then optional (alphabetically)
+  parameters.sort((a, b) => {
+    // If one is required and the other isn't, required comes first
+    if (a.required && !b.required) return -1;
+    if (!a.required && b.required) return 1;
+    // If both have same required status, sort alphabetically
+    return a.name.localeCompare(b.name);
+  });
 
   return parameters;
 }
