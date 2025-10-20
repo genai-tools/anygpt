@@ -3,13 +3,31 @@
     "anygpt": {
       "type": "stdio",
       "command": "npx",
-      "args": ["anygpt-mcp"],
+      "args": [
+        "anygpt-mcp"
+      ],
       "alwaysAllow": [
         "anygpt_list_providers",
         "anygpt_chat_completion",
         "anygpt_list_models",
         "anygpt_list_tags"
-      ]
+      ],
+      "disabled": true
+    },
+    "discovery": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@anygpt/mcp-discovery-server"
+      ],
+      "alwaysAllow": [
+        "list_mcp_servers",
+        "search_tools",
+        "list_tools",
+        "get_tool_details",
+        "execute_tool"
+      ],
+      "disabled": false
     }
   }
 }
