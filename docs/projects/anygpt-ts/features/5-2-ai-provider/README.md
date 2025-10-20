@@ -2,7 +2,7 @@
 
 |                       |                                                                                             |
 | --------------------- | ------------------------------------------------------------------------------------------- |
-| **Status**            | 🔒 Blocked by 5-1                                                                           |
+| **Status**            | 🚀 In Progress                                                                              |
 | **Progress**          | 0/10 tasks (0%)                                                                             |
 | **Spec**              | [Agentic Chat](../../../../products/anygpt/specs/anygpt/agentic-chat.md)                   |
 | **Use Case**          | [Agentic CI/CD Automation](../../../../products/anygpt/cases/agentic-cicd-automation.md)   |
@@ -26,17 +26,30 @@ Integrate AI providers (OpenAI, Anthropic) with function calling support. Enable
 
 ## Design Summary
 
+**IMPORTANT**: This package wraps `@anygpt/router` - it does NOT call OpenAI/Anthropic directly!
+
+### Architecture
+
+```
+@anygpt/ai-provider (THIS PACKAGE)
+  ↓ uses
+@anygpt/router (EXISTS)
+  ↓ uses
+@anygpt/connector-* (EXISTS)
+```
+
 ### Core Components
 
 1. **AI Provider Interface**
-   - Unified interface for OpenAI/Anthropic
-   - Function calling support
+   - Wraps `@anygpt/router` for agentic capabilities
+   - Function calling support (normalizes across providers)
    - Streaming responses
    - Token usage tracking
 
-2. **Provider Implementations**
-   - OpenAI provider (function calling)
-   - Anthropic provider (tool use)
+2. **Provider Wrapper**
+   - Uses router.chatCompletion() internally
+   - Adds function calling abstraction
+   - Normalizes tool formats (OpenAI vs Anthropic)
    - Error handling and retries
 
 3. **Message Formatting**
@@ -121,11 +134,11 @@ interface ChatResponse {
 ## Dependencies
 
 - **Internal**:
+  - `@anygpt/router` (**CRITICAL** - uses this, not direct API calls)
   - `@anygpt/config` (model selection)
   - Feature 5-1 (chat-loop)
 - **External**:
-  - `openai` SDK
-  - `@anthropic-ai/sdk`
+  - None (router handles all external SDKs)
 
 ## Success Metrics
 
