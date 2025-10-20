@@ -5,7 +5,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
   type CallToolRequest,
-  type Tool
+  type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { DiscoveryEngine, type DiscoveryConfig } from '@anygpt/mcp-discovery';
 
@@ -47,30 +47,31 @@ export class DiscoveryMCPServer {
         inputSchema: {
           type: 'object',
           properties: {},
-          required: []
-        }
+          required: [],
+        },
       },
       {
         name: 'search_tools',
-        description: 'Search for tools across all MCP servers using free-text query',
+        description:
+          'Search for tools across all MCP servers using free-text query',
         inputSchema: {
           type: 'object',
           properties: {
             query: {
               type: 'string',
-              description: 'Search query (e.g., "github issue", "read file")'
+              description: 'Search query (e.g., "github issue", "read file")',
             },
             server: {
               type: 'string',
-              description: 'Optional: Filter by server name'
+              description: 'Optional: Filter by server name',
             },
             limit: {
               type: 'number',
-              description: 'Optional: Maximum number of results (default: 10)'
-            }
+              description: 'Optional: Maximum number of results (default: 10)',
+            },
           },
-          required: ['query']
-        }
+          required: ['query'],
+        },
       },
       {
         name: 'list_tools',
@@ -80,15 +81,15 @@ export class DiscoveryMCPServer {
           properties: {
             server: {
               type: 'string',
-              description: 'Server name (e.g., "github", "filesystem")'
+              description: 'Server name (e.g., "github", "filesystem")',
             },
             includeDisabled: {
               type: 'boolean',
-              description: 'Include disabled tools (default: false)'
-            }
+              description: 'Include disabled tools (default: false)',
+            },
           },
-          required: ['server']
-        }
+          required: ['server'],
+        },
       },
       {
         name: 'get_tool_details',
@@ -98,15 +99,15 @@ export class DiscoveryMCPServer {
           properties: {
             server: {
               type: 'string',
-              description: 'Server name'
+              description: 'Server name',
             },
             tool: {
               type: 'string',
-              description: 'Tool name'
-            }
+              description: 'Tool name',
+            },
           },
-          required: ['server', 'tool']
-        }
+          required: ['server', 'tool'],
+        },
       },
       {
         name: 'execute_tool',
@@ -116,20 +117,20 @@ export class DiscoveryMCPServer {
           properties: {
             server: {
               type: 'string',
-              description: 'Server name'
+              description: 'Server name',
             },
             tool: {
               type: 'string',
-              description: 'Tool name'
+              description: 'Tool name',
             },
             arguments: {
               type: 'object',
-              description: 'Tool arguments'
-            }
+              description: 'Tool arguments',
+            },
           },
-          required: ['server', 'tool', 'arguments']
-        }
-      }
+          required: ['server', 'tool', 'arguments'],
+        },
+      },
     ];
   }
 
@@ -139,61 +140,69 @@ export class DiscoveryMCPServer {
   private setupHandlers(): void {
     // List tools handler
     this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
-      tools: this.tools
+      tools: this.tools,
     }));
 
     // Call tool handler
-    this.server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
-      const { name, arguments: args } = request.params;
-      
-      try {
-        const result = await this.handleToolCall(name, args || {});
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(result, null, 2)
-            }
-          ]
-        };
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                error: errorMessage
-              }, null, 2)
-            }
-          ],
-          isError: true
-        };
+    this.server.setRequestHandler(
+      CallToolRequestSchema,
+      async (request: CallToolRequest) => {
+        const { name, arguments: args } = request.params;
+
+        try {
+          const result = await this.handleToolCall(name, args || {});
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(result, null, 2),
+              },
+            ],
+          };
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : 'Unknown error';
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(
+                  {
+                    error: errorMessage,
+                  },
+                  null,
+                  2
+                ),
+              },
+            ],
+            isError: true,
+          };
+        }
       }
-    });
+    );
   }
 
   /**
    * Handle tool call
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   async handleToolCall(name: string, args: any): Promise<any> {
     switch (name) {
       case 'list_mcp_servers':
         return this.handleListServers();
-      
+
       case 'search_tools':
         return this.handleSearchTools(args);
-      
+
       case 'list_tools':
         return this.handleListTools(args);
-      
+
       case 'get_tool_details':
         return this.handleGetToolDetails(args);
-      
+
       case 'execute_tool':
         return this.handleExecuteTool(args);
-      
+
       default:
         throw new Error(`Unknown tool: ${name}`);
     }
@@ -217,7 +226,7 @@ export class DiscoveryMCPServer {
 
     const results = await this.engine.searchTools(args.query, {
       server: args.server,
-      limit: args.limit || 10
+      limit: args.limit || 10,
     });
 
     return { results };

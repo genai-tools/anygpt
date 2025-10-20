@@ -8,8 +8,6 @@ interface CacheEntry<T> {
   expiresAt: number | null; // null = never expires
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-
 /**
  * Caching layer for discovery engine
  * Supports TTL-based caching for servers and tool summaries
@@ -21,20 +19,20 @@ export class CachingLayer {
 
   /**
    * Cache server list with TTL
-   * 
+   *
    * @param servers - Array of server metadata
    * @param ttl - Time-to-live in seconds
    */
   cacheServerList(servers: ServerMetadata[], ttl: number): void {
     this.cache.set('servers', {
       data: servers,
-      expiresAt: Date.now() + ttl * 1000
+      expiresAt: Date.now() + ttl * 1000,
     });
   }
 
   /**
    * Get cached server list
-   * 
+   *
    * @returns Cached server list or null if not cached/expired
    */
   getServerList(): ServerMetadata[] | null {
@@ -43,7 +41,7 @@ export class CachingLayer {
 
   /**
    * Cache tool summaries for a specific server with TTL
-   * 
+   *
    * @param server - Server name
    * @param tools - Array of tool metadata
    * @param ttl - Time-to-live in seconds
@@ -52,13 +50,13 @@ export class CachingLayer {
     const key = `tools:${server}`;
     this.cache.set(key, {
       data: tools,
-      expiresAt: Date.now() + ttl * 1000
+      expiresAt: Date.now() + ttl * 1000,
     });
   }
 
   /**
    * Get cached tool summaries for a specific server
-   * 
+   *
    * @param server - Server name
    * @returns Cached tool summaries or null if not cached/expired
    */
@@ -69,7 +67,7 @@ export class CachingLayer {
 
   /**
    * Cache tool details indefinitely
-   * 
+   *
    * @param server - Server name
    * @param tool - Tool name
    * @param details - Tool metadata with full details
@@ -78,13 +76,13 @@ export class CachingLayer {
     const key = `tool:${server}:${tool}`;
     this.cache.set(key, {
       data: details,
-      expiresAt: null // Never expires
+      expiresAt: null, // Never expires
     });
   }
 
   /**
    * Get cached tool details
-   * 
+   *
    * @param server - Server name
    * @param tool - Tool name
    * @returns Cached tool details or null if not cached
@@ -96,7 +94,7 @@ export class CachingLayer {
 
   /**
    * Invalidate a specific cache key
-   * 
+   *
    * @param key - Cache key to invalidate (e.g., 'servers', 'tools:github')
    */
   invalidate(key: string): void {
@@ -112,13 +110,13 @@ export class CachingLayer {
 
   /**
    * Get cached value if not expired
-   * 
+   *
    * @param key - Cache key
    * @returns Cached value or null if not cached/expired
    */
   private get<T>(key: string): T | null {
     const entry = this.cache.get(key);
-    
+
     if (!entry) {
       return null;
     }

@@ -157,7 +157,7 @@ export class PluginManager {
     config: AnyGPTConfig,
     contribution: ConfigContribution
   ): AnyGPTConfig {
-    let result = { ...config };
+    const result = { ...config };
 
     // Merge MCP servers
     if (contribution.mcpServers) {

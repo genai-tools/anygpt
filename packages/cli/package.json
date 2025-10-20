@@ -42,6 +42,6 @@
     "chalk": "^5.3.0",
     "commander": "^14.0.1",
     "log-update": "^6.1.0",
-    "ora": "^8.1.1"
+    "@anygpt/mcp-discovery": "0.1.0"
   }
 }
