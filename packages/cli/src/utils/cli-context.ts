@@ -2,7 +2,11 @@
  * Shared CLI context utilities
  */
 
-import { setupRouter, setupRouterFromFactory } from '@anygpt/config';
+import {
+  setupRouter,
+  setupRouterFromFactory,
+  resolveConfig,
+} from '@anygpt/config';
 import type { Logger } from '@anygpt/types';
 
 type LogLevel = 'quiet' | 'info' | 'debug';
@@ -32,24 +36,24 @@ class ConsoleLogger implements Logger {
     return this.logLevel;
   }
 
-  debug(message: string, ...args: any[]): void {
+  debug(message: string, ...args: unknown[]): void {
     if (this.getLogLevel() === 'debug') {
       console.log('[DEBUG]', message, ...args);
     }
   }
 
-  info(message: string, ...args: any[]): void {
+  info(message: string, ...args: unknown[]): void {
     const level = this.getLogLevel();
     if (level === 'info' || level === 'debug') {
       console.log(message, ...args);
     }
   }
 
-  warn(message: string, ...args: any[]): void {
+  warn(message: string, ...args: unknown[]): void {
     console.warn(message, ...args);
   }
 
-  error(message: string, ...args: any[]): void {
+  error(message: string, ...args: unknown[]): void {
     console.error(message, ...args);
   }
 }
@@ -61,8 +65,8 @@ import type { ModelAlias, ProviderConfig, ModelRule } from '@anygpt/config';
 import { buildTagRegistry, type TagRegistry } from '@anygpt/config';
 
 export interface CLIContext {
-  router: any;
-  config: any;
+  router: unknown;
+  config: unknown;
   configSource: string; // Path to the loaded config file
   providers: Record<string, ProviderConfig>; // Provider configs with model metadata
   tagRegistry?: TagRegistry; // Pre-computed tag mappings
@@ -102,21 +106,28 @@ export async function setupCLIContext(
       `file://${process.cwd()}/`
     ).href;
     const module = await import(absoluteConfigPath);
-    const loadedConfig = module.default;
+    let loadedConfig = module.default;
+
+    // Process plugins to generate mcpServers and other dynamic config
+    loadedConfig = await resolveConfig(loadedConfig);
 
     // Check if it's a factory config (has providers with connector instances)
     // A factory config has actual connector instances (with client property), not config objects
     const hasConnectorInstances =
       loadedConfig.providers &&
       Object.values(loadedConfig.providers).some(
-        (p: any) =>
-          p.connector &&
+        (p: unknown): p is { connector: { client: unknown } } =>
+          typeof p === 'object' &&
+          p !== null &&
+          'connector' in p &&
           typeof p.connector === 'object' &&
-          p.connector.client !== undefined
+          p.connector !== null &&
+          'client' in p.connector
       );
 
     if (hasConnectorInstances) {
-      // It's a factory config - use setupRouterFromFactory with logger
+      // It's a factory config - we already have the resolved config with plugins processed
+      // Now we just need to create the router and register connectors
       const { router, config } = await setupRouterFromFactory(
         loadedConfig,
         consoleLogger
@@ -134,7 +145,7 @@ export async function setupCLIContext(
 
       return {
         router,
-        config,
+        config: loadedConfig, // Use the resolved config with mcpServers from plugins
         configSource: resolvedConfigPath,
         providers: config.providers || {},
         tagRegistry,
@@ -151,21 +162,17 @@ export async function setupCLIContext(
         },
       };
     } else {
-      // It's a standard config - use setupRouter
-      const { router, config } = await setupRouter(
-        { configPath },
-        consoleLogger
-      );
-
+      // It's a standard config - use the resolved config directly
+      // Don't call setupRouter again as it would reload and re-process plugins
       return {
-        router,
-        config, // Return full config including mcpServers and discovery
-        configSource: configPath || 'default config search',
+        router: null, // Standard configs don't have router
+        config: loadedConfig, // Use the resolved config with mcpServers from plugins
+        configSource: resolvedConfigPath,
         providers: {}, // Standard configs don't have provider metadata
         logger: consoleLogger,
         defaults: {
-          provider: config.settings?.defaultProvider,
-          model: undefined, // AnyGPTConfig doesn't have a global default model
+          provider: loadedConfig.settings?.defaultProvider,
+          model: undefined,
         },
       };
     }
@@ -190,19 +197,30 @@ export async function setupCLIContext(
 /**
  * Wrapper for command actions that need CLI context
  */
-export function withCLIContext<T extends any[]>(
+export function withCLIContext<T extends unknown[]>(
   commandFn: (context: CLIContext, ...args: T) => Promise<void>
 ) {
   return async (...args: T) => {
     // Extract global options from commander
-    const command = args[args.length - 1] as any;
+    const command = args[args.length - 1] as {
+      parent?: unknown;
+      opts?: () => { config?: string };
+    };
 
     // Walk up the command tree to find the root program options
-    let currentCommand = command;
-    while (currentCommand.parent) {
-      currentCommand = currentCommand.parent;
+    let currentCommand: { parent?: unknown; opts?: () => { config?: string } } =
+      command;
+    while (
+      currentCommand.parent &&
+      typeof currentCommand.parent === 'object' &&
+      'opts' in currentCommand.parent
+    ) {
+      currentCommand = currentCommand.parent as {
+        parent?: unknown;
+        opts?: () => { config?: string };
+      };
     }
-    const globalOpts = currentCommand.opts() || {};
+    const globalOpts = currentCommand.opts?.() || {};
 
     try {
       const context = await setupCLIContext(globalOpts.config);
