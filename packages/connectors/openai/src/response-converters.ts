@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import type { ChatCompletionResponse } from '@anygpt/types';
+import type { BaseChatCompletionResponse as ChatCompletionResponse } from '@anygpt/types';
 
 /**
  * Convert Responses API response to Chat Completion format

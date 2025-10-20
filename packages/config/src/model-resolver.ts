@@ -24,7 +24,7 @@ export interface ModelResolution {
  */
 export function findModelByTag(
   tag: string,
-  providers: Record<string, FactoryProviderConfig>,
+  providers: Record<string, ProviderConfig>,
   preferredProvider?: string,
   globalModelRules?: ModelRule[]
 ): ModelResolution | null {

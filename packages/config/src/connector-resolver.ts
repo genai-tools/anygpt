@@ -18,35 +18,30 @@ import type { IConnector, Logger } from '@anygpt/types';
  */
 export async function resolveConnector(
   providerConfig: {
-    connector?: IConnector;
-    module?: string;
+    connector: IConnector | string;
     config?: Record<string, unknown>;
   },
   providerId: string,
   logger?: Logger
 ): Promise<IConnector> {
-  // Format 1: Direct instance (TypeScript/JavaScript configs)
-  if (providerConfig.connector) {
+  const { connector } = providerConfig;
+
+  // Direct instance (TypeScript/JavaScript configs)
+  if (typeof connector !== 'string') {
     logger?.debug?.(
       `Using direct connector instance for provider: ${providerId}`
     );
-    return providerConfig.connector;
+    return connector;
   }
 
-  // Format 2: Module reference (JSON/YAML configs)
-  if (providerConfig.module) {
-    logger?.debug?.(
-      `Loading connector module for provider: ${providerId} from ${providerConfig.module}`
-    );
-    return await loadConnectorFromModule(
-      providerConfig.module,
-      providerConfig.config || {},
-      providerId
-    );
-  }
-
-  throw new Error(
-    `Provider '${providerId}' must specify either 'connector' (IConnector instance) or 'module' (string reference)`
+  // Module reference (JSON/YAML configs)
+  logger?.debug?.(
+    `Loading connector module for provider: ${providerId} from ${connector}`
+  );
+  return await loadConnectorFromModule(
+    connector,
+    providerConfig.config || {},
+    providerId
   );
 }
 

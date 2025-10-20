@@ -28,7 +28,7 @@ export interface TagRegistry {
  * Build tag registry from providers and their model lists
  */
 export async function buildTagRegistry(
-  providers: Record<string, FactoryProviderConfig>,
+  providers: Record<string, ProviderConfig>,
   globalModelRules?: ModelRule[]
 ): Promise<TagRegistry> {
   const tags = new Map<string, TagMapping[]>();
@@ -66,11 +66,15 @@ export async function buildTagRegistry(
     }
 
     // Step 2: Fetch actual model list from provider
-    let actualModels: string[] = [];
+    const actualModels: string[] = [];
     try {
-      const connector = providerConfig.connector;
-      const modelInfos = await connector.listModels();
-      actualModels = modelInfos.map((m) => m.id);
+      if (typeof providerConfig.connector === 'string') {
+        continue; // Skip module references - they need to be resolved first
+      }
+      const models = await providerConfig.connector.listModels();
+      for (const m of models) {
+        actualModels.push(m.id);
+      }
     } catch {
       // Failed to fetch models - continue with explicit models only
       // Error will be visible when user tries to use the provider

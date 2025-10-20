@@ -13,7 +13,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import {
   setupRouterFromFactory,
-  type FactoryProviderConfig,
+  type ProviderConfig,
   type ModelAlias,
 } from '@anygpt/config';
 import {
@@ -38,9 +38,11 @@ import { logger } from './lib/logger.js';
 let router: any;
 let defaultProvider: string | undefined;
 let defaultModel: string | undefined;
-let configuredProviders: Record<string, FactoryProviderConfig> = {};
+let configuredProviders: Record<string, ProviderConfig> = {};
 let aliases: Record<string, ModelAlias[]> | undefined;
-let defaultProviders: Record<string, { tag?: string; model?: string }> | undefined;
+let defaultProviders:
+  | Record<string, { tag?: string; model?: string }>
+  | undefined;
 
 async function initializeRouter() {
   try {
@@ -60,8 +62,13 @@ async function initializeRouter() {
     defaultProvider = c.defaults?.provider;
     defaultModel = c.defaults?.model;
     configuredProviders = c.providers || {};
-    aliases = c.defaults?.aliases;
-    defaultProviders = c.defaults?.providers;
+    // Convert aliases from Record<string, ModelAlias> to Record<string, ModelAlias[]>
+    aliases = c.aliases
+      ? Object.fromEntries(
+          Object.entries(c.aliases).map(([key, value]) => [key, [value]])
+        )
+      : undefined;
+    defaultProviders = {}; // TODO: implement default providers if needed
 
     const providersList = Object.keys(configuredProviders).join(', ') || 'none';
     const aliasesList = aliases ? Object.keys(aliases).join(', ') : 'none';

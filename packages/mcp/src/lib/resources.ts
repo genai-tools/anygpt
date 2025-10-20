@@ -10,7 +10,7 @@ import type {
   ListResourcesResult,
   ReadResourceResult,
 } from '@modelcontextprotocol/sdk/types.js';
-import type { FactoryProviderConfig } from '@anygpt/config';
+import type { ProviderConfig } from '@anygpt/config';
 import { logger } from './logger.js';
 
 // Get the directory for loading docs
@@ -98,7 +98,7 @@ export function listResources(): ListResourcesResult {
 export function readResource(
   uri: string,
   context: {
-    configuredProviders: Record<string, FactoryProviderConfig>;
+    configuredProviders: Record<string, ProviderConfig>;
     defaultProvider?: string;
     defaultModel?: string;
     defaultProviders?: Record<string, { tag?: string; model?: string }>;
@@ -127,7 +127,7 @@ export function readResource(
 function readDocSection(
   section: string,
   context: {
-    configuredProviders: Record<string, FactoryProviderConfig>;
+    configuredProviders: Record<string, ProviderConfig>;
     defaultProvider?: string;
     defaultModel?: string;
     defaultProviders?: Record<string, { tag?: string; model?: string }>;
@@ -166,13 +166,16 @@ function readDocSection(
             mimeType: 'application/json',
             text: JSON.stringify(
               {
-                configured_providers: Object.entries(
-                  context.configuredProviders
-                ).map(([id, config]) => ({
-                  id,
-                  type: config.connector.providerId,
-                  isDefault: id === context.defaultProvider,
-                })),
+                providers: Object.entries(context.configuredProviders).map(
+                  ([id, config]) => ({
+                    id,
+                    type:
+                      typeof config.connector === 'string'
+                        ? config.connector
+                        : config.connector.providerId,
+                    isDefault: id === context.defaultProvider,
+                  })
+                ),
                 default_provider: context.defaultProvider,
                 default_model: context.defaultModel,
               },

@@ -32,7 +32,9 @@ export async function setupRouter(
   // Normalize mcpServers if present (convert array format to object format)
   const normalizedConfig = {
     ...config,
-    mcpServers: normalizeMCPServers(config.mcpServers),
+    mcpServers: config.mcpServers?.servers
+      ? normalizeMCPServers(config.mcpServers.servers)
+      : undefined,
   };
 
   // Convert factory providers to router provider format for validation
@@ -70,7 +72,7 @@ export async function setupRouter(
     if (logger) {
       // Override the logger property
       // Cast to access protected property - this is intentional for logger injection
-      type ConnectorWithLogger = IConnector & { logger: Logger };
+      type ConnectorWithLogger = typeof connector & { logger: Logger };
       try {
         (connector as ConnectorWithLogger).logger = logger;
       } catch {

@@ -22,11 +22,8 @@ export type { ConnectorConfig as BaseConnectorConfig } from './common.js';
 // Logger interface
 export type { Logger } from './logger.js';
 
-// API configuration types
-export type {
-  ApiConfig,
-  ProviderConfig as RouterProviderConfig,
-} from './api.js';
+// Note: Router has its own ProviderConfig in @anygpt/router package
+// No API types needed here anymore
 
 // Response API types
 export type {
@@ -39,15 +36,8 @@ export type {
   ToolChoice,
 } from './responses.js';
 
-// Router types
-export type {
-  RouterConfig,
-  GatewayConfig,
-  ChatCompletionRequest,
-  ChatCompletionResponse,
-  IRouter,
-  IGateway,
-} from './routing.js';
+// Note: Router package defines its own types (RouterConfig, ProviderConfig, etc.)
+// No routing types exported from here - Router is self-contained
 
 // Connector types
 export type {
@@ -67,10 +57,15 @@ export type {
   MCPConfig,
 } from './mcp.js';
 
-// Configuration types
+// Configuration types (v3.0+ - clean, unified)
 export type {
-  ConnectorConfig,
+  ReasoningEffort,
+  ReasoningConfig,
+  BaseModelConfig,
+  ModelMetadata,
+  ModelRule,
+  ModelAlias,
   ProviderConfig,
-  AnyGPTConfig,
+  Config,
   ConfigLoadOptions,
-} from './config.js';
+} from './anygpt-config.js';

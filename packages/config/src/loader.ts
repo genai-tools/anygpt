@@ -346,17 +346,10 @@ export function validateConfig(config: Config): void {
 
   if (config.providers) {
     for (const [providerId, provider] of Object.entries(config.providers)) {
-      // Must have either connector instance OR module reference
-      if (!provider.connector && !provider.module) {
+      // Must have connector
+      if (!provider.connector) {
         errors.push(
-          `Provider '${providerId}' must specify either 'connector' (IConnector instance) or 'module' (package name)`
-        );
-      }
-
-      // Can't have both
-      if (provider.connector && provider.module) {
-        errors.push(
-          `Provider '${providerId}' cannot specify both 'connector' and 'module' - choose one format`
+          `Provider '${providerId}' must specify 'connector' (IConnector instance or module string)`
         );
       }
     }

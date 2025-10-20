@@ -6,29 +6,31 @@
 
 - **config:** Complete API refactor - simplified from 4 functions to 2
 - **config:** Unified type system - single `Config` type instead of 4 variants
-- **config:** Dual format support - both TypeScript (direct instances) and JSON/YAML (module references)
+- **config:** **NEW: Single `connector` field** - accepts `IConnector | string` (union type)
 - **config:** Smart connector resolution with helpful error messages
 - **config:** Package size reduced by 10% (168 kB → 161 kB)
+- **config:** Type-safe design prevents using both formats simultaneously
 
 ### ⚠️ BREAKING CHANGES
 
 #### API Simplification
 
 - **Removed:** Legacy string-based connector format (`connector.connector`)
+- **Simplified:** `connector` now accepts `IConnector | string` directly (no nested object)
 - **Renamed:** `FactoryConfig` → `Config`, `FactoryProviderConfig` → `ProviderConfig`
 - **Renamed:** `defineConfigs()` → `mergeConfigs()` (clearer naming)
-- **Deprecated:** `config()` → use `defineConfig()` instead
+- **Changed:** `connector` is now **required** and accepts `IConnector | string`
 
 #### Migration Required
 
-**Old (No Longer Works):**
+**Old v2.x (Still Works - Deprecated):**
 
 ```typescript
 {
   providers: {
     openai: {
       connector: {
-        connector: '@anygpt/openai',  // ❌ Removed
+        connector: '@anygpt/openai',  // ❌ Nested format
         config: { apiKey: '...' }
       }
     }
@@ -36,34 +38,46 @@
 }
 ```
 
-**New (Two Options):**
-
-1. **TypeScript/JavaScript configs** (Direct instance):
+Or with direct instance:
 
 ```typescript
+{
+  providers: {
+    openai: {
+      connector: openai({ apiKey: '...' }); // ✅ This still works
+    }
+  }
+}
+```
+
+**New v3.0 (Single Field, Union Type):**
+
+```typescript
+// TypeScript: Direct IConnector instance
 import { openai } from '@anygpt/openai';
 
 {
   providers: {
     openai: {
-      connector: openai({ apiKey: '...' }); // ✅ Direct instance
+      connector: openai({ apiKey: '...' }); // ✅ IConnector
     }
   }
 }
 ```
 
-2. **JSON/YAML configs** (Module reference):
-
 ```json
+// JSON/YAML: Module string
 {
   "providers": {
     "openai": {
-      "module": "@anygpt/openai",
+      "connector": "@anygpt/openai", // ✅ string
       "config": { "apiKey": "..." }
     }
   }
 }
 ```
+
+**Key change:** `connector` field now accepts **both formats** via union type `IConnector | string`.
 
 #### What Was Removed
 

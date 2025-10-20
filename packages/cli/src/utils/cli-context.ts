@@ -57,18 +57,14 @@ class ConsoleLogger implements Logger {
 // Console logger for CLI
 const consoleLogger = new ConsoleLogger();
 
-import type {
-  ModelAlias,
-  FactoryProviderConfig,
-  ModelRule,
-} from '@anygpt/config';
+import type { ModelAlias, ProviderConfig, ModelRule } from '@anygpt/config';
 import { buildTagRegistry, type TagRegistry } from '@anygpt/config';
 
 export interface CLIContext {
   router: any;
   config: any;
   configSource: string; // Path to the loaded config file
-  providers: Record<string, FactoryProviderConfig>; // Provider configs with model metadata
+  providers: Record<string, ProviderConfig>; // Provider configs with model metadata
   tagRegistry?: TagRegistry; // Pre-computed tag mappings
   logger: Logger;
   defaults: {
@@ -113,7 +109,10 @@ export async function setupCLIContext(
     const hasConnectorInstances =
       loadedConfig.providers &&
       Object.values(loadedConfig.providers).some(
-        (p: any) => p.connector && typeof p.connector === 'object' && p.connector.client !== undefined
+        (p: any) =>
+          p.connector &&
+          typeof p.connector === 'object' &&
+          p.connector.client !== undefined
       );
 
     if (hasConnectorInstances) {
@@ -197,7 +196,7 @@ export function withCLIContext<T extends any[]>(
   return async (...args: T) => {
     // Extract global options from commander
     const command = args[args.length - 1] as any;
-    
+
     // Walk up the command tree to find the root program options
     let currentCommand = command;
     while (currentCommand.parent) {

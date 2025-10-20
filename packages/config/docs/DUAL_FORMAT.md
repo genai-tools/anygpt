@@ -1,6 +1,9 @@
 # Dual Format Support - TypeScript vs JSON/YAML
 
-The config system supports **two formats** for defining providers:
+The config system supports **two formats** via a single `connector` field that accepts either:
+
+- **IConnector instance** (TypeScript/JavaScript)
+- **Module string** (JSON/YAML)
 
 ## Format 1: Direct Instance (TypeScript/JavaScript)
 
@@ -51,7 +54,7 @@ export default defineConfig({
   "providers": {
     "openai": {
       "name": "OpenAI",
-      "module": "@anygpt/openai",
+      "connector": "@anygpt/openai",
       "config": {
         "apiKey": "${OPENAI_API_KEY}",
         "baseURL": "https://api.openai.com/v1"
@@ -59,7 +62,7 @@ export default defineConfig({
     },
     "claude": {
       "name": "Anthropic Claude",
-      "module": "@anygpt/anthropic",
+      "connector": "@anygpt/anthropic",
       "config": {
         "apiKey": "${ANTHROPIC_API_KEY}"
       }
@@ -74,14 +77,14 @@ export default defineConfig({
 providers:
   openai:
     name: OpenAI
-    module: '@anygpt/openai'
+    connector: '@anygpt/openai'
     config:
       apiKey: ${OPENAI_API_KEY}
       baseURL: https://api.openai.com/v1
 
   claude:
     name: Anthropic Claude
-    module: '@anygpt/anthropic'
+    connector: '@anygpt/anthropic'
     config:
       apiKey: ${ANTHROPIC_API_KEY}
 ```
@@ -91,7 +94,7 @@ providers:
 ```toml
 [providers.openai]
 name = "OpenAI"
-module = "@anygpt/openai"
+connector = "@anygpt/openai"
 
 [providers.openai.config]
 apiKey = "${OPENAI_API_KEY}"
@@ -99,7 +102,7 @@ baseURL = "https://api.openai.com/v1"
 
 [providers.claude]
 name = "Anthropic Claude"
-module = "@anygpt/anthropic"
+connector = "@anygpt/anthropic"
 
 [providers.claude.config]
 apiKey = "${ANTHROPIC_API_KEY}"
@@ -117,7 +120,7 @@ apiKey = "${ANTHROPIC_API_KEY}"
 
 ## How It Works
 
-### TypeScript Format (Direct Instance)
+### Format 1: Direct Instance (TypeScript)
 
 ```typescript
 {
@@ -125,22 +128,23 @@ apiKey = "${ANTHROPIC_API_KEY}"
 }
 ```
 
-The connector is **already instantiated** when the config is loaded.
+The `connector` field contains a **direct IConnector instance**.
 
-### Module Format (Dynamic Loading)
+### Format 2: Module String (JSON/YAML)
 
 ```json
 {
-  "module": "@anygpt/openai",
+  "connector": "@anygpt/openai",
   "config": { "apiKey": "..." }
 }
 ```
 
-The connector is **dynamically loaded** at runtime:
+The `connector` field contains a **module string**. The connector is **dynamically loaded** at runtime:
 
-1. Import the module: `await import('@anygpt/openai')`
-2. Call the factory function: `openai(config)`
-3. Return the IConnector instance
+1. Check: `typeof connector === 'string'`
+2. Import the module: `await import('@anygpt/openai')`
+3. Call the factory function: `openai(config)`
+4. Return the IConnector instance
 
 ---
 
@@ -150,11 +154,10 @@ The connector is **dynamically loaded** at runtime:
 export interface ProviderConfig {
   name?: string;
 
-  // Format 1: Direct instance (mutually exclusive with 'module')
-  connector?: IConnector;
+  // Single field, two formats: IConnector instance OR module string
+  connector: IConnector | string;
 
-  // Format 2: Module reference (mutually exclusive with 'connector')
-  module?: string;
+  // Config for module-based connectors (when connector is string)
   config?: Record<string, unknown>;
 
   // Common fields
@@ -164,33 +167,31 @@ export interface ProviderConfig {
 }
 ```
 
+**Key insight:** Runtime type checking (`typeof connector === 'string'`) determines which format is used.
+
 ---
 
 ## Validation Rules
 
-✅ **Valid:** Specify `connector` OR `module`
+✅ **Valid:** Provide `connector` (required)
 
 ```typescript
+// TypeScript: IConnector instance
 { connector: openai({ ... }) }  // ✅ OK
-{ module: '@anygpt/openai', config: { ... } }  // ✅ OK
+
+// JSON/YAML: Module string
+{ connector: '@anygpt/openai', config: { ... } }  // ✅ OK
 ```
 
-❌ **Invalid:** Specify both
+❌ **Invalid:** Missing connector
 
 ```typescript
 {
-  connector: openai({ ... }),
-  module: '@anygpt/openai'  // ❌ ERROR: Can't have both
+  name: 'OpenAI'; // ❌ ERROR: connector is required
 }
 ```
 
-❌ **Invalid:** Specify neither
-
-```typescript
-{
-  name: 'OpenAI'; // ❌ ERROR: Must have connector or module
-}
-```
+**Note:** The union type `IConnector | string` makes it **impossible** to accidentally use both formats - TypeScript enforces one or the other.
 
 ---
 
@@ -204,7 +205,7 @@ import { resolveConnector } from '@anygpt/config';
 // Works with both formats
 const connector = await resolveConnector(
   {
-    module: '@anygpt/openai',
+    connector: '@anygpt/openai', // string format
     config: { apiKey: '...' },
   },
   'openai', // provider ID
@@ -214,27 +215,28 @@ const connector = await resolveConnector(
 
 ---
 
-## Migration from Legacy Format
+## Migration from v2.x
 
-**Old (Legacy):**
-
-```typescript
-{
-  connector: {
-    connector: '@anygpt/openai',  // ❌ Confusing nested structure
-    config: { apiKey: '...' }
-  }
-}
-```
-
-**New (Module Format):**
+**Old (v2.x - separate fields):**
 
 ```typescript
 {
-  module: '@anygpt/openai',  // ✅ Clear, flat structure
+  connector?: IConnector,  // Optional
+  module?: '@anygpt/openai',  // Optional
   config: { apiKey: '...' }
 }
 ```
+
+**New (v3.0 - union type):**
+
+```typescript
+{
+  connector: IConnector | '@anygpt/openai',  // Required, one field
+  config: { apiKey: '...' }
+}
+```
+
+**Key change:** `connector` is now **required** and accepts **both formats** via union type.
 
 ---
 

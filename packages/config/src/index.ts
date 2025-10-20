@@ -86,16 +86,6 @@ export type {
   RuleOperator,
 } from '@anygpt/rules';
 
-// Legacy type aliases (DEPRECATED - will be removed in next major version)
-/** @deprecated Use Config instead */
-export type { Config as FactoryConfig } from './types.js';
-/** @deprecated Use ProviderConfig instead */
-export type { ProviderConfig as FactoryProviderConfig } from './types.js';
-/** @deprecated Use defineConfig instead */
-export { defineConfig as config } from './config.js';
-/** @deprecated Use mergeConfigs from config.ts instead */
-export { mergeConfigsLegacy as mergeConfigsOld } from './loader.js';
-
 // Note: Connector factory functions (like openai()) should be imported directly
 // from their packages to keep config package connector-agnostic:
 // import { openai } from '@anygpt/openai';

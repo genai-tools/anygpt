@@ -3,14 +3,13 @@
  */
 
 import type {
-  ChatCompletionRequest,
-  ChatMessage,
+  BaseChatCompletionRequest as ChatCompletionRequest,
   ModelInfo as TypesModelInfo,
 } from '@anygpt/types';
 import {
   resolveModel as resolveModelShared,
   listAvailableTags,
-  type FactoryProviderConfig,
+  type ProviderConfig,
   type ModelAlias,
   type AvailableTagsResult,
 } from '@anygpt/config';
@@ -172,7 +171,7 @@ export async function handleChatCompletion(
     router: any;
     defaultProvider?: string;
     defaultModel?: string;
-    configuredProviders: Record<string, FactoryProviderConfig>;
+    configuredProviders: Record<string, ProviderConfig>;
     aliases?: Record<string, ModelAlias[]>;
     defaultProviders?: Record<string, { tag?: string; model?: string }>;
   }
@@ -182,15 +181,10 @@ export async function handleChatCompletion(
       throw new Error('messages array is required');
     }
 
-    const messages: ChatMessage[] = args.messages.map((message) => ({
-      role: message.role,
-      content: message.content,
-    }));
-
     // Get model name (from args or default)
     // If no model specified, use default model or default tag from default provider
     let modelName = args.model || context.defaultModel;
-    
+
     if (!modelName) {
       // No model specified - use default provider's default tag/model if available
       const targetProvider = args.provider || context.defaultProvider;
@@ -203,7 +197,7 @@ export async function handleChatCompletion(
       if (!modelName) {
         throw new Error(
           'No model specified and no default model configured. ' +
-          'Please specify a model or configure defaults.model or defaults.providers[provider].tag in your config.'
+            'Please specify a model or configure defaults.model or defaults.providers[provider].tag in your config.'
         );
       }
     }
@@ -221,26 +215,27 @@ export async function handleChatCompletion(
 
     // Use resolved values or fall back to defaults
     const providerId =
-      resolution?.provider ||
-      args.provider ||
-      context.defaultProvider;
-    
+      resolution?.provider || args.provider || context.defaultProvider;
+
     if (!providerId) {
       throw new Error(
         'No provider could be determined. ' +
-        'Please specify a provider or configure defaults.provider in your config.'
+          'Please specify a provider or configure defaults.provider in your config.'
       );
     }
-    
+
     const resolvedModel = resolution?.model || modelName;
 
-    const request: ChatCompletionRequest = {
-      messages,
+    const request = {
+      messages: args.messages.map((m) => ({
+        role: m.role,
+        content: m.content,
+      })),
       model: resolvedModel,
       temperature: args.temperature,
       max_tokens: args.max_tokens || 4096, // Default to 4096 tokens if not specified
       provider: providerId,
-    };
+    } as ChatCompletionRequest & { provider: string };
 
     const response = await context.router.chatCompletion(request);
     return response;
@@ -261,7 +256,7 @@ export async function handleListModels(
   context: {
     router: any;
     defaultProvider?: string;
-    configuredProviders: Record<string, FactoryProviderConfig>;
+    configuredProviders: Record<string, ProviderConfig>;
     defaultProviders?: Record<string, { tag?: string; model?: string }>;
   }
 ): Promise<{ provider: string; models: TypesModelInfo[] }> {
@@ -270,7 +265,7 @@ export async function handleListModels(
     if (!providerId) {
       throw new Error(
         'No provider specified and no default provider configured. ' +
-        'Please specify a provider or configure defaults.provider in your config.'
+          'Please specify a provider or configure defaults.provider in your config.'
       );
     }
     const models = await context.router.listModels(providerId);
@@ -305,16 +300,19 @@ export async function handleListModels(
  * Handle list providers tool call
  */
 export function handleListProviders(context: {
-  configuredProviders: Record<string, FactoryProviderConfig>;
+  configuredProviders: Record<string, ProviderConfig>;
   defaultProvider?: string;
 }): { providers: ProviderInfo[]; default_provider?: string } {
-  const providers: ProviderInfo[] = Object.entries(
-    context.configuredProviders
-  ).map(([id, config]) => ({
-    id,
-    type: config.connector.providerId,
-    isDefault: id === context.defaultProvider,
-  }));
+  const providers = Object.entries(context.configuredProviders).map(
+    ([id, config]) => ({
+      id,
+      type:
+        typeof config.connector === 'string'
+          ? config.connector
+          : config.connector.providerId,
+      isDefault: id === context.defaultProvider,
+    })
+  );
 
   return {
     providers,
@@ -328,7 +326,7 @@ export function handleListProviders(context: {
 export function handleListTags(
   args: { provider?: string },
   context: {
-    configuredProviders: Record<string, FactoryProviderConfig>;
+    configuredProviders: Record<string, ProviderConfig>;
     aliases?: Record<string, ModelAlias[]>;
     defaultProvider?: string;
   }
@@ -355,7 +353,7 @@ export function handleListTags(
  * Get all available models across all providers for sampling
  */
 export function getAllAvailableModels(context: {
-  configuredProviders: Record<string, FactoryProviderConfig>;
+  configuredProviders: Record<string, ProviderConfig>;
   aliases?: Record<string, ModelAlias[]>;
 }): ModelInfo[] {
   const models: ModelInfo[] = [];
