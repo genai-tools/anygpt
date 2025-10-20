@@ -13,10 +13,11 @@ describe('ConfigurationLoader', () => {
         enabled: true,
         cache: {
           enabled: true,
-          ttl: 3600
+          ttl: 3600,
         },
         sources: [],
-        rules: []
+        serverRules: [],
+        toolRules: [],
       });
     });
   });
@@ -28,15 +29,15 @@ describe('ConfigurationLoader', () => {
         enabled: true,
         cache: {
           enabled: true,
-          ttl: 3600
+          ttl: 3600,
         },
-        rules: [
+        serverRules: [
           {
             when: { name: { match: /github/ } },
             set: { enabled: true },
-            push: { tags: ['vcs'] }
-          }
-        ]
+            push: { tags: ['vcs'] },
+          },
+        ],
       };
 
       const result = loader.validate(config);
@@ -47,7 +48,7 @@ describe('ConfigurationLoader', () => {
     it('should reject configuration with invalid enabled field', () => {
       const loader = new ConfigurationLoader();
       const config = {
-        enabled: 'yes' // Should be boolean
+        enabled: 'yes', // Should be boolean
       } as any;
 
       const result = loader.validate(config);
@@ -61,8 +62,8 @@ describe('ConfigurationLoader', () => {
         enabled: true,
         cache: {
           enabled: true,
-          ttl: -1 // Should be positive
-        }
+          ttl: -1, // Should be positive
+        },
       };
 
       const result = loader.validate(config);
@@ -74,18 +75,18 @@ describe('ConfigurationLoader', () => {
       const loader = new ConfigurationLoader();
       const config: DiscoveryConfig = {
         enabled: true,
-        rules: 'not-an-array' as any // Should be array
+        toolRules: 'not-an-array' as any, // Should be array
       };
 
       const result = loader.validate(config);
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('rules must be an array');
+      expect(result.errors).toContain('toolRules must be an array');
     });
 
     it('should allow configuration without optional fields', () => {
       const loader = new ConfigurationLoader();
       const config: DiscoveryConfig = {
-        enabled: true
+        enabled: true,
       };
 
       const result = loader.validate(config);
@@ -98,7 +99,7 @@ describe('ConfigurationLoader', () => {
     it('should merge partial config with defaults', () => {
       const loader = new ConfigurationLoader();
       const partial: Partial<DiscoveryConfig> = {
-        enabled: false
+        enabled: false,
       };
 
       const merged = loader.mergeWithDefaults(partial);
@@ -107,10 +108,11 @@ describe('ConfigurationLoader', () => {
         enabled: false,
         cache: {
           enabled: true,
-          ttl: 3600
+          ttl: 3600,
         },
         sources: [],
-        rules: []
+        serverRules: [],
+        toolRules: [],
       });
     });
 
@@ -119,38 +121,38 @@ describe('ConfigurationLoader', () => {
       const partial: Partial<DiscoveryConfig> = {
         cache: {
           enabled: false,
-          ttl: 7200
-        }
+          ttl: 7200,
+        },
       };
 
       const merged = loader.mergeWithDefaults(partial);
 
       expect(merged.cache).toEqual({
         enabled: false,
-        ttl: 7200
+        ttl: 7200,
       });
     });
 
-    it('should preserve rules', () => {
+    it('should preserve toolRules', () => {
       const loader = new ConfigurationLoader();
       const partial: Partial<DiscoveryConfig> = {
-        rules: [
+        toolRules: [
           {
             when: { name: { match: /test/ } },
             set: { enabled: true },
-            push: { tags: ['test'] }
-          }
-        ]
+            push: { tags: ['test'] },
+          },
+        ],
       };
 
       const merged = loader.mergeWithDefaults(partial);
 
-      expect(merged.rules).toEqual([
+      expect(merged.toolRules).toEqual([
         {
           when: { name: { match: /test/ } },
           set: { enabled: true },
-          push: { tags: ['test'] }
-        }
+          push: { tags: ['test'] },
+        },
       ]);
     });
   });

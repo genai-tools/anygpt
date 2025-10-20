@@ -1,3 +1,6 @@
 {
-  "name": "docker-mcp-plugin"
+  "name": "docker-mcp-plugin",
+  "targets": {
+    "test": false
+  }
 }
