@@ -2,27 +2,29 @@
  * Rule Engine Implementation
  */
 
-import type { Rule, RuleCondition, LogicalCondition, ValidValue } from './types.js';
+import type {
+  Rule,
+  RuleCondition,
+  LogicalCondition,
+  ValidRuleTarget,
+} from './types.js';
 
 /**
  * Rule Engine - applies rules to objects
- * 
+ *
  * Note: T cannot have fields named 'and', 'or', or 'not' as they are reserved
  * for logical operators. T must only contain primitive values (string, number, boolean)
  * or arrays of primitives.
  */
-export class RuleEngine<T extends Record<string, ValidValue>> {
-  constructor(
-    private rules: Rule<T>[],
-    private defaultRule?: Partial<T>
-  ) {}
+export class RuleEngine<T extends ValidRuleTarget<T>> {
+  constructor(private rules: Rule<T>[], private defaultRule?: Partial<T>) {}
 
   /**
    * Apply all matching rules to an object
    */
   apply(item: T): T {
     // Start with default values if provided
-    let result = this.defaultRule 
+    let result = this.defaultRule
       ? { ...item, ...this.defaultRule }
       : { ...item };
 
@@ -33,18 +35,18 @@ export class RuleEngine<T extends Record<string, ValidValue>> {
         if (rule.set) {
           result = { ...result, ...rule.set };
         }
-        
+
         // Apply push (append to arrays)
         if (rule.push) {
           for (const key in rule.push) {
             const pushValue = rule.push[key];
             const currentValue = result[key];
-            
+
             // Only push to arrays
             if (Array.isArray(currentValue) && Array.isArray(pushValue)) {
               result = {
                 ...result,
-                [key]: [...currentValue, ...pushValue]
+                [key]: [...currentValue, ...pushValue],
               } as T;
             }
           }
@@ -59,24 +61,34 @@ export class RuleEngine<T extends Record<string, ValidValue>> {
    * Apply rules to multiple objects
    */
   applyAll(items: T[]): T[] {
-    return items.map(item => this.apply(item));
+    return items.map((item) => this.apply(item));
   }
 
   /**
    * Check if an object matches a condition
    */
-  private matches(item: T, condition: RuleCondition<T> | LogicalCondition<T>): boolean {
+  private matches(
+    item: T,
+    condition: RuleCondition<T> | LogicalCondition<T>
+  ): boolean {
     // Check if it's a logical condition
     if ('and' in condition && Array.isArray(condition.and)) {
-      return condition.and.every((c: RuleCondition<T> | LogicalCondition<T>) => this.matches(item, c));
+      return condition.and.every((c: RuleCondition<T> | LogicalCondition<T>) =>
+        this.matches(item, c)
+      );
     }
 
     if ('or' in condition && Array.isArray(condition.or)) {
-      return condition.or.some((c: RuleCondition<T> | LogicalCondition<T>) => this.matches(item, c));
+      return condition.or.some((c: RuleCondition<T> | LogicalCondition<T>) =>
+        this.matches(item, c)
+      );
     }
 
     if ('not' in condition && condition.not) {
-      return !this.matches(item, condition.not as RuleCondition<T> | LogicalCondition<T>);
+      return !this.matches(
+        item,
+        condition.not as RuleCondition<T> | LogicalCondition<T>
+      );
     }
 
     // It's a field condition - multiple fields are implicitly AND
@@ -103,7 +115,7 @@ export class RuleEngine<T extends Record<string, ValidValue>> {
     if (pattern instanceof RegExp) {
       return pattern.test(String(value));
     }
-    
+
     // Exact match
     return value === pattern;
   }
@@ -113,22 +125,26 @@ export class RuleEngine<T extends Record<string, ValidValue>> {
    */
   private normalizeOperator(operator: unknown): Record<string, unknown> | null {
     if (!operator) return null;
-    
+
     // Already an operator object
-    if (typeof operator === 'object' && !Array.isArray(operator) && !(operator instanceof RegExp)) {
+    if (
+      typeof operator === 'object' &&
+      !Array.isArray(operator) &&
+      !(operator instanceof RegExp)
+    ) {
       return operator as Record<string, unknown>;
     }
-    
+
     // RegExp -> { match: regex }
     if (operator instanceof RegExp) {
       return { match: operator };
     }
-    
+
     // Array -> { in: array }
     if (Array.isArray(operator)) {
       return { in: operator };
     }
-    
+
     // Direct value -> { eq: value }
     return { eq: operator };
   }
@@ -150,16 +166,16 @@ export class RuleEngine<T extends Record<string, ValidValue>> {
     // in - value is in array (supports mixed types: regex, strings, etc.)
     if ('in' in op && Array.isArray(op['in'])) {
       const inArray = op['in'] as unknown[];
-      
+
       if (Array.isArray(value)) {
         // If value is array, check if any element matches any pattern
-        return value.some(v => 
-          inArray.some(pattern => this.matchesPattern(v, pattern))
+        return value.some((v) =>
+          inArray.some((pattern) => this.matchesPattern(v, pattern))
         );
       }
-      
+
       // If value is scalar, check if it matches any pattern in the array
-      return inArray.some(pattern => this.matchesPattern(value, pattern));
+      return inArray.some((pattern) => this.matchesPattern(value, pattern));
     }
 
     // match - regex or glob pattern

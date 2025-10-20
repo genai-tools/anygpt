@@ -1,6 +1,6 @@
 /**
  * Rule Engine Types
- * 
+ *
  * A simple, type-safe rule engine for matching and transforming objects.
  * Can be easily extracted into a separate package later.
  */
@@ -23,11 +23,11 @@ export type RuleOperator<V> = {
  * - RegExp: match operator (e.g., /^github/ -> { match: /^github/ })
  * - Array: in operator (e.g., ['a', 'b'] -> { in: ['a', 'b'] })
  */
-export type RuleValue<V> = 
-  | V                           // Direct value -> eq
-  | RegExp                      // RegExp -> match
-  | V[]                         // Array -> in
-  | RuleOperator<V>;            // Explicit operator
+export type RuleValue<V> =
+  | V // Direct value -> eq
+  | RegExp // RegExp -> match
+  | V[] // Array -> in
+  | RuleOperator<V>; // Explicit operator
 
 /**
  * Valid value types for rule matching
@@ -35,13 +35,21 @@ export type RuleValue<V> =
  * - Arrays of primitives
  * - No functions, objects, or complex types
  */
-export type ValidValue = 
-  | string 
-  | number 
-  | boolean 
-  | string[] 
-  | number[] 
+export type ValidValue =
+  | string
+  | number
+  | boolean
+  | string[]
+  | number[]
   | boolean[];
+
+/**
+ * Constraint to ensure all properties of T are ValidValue types
+ * This prevents complex types (objects, functions, etc.) from being used in rules
+ */
+export type ValidRuleTarget<T> = {
+  [K in keyof T]: T[K] extends ValidValue ? T[K] : never;
+};
 
 /**
  * Rule condition - specify which fields to match
@@ -61,18 +69,18 @@ export type RuleCondition<T> = {
 /**
  * Logical operators for composing conditions
  */
-export type LogicalCondition<T> = 
+export type LogicalCondition<T> =
   | { and: Array<RuleCondition<T> | LogicalCondition<T>> }
   | { or: Array<RuleCondition<T> | LogicalCondition<T>> }
   | { not: RuleCondition<T> | LogicalCondition<T> };
 
 /**
  * Rule definition
- * 
+ *
  * Note: T cannot have fields named 'and', 'or', or 'not' as they are reserved
  * for logical operators. T must only contain primitive values or arrays of primitives.
  */
-export interface Rule<T extends Record<string, ValidValue>> {
+export interface Rule<T extends ValidRuleTarget<T>> {
   /** Conditions to match (supports logical operators) */
   when: RuleCondition<T> | LogicalCondition<T>;
   /** Values to set (replace) when matched */

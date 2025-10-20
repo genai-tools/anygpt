@@ -38,8 +38,7 @@ export interface MCPServerConfig {
  *
  * Simplified server metadata for filtering/configuring MCP servers.
  */
-export interface MCPServerRuleTarget
-  extends Record<string, string | boolean | string[]> {
+export interface MCPServerRuleTarget {
   /** Server name */
   name: string;
   /** Whether server is enabled */
@@ -56,8 +55,7 @@ export interface MCPServerRuleTarget
  * Simplified tool metadata containing only primitive values
  * that can be matched and transformed by the rule engine.
  */
-export interface MCPToolRuleTarget
-  extends Record<string, string | boolean | string[]> {
+export interface MCPToolRuleTarget {
   /** Server name */
   server: string;
   /** Tool name */
