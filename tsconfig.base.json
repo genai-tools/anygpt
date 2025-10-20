@@ -19,7 +19,8 @@
     "customConditions": ["@root/source"],
     "paths": {
       "@anygpt/cli": ["./packages/cli/src"],
-    "@anygpt/ai-provider": ["./packages/ai-provider/src"],
+      "@anygpt/ai-provider": ["./packages/ai-provider/src"],
+      "@anygpt/claude-agent": ["./packages/connectors/claude-agent/src"],
       "@anygpt/config": ["./packages/config/src"],
       "@anygpt/docker-mcp-plugin": ["./packages/plugins/docker-mcp/src"],
       "@anygpt/mcp": ["./packages/mcp/src"],
