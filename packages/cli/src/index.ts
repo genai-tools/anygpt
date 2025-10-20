@@ -60,12 +60,14 @@ program
   .argument('[message]', 'message to send (optional if --stdin is used)')
   .action(withCLIContext(chatCommand));
 
-// Interactive chat command (demo of chat loop)
+// Interactive chat command (with AI)
 program
   .command('chat-interactive')
   .alias('repl')
-  .description('Start interactive chat session (demo of chat loop foundation)')
-  .option('--echo', 'use simple echo mode')
+  .description('Start interactive chat session with AI')
+  .option('--echo', 'use simple echo mode (no AI)')
+  .option('--model <model>', 'model to use (e.g., gpt-4o-mini, claude-3-5-sonnet)')
+  .option('--provider <provider>', 'provider to use (e.g., openai, anthropic)')
   .action(withCLIContext(chatInteractiveCommand));
 
 // Config inspection command

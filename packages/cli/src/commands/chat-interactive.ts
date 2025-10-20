@@ -1,12 +1,16 @@
 import { ChatLoop } from '../chat-loop/index.js';
+import { AIProvider } from '@anygpt/ai-provider';
 import type { CLIContext } from '../utils/cli-context.js';
+import type { Message } from '../chat-loop/types.js';
 
 interface ChatInteractiveOptions {
   echo?: boolean;
+  model?: string;
+  provider?: string;
 }
 
 /**
- * Start an interactive chat session (demo of chat loop)
+ * Start an interactive chat session with AI
  */
 export async function chatInteractiveCommand(
   context: CLIContext,
@@ -14,20 +18,59 @@ export async function chatInteractiveCommand(
 ) {
   const chatLoop = new ChatLoop();
 
-  console.log('🤖 Interactive Chat Demo');
-  console.log('This is a demo of the chat loop foundation.');
+  // Determine provider and model
+  const providerId = options.provider || context.defaults.provider || 'openai';
+  const modelId = options.model || context.defaults.model || 'gpt-4o-mini';
+
+  console.log('🤖 Interactive AI Chat');
+  console.log(`Provider: ${providerId}`);
+  console.log(`Model: ${modelId}`);
   console.log('Type /help for commands, /exit to quit.\n');
+
+  // Create AI provider
+  const aiProvider = new AIProvider(context.router, {
+    provider: providerId,
+    model: modelId,
+  });
 
   await chatLoop.start({
     prompt: '💬 ',
     maxHistory: 50,
     onMessage: async (message: string) => {
-      // For now, just echo back
-      // In future features, this will call AI providers
+      // Echo mode for testing
       if (options.echo) {
         return `Echo: ${message}`;
       }
-      return `You said: "${message}"\n(AI integration coming in Feature 5-2!)`;
+
+      try {
+        // Get conversation history
+        const history = chatLoop.getHistory();
+
+        // Convert to AI provider format
+        const messages: Array<{
+          role: 'system' | 'user' | 'assistant';
+          content: string;
+        }> = history.map((msg: Message) => ({
+          role: msg.role as 'system' | 'user' | 'assistant',
+          content: msg.content,
+        }));
+
+        // Call AI
+        context.logger.debug('Sending request to AI...');
+        const response = await aiProvider.chat({ messages });
+
+        // Log token usage
+        context.logger.info(
+          `📊 Tokens: ${response.usage.promptTokens} input + ${response.usage.completionTokens} output = ${response.usage.totalTokens} total`
+        );
+
+        return response.message;
+      } catch (error) {
+        const errorMsg =
+          error instanceof Error ? error.message : String(error);
+        context.logger.error(`AI Error: ${errorMsg}`);
+        return `❌ Error: ${errorMsg}`;
+      }
     },
   });
 
