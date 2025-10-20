@@ -1,5 +1,7 @@
 # @anygpt/mcp-discovery
 
+> **⚠️ WORK IN PROGRESS**: This package is under active development. APIs and discovery mechanisms may change significantly. Use at your own risk in production environments.
+
 MCP Discovery Engine - Core logic for on-demand MCP tool discovery.
 
 ## Overview
@@ -26,8 +28,8 @@ const engine = new DiscoveryEngine({
   enabled: true,
   cache: {
     enabled: true,
-    ttl: 3600 // 1 hour
-  }
+    ttl: 3600, // 1 hour
+  },
 });
 ```
 
@@ -39,12 +41,12 @@ const results = await engine.searchTools('github issue');
 
 // Search with options
 const filtered = await engine.searchTools('create', {
-  server: 'github',  // Filter by server
-  limit: 5           // Limit results
+  server: 'github', // Filter by server
+  limit: 5, // Limit results
 });
 
 // Results include relevance scores
-results.forEach(result => {
+results.forEach((result) => {
   console.log(`${result.server}:${result.tool} (${result.relevance})`);
   console.log(`  ${result.summary}`);
   console.log(`  Tags: ${result.tags.join(', ')}`);
@@ -73,7 +75,7 @@ console.log(tool?.parameters);
 const result = await engine.executeTool('github', 'create_issue', {
   repo: 'owner/repo',
   title: 'Bug report',
-  body: 'Description of the bug'
+  body: 'Description of the bug',
 });
 
 if (result.success) {
@@ -91,29 +93,29 @@ const engine = new DiscoveryEngine({
   enabled: true,
   cache: {
     enabled: true,
-    ttl: 3600
+    ttl: 3600,
   },
   toolRules: [
     // Enable all github tools
     {
       pattern: ['*github*'],
       enabled: true,
-      tags: ['github']
+      tags: ['github'],
     },
     // Disable dangerous tools
     {
       pattern: ['*delete*', '*remove*'],
       enabled: false,
-      tags: ['dangerous']
+      tags: ['dangerous'],
     },
     // Server-specific rules
     {
       server: 'jira',
       pattern: ['*ticket*'],
       enabled: true,
-      tags: ['jira', 'tickets']
-    }
-  ]
+      tags: ['jira', 'tickets'],
+    },
+  ],
 });
 ```
 

@@ -1,5 +1,7 @@
 # AnyGPT Router
 
+> **⚠️ WORK IN PROGRESS**: This package is under active development. APIs and routing mechanisms may change significantly. Use at your own risk in production environments.
+
 A secure, enterprise-ready router for AI providers with flexible configuration and MCP protocol support.
 
 ## 🎯 **Overview**

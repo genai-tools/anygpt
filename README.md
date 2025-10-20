@@ -1,5 +1,7 @@
 # AnyGPT Ecosystem
 
+> **⚠️ WORK IN PROGRESS**: This project is under active development. APIs, components, and configurations may change significantly. Use at your own risk in production environments.
+
 A comprehensive TypeScript ecosystem for building AI-powered applications with support for multiple providers, MCP protocol, and
 flexible configuration management.
 

@@ -1,5 +1,7 @@
 # @anygpt/config
 
+> **⚠️ WORK IN PROGRESS**: This package is under active development. APIs and configuration formats may change significantly. Use at your own risk in production environments.
+
 Shared configuration management for AnyGPT with dynamic connector loading and powerful model rules.
 
 ## Features
@@ -110,6 +112,96 @@ export COMPANY_AI_KEY="your-company-key"
 ```bash
 npx anygpt chat "Hello!"
 ```
+
+## 🔀 Merging Configurations
+
+### `defineConfigs()` - For Plugin/MCP Configs
+
+Use `defineConfigs()` to merge **plugin-based configs** (with `defineConfig`). This preserves plugins and MCP server configurations:
+
+```typescript
+import { defineConfigs } from '@anygpt/config';
+import dockerMcpGateway from './mcp/docker-mcp-gateway';
+
+export default defineConfigs([
+  {
+    defaults: { provider: 'openai' },
+    providers: {
+      /* ... */
+    },
+  },
+  dockerMcpGateway, // Includes plugins
+]);
+```
+
+### `mergeConfigs()` - For Factory Configs
+
+Use `mergeConfigs()` to merge **factory-style configs** (legacy format). Accepts **both variadic arguments and arrays**:
+
+**Use cases:**
+
+- Composing base configs with environment-specific overrides
+- Combining legacy configuration objects
+- Building modular configuration systems
+- Dynamic config composition with spread operators
+
+### Basic Usage
+
+```typescript
+import { defineConfig, mergeConfigs } from '@anygpt/config';
+
+const baseConfig = defineConfig({
+  mcpServers: {
+    git: {
+      command: 'uvx',
+      args: ['mcp-server-git'],
+    },
+  },
+});
+
+const devConfig = defineConfig({
+  mcpServers: {
+    filesystem: {
+      command: 'npx',
+      args: ['-y', '@modelcontextprotocol/server-filesystem', '/tmp'],
+    },
+  },
+});
+
+// Variadic style - pass configs as separate arguments
+export default mergeConfigs(baseConfig, devConfig);
+
+// Array style - useful for dynamic composition
+export default mergeConfigs([baseConfig, devConfig]);
+```
+
+### Merging Multiple Configs
+
+```typescript
+import { mergeConfigs } from '@anygpt/config';
+import dockerMcpGateway from './mcp/docker-mcp-gateway.js';
+import customServers from './mcp/custom-servers.js';
+
+// Merge multiple configs from left to right
+export default mergeConfigs(dockerMcpGateway, customServers, {
+  // Inline overrides
+  mcpServers: {
+    'my-server': {
+      command: 'node',
+      args: ['./my-server.js'],
+    },
+  },
+});
+```
+
+### How Merging Works
+
+- **Objects**: Deep merged recursively
+- **Arrays**: Concatenated (later arrays appended to earlier ones)
+- **Primitives**: Later values override earlier ones
+- **mcpServers**: Merged by server name (later servers override earlier ones)
+- **providers**: Merged by provider name
+- **settings**: Deep merged with nested objects
 
 ## 📝 Configuration Examples
 

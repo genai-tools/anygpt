@@ -1,10 +1,13 @@
 # @anygpt/mcp-discovery-server
 
+> **⚠️ WORK IN PROGRESS**: This package is under active development. APIs and meta-tools may change significantly. Use at your own risk in production environments.
+
 **MCP Discovery Server** - PRIMARY interface for AI agents to discover and execute tools from 100+ MCP servers without loading everything into context.
 
 ## Overview
 
 This is an MCP protocol server that exposes the Discovery Engine via 5 meta-tools, enabling AI agents to:
+
 - Discover available MCP servers
 - Search for tools using free-text queries
 - List tools from specific servers
@@ -85,6 +88,7 @@ List all available MCP servers.
 **Returns**: Array of server metadata
 
 **Example**:
+
 ```typescript
 // AI agent calls
 list_mcp_servers()
@@ -115,6 +119,7 @@ list_mcp_servers()
 Search for tools using free-text query with relevance scoring.
 
 **Parameters**:
+
 - `query` (string, required): Search query
 - `server` (string, optional): Filter by server name
 - `limit` (number, optional): Maximum results (default: 10)
@@ -122,6 +127,7 @@ Search for tools using free-text query with relevance scoring.
 **Returns**: Array of matching tools with relevance scores
 
 **Example**:
+
 ```typescript
 // AI agent calls
 search_tools({
@@ -155,12 +161,14 @@ search_tools({
 List all tools from a specific MCP server.
 
 **Parameters**:
+
 - `server` (string, required): Server name
 - `includeDisabled` (boolean, optional): Include disabled tools
 
 **Returns**: Array of tool summaries
 
 **Example**:
+
 ```typescript
 // AI agent calls
 list_tools({
@@ -187,12 +195,14 @@ list_tools({
 Get detailed information about a specific tool.
 
 **Parameters**:
+
 - `server` (string, required): Server name
 - `tool` (string, required): Tool name
 
 **Returns**: Full tool description with parameters
 
 **Example**:
+
 ```typescript
 // AI agent calls
 get_tool_details({
@@ -238,6 +248,7 @@ get_tool_details({
 Execute a tool from any MCP server through the discovery server.
 
 **Parameters**:
+
 - `server` (string, required): Server name
 - `tool` (string, required): Tool name
 - `arguments` (object, required): Tool arguments
@@ -245,6 +256,7 @@ Execute a tool from any MCP server through the discovery server.
 **Returns**: Execution result or error
 
 **Example**:
+
 ```typescript
 // AI agent calls
 execute_tool({
@@ -277,7 +289,7 @@ User: "Read the README.md file and create a GitHub issue if there are any TODOs"
 AI Agent:
 1. search_tools({ query: "read file" })
    → Finds "filesystem:read_file"
-   
+
 2. get_tool_details({ server: "filesystem", tool: "read_file" })
    → Gets parameters
 
@@ -324,11 +336,11 @@ Actual MCP Servers (github, filesystem, etc)
 
 ## Token Savings
 
-| Scenario | Without Discovery | With Discovery | Savings |
-|----------|------------------|----------------|---------|
-| 10 servers, 150 tools | 100,000+ tokens | 600 tokens | 99.4% |
-| Single tool execution | 100,000+ tokens | 1,000 tokens | 99.0% |
-| Multi-tool workflow | 500,000+ tokens | 2,000 tokens | 99.6% |
+| Scenario              | Without Discovery | With Discovery | Savings |
+| --------------------- | ----------------- | -------------- | ------- |
+| 10 servers, 150 tools | 100,000+ tokens   | 600 tokens     | 99.4%   |
+| Single tool execution | 100,000+ tokens   | 1,000 tokens   | 99.0%   |
+| Multi-tool workflow   | 500,000+ tokens   | 2,000 tokens   | 99.6%   |
 
 ## Development
 

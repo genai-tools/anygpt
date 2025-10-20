@@ -1,5 +1,7 @@
 # AnyGPT Plugins
 
+> **⚠️ WORK IN PROGRESS**: This package is under active development. Plugin APIs and interfaces may change significantly. Use at your own risk in production environments.
+
 Plugin system for dynamic AnyGPT configuration. Inspired by unplugin - clean, declarative, context-aware.
 
 ## Available Plugins
@@ -53,11 +55,11 @@ import type { Plugin, PluginContext } from '@anygpt/types';
 export default function MyPlugin(options?: MyOptions): Plugin {
   return {
     name: 'my-plugin',
-    
+
     async config(context: PluginContext) {
       // Discover resources
       const servers = await discoverServers();
-      
+
       // Generate configuration
       return {
         mcpServers: {
@@ -65,7 +67,7 @@ export default function MyPlugin(options?: MyOptions): Plugin {
         },
       };
     },
-    
+
     async configResolved(config, context) {
       // Transform final config (optional)
       return config;
@@ -80,9 +82,9 @@ Plugins receive context with:
 
 ```typescript
 interface PluginContext {
-  cwd: string;                        // Current working directory
-  env: Record<string, string>;        // Environment variables
-  config: Partial<AnyGPTConfig>;      // Base config before plugins
+  cwd: string; // Current working directory
+  env: Record<string, string>; // Environment variables
+  config: Partial<AnyGPTConfig>; // Base config before plugins
 }
 ```
 

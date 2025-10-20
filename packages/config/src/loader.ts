@@ -5,10 +5,17 @@
 import { readFile, access } from 'fs/promises';
 import { join, resolve } from 'path';
 import { homedir } from 'os';
-import type { AnyGPTConfig, ConfigLoadOptions, MCPServerConfig } from '@anygpt/types';
+import type {
+  AnyGPTConfig,
+  ConfigLoadOptions,
+  MCPServerConfig,
+} from '@anygpt/types';
 import { getDefaultConfig } from './defaults.js';
 import { ConfigParseError, ConfigValidationError } from './errors.js';
-import { resolveConfig, type ConfigWithPlugins } from './plugins/define-config.js';
+import {
+  resolveConfig,
+  type ConfigWithPlugins,
+} from './plugins/define-config.js';
 
 /**
  * Default configuration paths to search
@@ -157,14 +164,14 @@ export function normalizeMCPServers(
 
   // Convert array to object format
   const normalized: Record<string, MCPServerConfig> = {};
-  
+
   for (const server of mcpServers) {
     if (!server.name) {
       throw new ConfigValidationError([
-        'MCP server in array format must have a "name" field'
+        'MCP server in array format must have a "name" field',
       ]);
     }
-    
+
     // Extract name and create config without it
     const { name, ...config } = server;
     normalized[name] = config;
@@ -174,9 +181,9 @@ export function normalizeMCPServers(
 }
 
 /**
- * Merge configurations with deep merge
+ * Merge two configurations with deep merge
  */
-function mergeConfigs(
+function mergeTwoConfigs(
   base: AnyGPTConfig,
   override: Partial<AnyGPTConfig>
 ): AnyGPTConfig {
@@ -198,8 +205,12 @@ function mergeConfigs(
   };
 
   // Normalize and merge mcpServers if either base or override has them
-  const baseWithMcp = base as typeof base & { mcpServers?: Record<string, MCPServerConfig> };
-  const overrideWithMcp = override as typeof override & { mcpServers?: Record<string, MCPServerConfig> };
+  const baseWithMcp = base as typeof base & {
+    mcpServers?: Record<string, MCPServerConfig>;
+  };
+  const overrideWithMcp = override as typeof override & {
+    mcpServers?: Record<string, MCPServerConfig>;
+  };
   if (baseWithMcp.mcpServers || overrideWithMcp.mcpServers) {
     const normalizedBase = normalizeMCPServers(baseWithMcp.mcpServers);
     const normalizedOverride = normalizeMCPServers(overrideWithMcp.mcpServers);
@@ -210,17 +221,25 @@ function mergeConfigs(
   }
 
   // Only merge discovery if either base or override has it
-  const baseWithDiscovery = base as typeof base & { discovery?: Record<string, unknown> };
-  const overrideWithDiscovery = override as typeof override & { discovery?: Record<string, unknown> };
+  const baseWithDiscovery = base as typeof base & {
+    discovery?: Record<string, unknown>;
+  };
+  const overrideWithDiscovery = override as typeof override & {
+    discovery?: Record<string, unknown>;
+  };
   if (baseWithDiscovery.discovery || overrideWithDiscovery.discovery) {
     result['discovery'] = {
       ...baseWithDiscovery.discovery,
       ...overrideWithDiscovery.discovery,
     };
-    
+
     // Merge cache if either has it
-    const baseCache = baseWithDiscovery.discovery?.['cache'] as Record<string, unknown> | undefined;
-    const overrideCache = overrideWithDiscovery.discovery?.['cache'] as Record<string, unknown> | undefined;
+    const baseCache = baseWithDiscovery.discovery?.['cache'] as
+      | Record<string, unknown>
+      | undefined;
+    const overrideCache = overrideWithDiscovery.discovery?.['cache'] as
+      | Record<string, unknown>
+      | undefined;
     if (baseCache || overrideCache) {
       (result['discovery'] as Record<string, unknown>)['cache'] = {
         ...baseCache,
@@ -262,10 +281,63 @@ export async function loadConfig(
   // Merge with defaults if requested
   const defaultConfig = getDefaultConfig();
   if (mergeDefaults && config !== defaultConfig) {
-    config = mergeConfigs(defaultConfig, config);
+    config = mergeTwoConfigs(defaultConfig, config);
   }
 
   return config;
+}
+
+/**
+ * Merge multiple configurations with deep merge
+ *
+ * Accepts either individual configs or an array of configs.
+ * Merges configurations from left to right, with later configs taking precedence.
+ *
+ * @example
+ * ```ts
+ * import { mergeConfigs, defineConfig } from '@anygpt/config';
+ *
+ * // Variadic style
+ * export default mergeConfigs(base, override, extra);
+ *
+ * // Array style (useful for dynamic composition)
+ * const configs = [base, override, extra];
+ * export default mergeConfigs(configs);
+ *
+ * // Mixed style with spread
+ * export default mergeConfigs([base, ...otherConfigs]);
+ * ```
+ */
+export function mergeConfigs(
+  ...configs: Array<
+    | Partial<AnyGPTConfig>
+    | ConfigWithPlugins
+    | Array<Partial<AnyGPTConfig> | ConfigWithPlugins>
+  >
+): ConfigWithPlugins {
+  // Flatten array if first argument is an array
+  const flatConfigs: Array<Partial<AnyGPTConfig> | ConfigWithPlugins> =
+    configs.length === 1 && Array.isArray(configs[0])
+      ? configs[0]
+      : (configs as Array<Partial<AnyGPTConfig> | ConfigWithPlugins>);
+
+  if (flatConfigs.length === 0) {
+    return {};
+  }
+
+  if (flatConfigs.length === 1) {
+    return flatConfigs[0] as ConfigWithPlugins;
+  }
+
+  // Start with first config as base
+  let result = flatConfigs[0] as AnyGPTConfig;
+
+  // Merge remaining configs
+  for (let i = 1; i < flatConfigs.length; i++) {
+    result = mergeTwoConfigs(result, flatConfigs[i]);
+  }
+
+  return result as ConfigWithPlugins;
 }
 
 /**

@@ -1,5 +1,7 @@
 # @anygpt/mcp
 
+> **⚠️ WORK IN PROGRESS**: This package is under active development. APIs and MCP tools may change significantly. Use at your own risk in production environments.
+
 A Model Context Protocol (MCP) server that bridges MCP clients with multiple AI providers through the AnyGPT router system.
 
 ## Features
@@ -14,11 +16,13 @@ A Model Context Protocol (MCP) server that bridges MCP clients with multiple AI 
 ## Available Tools
 
 ### `anygpt_list_providers`
+
 Discover all configured AI providers and their types. **Use this first** to understand what providers are available.
 
 **Parameters:** None
 
 **Returns:**
+
 - `providers`: Array of provider information
   - `id`: Provider identifier (used in other tools)
   - `type`: Provider type (e.g., "openai", "anthropic")
@@ -26,6 +30,7 @@ Discover all configured AI providers and their types. **Use this first** to unde
 - `default_provider`: The default provider ID (if configured)
 
 **Example response:**
+
 ```json
 {
   "providers": [
@@ -37,17 +42,21 @@ Discover all configured AI providers and their types. **Use this first** to unde
 ```
 
 ### `anygpt_list_models`
+
 List available models dynamically from AI providers. Requires valid API credentials.
 
 **Parameters:**
+
 - `provider` (optional): AI provider to list models from (uses default if not specified)
 
 **Note:** This tool fetches models in real-time from the provider's API, ensuring you always get the most up-to-date list of available models.
 
 ### `anygpt_chat_completion`
+
 Send chat completion requests to AI providers via the gateway.
 
 **Parameters:**
+
 - `messages` (required): Array of chat messages with `role` and `content`
 - `model` (optional): Model to use (uses default if not specified)
 - `provider` (optional): AI provider (uses default if not specified)
@@ -66,18 +75,21 @@ If the response has `"finish_reason": "length"`, it means the output was **trunc
 3. **Trade-offs:** Higher `max_tokens` values increase latency and cost but prevent truncation
 
 **Example of handling truncation:**
+
 ```typescript
 // First attempt - might be truncated
 const response1 = await anygpt_chat_completion({
-  messages: [{ role: "user", content: "Explain quantum computing in detail" }],
-  max_tokens: 100  // Too low!
+  messages: [{ role: 'user', content: 'Explain quantum computing in detail' }],
+  max_tokens: 100, // Too low!
 });
 
-if (response1.choices[0].finish_reason === "length") {
+if (response1.choices[0].finish_reason === 'length') {
   // Response was truncated, retry with higher limit
   const response2 = await anygpt_chat_completion({
-    messages: [{ role: "user", content: "Explain quantum computing in detail" }],
-    max_tokens: 2000  // Much better!
+    messages: [
+      { role: 'user', content: 'Explain quantum computing in detail' },
+    ],
+    max_tokens: 2000, // Much better!
   });
 }
 ```
@@ -91,21 +103,22 @@ The MCP server is **self-documenting**. Follow this workflow to discover and use
 3. **Chat**: Call `anygpt_chat_completion` with your chosen provider and model
 
 **Example:**
+
 ```typescript
 // Step 1: What providers are available?
-anygpt_list_providers()
+anygpt_list_providers();
 // Returns: { providers: [{ id: "openai", type: "openai", isDefault: true }], ... }
 
 // Step 2: What models does OpenAI offer?
-anygpt_list_models({ provider: "openai" })
+anygpt_list_models({ provider: 'openai' });
 // Returns: { provider: "openai", models: [...] }
 
 // Step 3: Use a specific model
 anygpt_chat_completion({
-  provider: "openai",
-  model: "gpt-4",
-  messages: [{ role: "user", content: "Hello!" }]
-})
+  provider: 'openai',
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello!' }],
+});
 ```
 
 ## Resources (AI-Readable Documentation)
@@ -142,6 +155,7 @@ The MCP server supports **sampling**, which allows AI assistants (VS Code Copilo
 ### Available Models
 
 You can use any of:
+
 - **Aliases** from your config (e.g., `opus`, `fast`, `cheap`)
 - **Tags** from provider models (e.g., `flagship`, `best`)
 - **Direct model names** (e.g., `gpt-4`, `claude-opus-4-20250514`)
@@ -151,25 +165,30 @@ You can use any of:
 ✅ **Unified Configuration** - Same config for CLI, MCP, and IDE  
 ✅ **Smart Resolution** - Use shortcuts instead of full model names  
 ✅ **Cost Control** - Route to appropriate models based on task  
-✅ **Provider Flexibility** - Switch providers without reconfiguring IDE  
+✅ **Provider Flexibility** - Switch providers without reconfiguring IDE
 
 ## Prompts (Pre-Built Workflows)
 
 The server provides ready-to-use prompt templates for common tasks:
 
 ### `discover-and-chat`
+
 Complete workflow that discovers providers, lists models, and sends a chat message.
 
 **Arguments:**
+
 - `question` (required): The question to ask the AI
 
 ### `compare-providers`
+
 Compare how different AI providers respond to the same question.
 
 **Arguments:**
+
 - `question` (required): The question to ask all providers
 
 ### `list-capabilities`
+
 Show all available providers and their models in an organized format.
 
 **No arguments required**
@@ -190,12 +209,12 @@ npx nx build mcp
 
 The server is configured via environment variables:
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `OPENAI_API_KEY` | OpenAI API key | - |
-| `DEFAULT_MODEL` | Default model to use | `gpt-3.5-turbo` |
-| `TIMEOUT` | Request timeout in milliseconds | `30000` |
-| `MAX_RETRIES` | Maximum retry attempts | `3` |
+| Variable         | Description                     | Default         |
+| ---------------- | ------------------------------- | --------------- |
+| `OPENAI_API_KEY` | OpenAI API key                  | -               |
+| `DEFAULT_MODEL`  | Default model to use            | `gpt-3.5-turbo` |
+| `TIMEOUT`        | Request timeout in milliseconds | `30000`         |
+| `MAX_RETRIES`    | Maximum retry attempts          | `3`             |
 
 ## Usage
 
@@ -258,6 +277,7 @@ MCP Client → @anygpt/mcp → @anygpt/router → AI Provider APIs
 ```
 
 The server acts as a protocol translator:
+
 1. Receives MCP tool calls from clients
 2. Translates them to router API calls
 3. Routes requests to appropriate AI providers via connectors

@@ -1,5 +1,7 @@
 # AnyGPT CLI
 
+> **⚠️ WORK IN PROGRESS**: This package is under active development. APIs and commands may change significantly. Use at your own risk in production environments.
+
 A powerful command-line interface for interacting with AI providers through the AnyGPT Router. Supports both stateless chat and stateful conversation management.
 
 ## 🎯 **Overview**

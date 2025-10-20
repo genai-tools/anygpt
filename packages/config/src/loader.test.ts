@@ -7,7 +7,7 @@ import { createJiti } from 'jiti';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { loadConfig, validateConfig } from './loader.js';
+import { loadConfig, validateConfig, mergeConfigs } from './loader.js';
 import { ConfigParseError, ConfigValidationError } from './errors.js';
 import type { AnyGPTConfig } from '@anygpt/types';
 
@@ -325,7 +325,7 @@ describe('MCP Server Configuration - Array Format', () => {
     // Simulate normalization (this happens internally during merge)
     const mcpServers = arrayConfig.mcpServers;
     expect(Array.isArray(mcpServers)).toBe(true);
-    
+
     // After normalization, it should be an object
     if (Array.isArray(mcpServers)) {
       const normalized: Record<string, any> = {};
@@ -335,7 +335,7 @@ describe('MCP Server Configuration - Array Format', () => {
           normalized[name] = config;
         }
       }
-      
+
       expect(Object.keys(normalized)).toHaveLength(2);
       expect(normalized['sequential-thinking']).toBeDefined();
       expect(normalized['git']).toBeDefined();
@@ -439,5 +439,246 @@ describe('MCP Server Configuration - Array Format', () => {
     const server = (config.mcpServers as any[])[0];
     expect(server.env).toBeDefined();
     expect(server.env.GITHUB_TOKEN).toBe('test-token');
+  });
+});
+
+describe('mergeConfigs', () => {
+  it('should merge two configs', () => {
+    const base = {
+      version: '1.0',
+      providers: {
+        openai: {
+          name: 'OpenAI',
+          connector: { connector: '@anygpt/openai' },
+        },
+      },
+    } as AnyGPTConfig;
+
+    const override = {
+      providers: {
+        anthropic: {
+          name: 'Anthropic',
+          connector: { connector: '@anygpt/anthropic' },
+        },
+      },
+    };
+
+    const result = mergeConfigs(base, override);
+
+    expect(result.providers).toBeDefined();
+    expect(Object.keys(result.providers || {})).toHaveLength(2);
+    expect(result.providers?.openai).toBeDefined();
+    expect(result.providers?.anthropic).toBeDefined();
+  });
+
+  it('should merge multiple configs', () => {
+    const config1 = {
+      version: '1.0',
+      providers: {
+        openai: {
+          name: 'OpenAI',
+          connector: { connector: '@anygpt/openai' },
+        },
+      },
+    } as AnyGPTConfig;
+
+    const config2 = {
+      providers: {
+        anthropic: {
+          name: 'Anthropic',
+          connector: { connector: '@anygpt/anthropic' },
+        },
+      },
+    };
+
+    const config3 = {
+      settings: {
+        defaultProvider: 'anthropic',
+      },
+    };
+
+    const result = mergeConfigs(config1, config2, config3);
+
+    expect(result.providers).toBeDefined();
+    expect(Object.keys(result.providers || {})).toHaveLength(2);
+    expect(result.settings?.defaultProvider).toBe('anthropic');
+  });
+
+  it('should handle empty configs', () => {
+    const result = mergeConfigs();
+    expect(result).toEqual({});
+  });
+
+  it('should handle single config', () => {
+    const config = {
+      version: '1.0',
+      providers: {
+        openai: {
+          name: 'OpenAI',
+          connector: { connector: '@anygpt/openai' },
+        },
+      },
+    } as AnyGPTConfig;
+
+    const result = mergeConfigs(config);
+    expect(result).toEqual(config);
+  });
+
+  it('should merge mcpServers', () => {
+    const base = {
+      version: '1.0',
+      providers: {
+        test: {
+          name: 'Test',
+          connector: { connector: '@anygpt/mock' },
+        },
+      },
+      mcpServers: {
+        git: {
+          command: 'npx',
+          args: ['-y', 'mcp-server-git'],
+        },
+      },
+    } as any;
+
+    const override = {
+      mcpServers: {
+        filesystem: {
+          command: 'npx',
+          args: ['-y', 'mcp-server-filesystem'],
+        },
+      },
+    };
+
+    const result = mergeConfigs(base, override);
+
+    expect(result.mcpServers).toBeDefined();
+    expect(Object.keys((result as any).mcpServers)).toHaveLength(2);
+    expect((result as any).mcpServers.git).toBeDefined();
+    expect((result as any).mcpServers.filesystem).toBeDefined();
+  });
+
+  it('should override provider with same name', () => {
+    const base = {
+      version: '1.0',
+      providers: {
+        openai: {
+          name: 'OpenAI',
+          connector: { connector: '@anygpt/openai' },
+        },
+      },
+    } as AnyGPTConfig;
+
+    const override = {
+      providers: {
+        openai: {
+          name: 'OpenAI Custom',
+          connector: { connector: '@anygpt/openai', baseURL: 'custom' },
+        },
+      },
+    };
+
+    const result = mergeConfigs(base, override);
+
+    expect(result.providers?.openai?.name).toBe('OpenAI Custom');
+    expect((result.providers?.openai?.connector as any)?.baseURL).toBe(
+      'custom'
+    );
+  });
+
+  it('should deep merge settings', () => {
+    const base = {
+      version: '1.0',
+      providers: {
+        test: {
+          name: 'Test',
+          connector: { connector: '@anygpt/mock' },
+        },
+      },
+      settings: {
+        defaultProvider: 'openai',
+        logging: {
+          level: 'info',
+        },
+      },
+    } as AnyGPTConfig;
+
+    const override = {
+      settings: {
+        logging: {
+          format: 'json',
+        },
+      },
+    };
+
+    const result = mergeConfigs(base, override);
+
+    expect(result.settings?.defaultProvider).toBe('openai');
+    expect(result.settings?.logging?.level).toBe('info');
+    expect((result.settings?.logging as any)?.format).toBe('json');
+  });
+
+  it('should accept array of configs', () => {
+    const config1 = {
+      version: '1.0',
+      providers: {
+        openai: {
+          name: 'OpenAI',
+          connector: { connector: '@anygpt/openai' },
+        },
+      },
+    } as AnyGPTConfig;
+
+    const config2 = {
+      providers: {
+        anthropic: {
+          name: 'Anthropic',
+          connector: { connector: '@anygpt/anthropic' },
+        },
+      },
+    };
+
+    // Array style
+    const result = mergeConfigs([config1, config2]);
+
+    expect(result.providers).toBeDefined();
+    expect(Object.keys(result.providers || {})).toHaveLength(2);
+    expect(result.providers?.openai).toBeDefined();
+    expect(result.providers?.anthropic).toBeDefined();
+  });
+
+  it('should work with spread operator in array', () => {
+    const base = {
+      version: '1.0',
+      providers: {
+        openai: {
+          name: 'OpenAI',
+          connector: { connector: '@anygpt/openai' },
+        },
+      },
+    } as AnyGPTConfig;
+
+    const extraConfigs = [
+      {
+        providers: {
+          anthropic: {
+            name: 'Anthropic',
+            connector: { connector: '@anygpt/anthropic' },
+          },
+        },
+      },
+      {
+        settings: {
+          defaultProvider: 'anthropic',
+        },
+      },
+    ];
+
+    // Spread in array
+    const result = mergeConfigs([base, ...extraConfigs]);
+
+    expect(result.providers).toBeDefined();
+    expect(Object.keys(result.providers || {})).toHaveLength(2);
+    expect(result.settings?.defaultProvider).toBe('anthropic');
   });
 });

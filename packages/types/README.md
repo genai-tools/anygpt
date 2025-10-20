@@ -1,15 +1,17 @@
 # @anygpt/types
 
+> **⚠️ WORK IN PROGRESS**: This package is under active development. Type definitions may change significantly. Use at your own risk in production environments.
+
 Pure type definitions for the AnyGPT ecosystem with **zero runtime dependencies**.
 
 ## Purpose
 
-This package contains ONLY TypeScript type definitions and interfaces. It has no runtime dependencies and produces virtually no JavaScript output (0.01 kB). 
+This package contains ONLY TypeScript type definitions and interfaces. It has no runtime dependencies and produces virtually no JavaScript output (0.01 kB).
 
 ## Key Benefits
 
 1. **Zero Runtime Overhead**: Use with `import type` for compile-time only imports
-2. **No Dependency Hell**: Packages can share types without heavy runtime dependencies  
+2. **No Dependency Hell**: Packages can share types without heavy runtime dependencies
 3. **Clean Architecture**: Avoids circular dependencies between packages
 4. **Lightweight**: Perfect for packages that only need type information
 
@@ -19,10 +21,10 @@ Always use `import type` syntax to ensure zero runtime impact:
 
 ```typescript
 // ✅ Correct - zero runtime overhead
-import type { 
-  ConnectorFactory, 
+import type {
+  ConnectorFactory,
   AnyGPTConfig,
-  ChatCompletionRequest 
+  ChatCompletionRequest,
 } from '@anygpt/types';
 
 // ❌ Avoid - creates runtime dependency
@@ -32,12 +34,14 @@ import { ConnectorFactory } from '@anygpt/types';
 ## Architecture Problem Solved
 
 **Before**: Packages needed heavy router dependency just for types
+
 ```typescript
 // Heavy dependency just for types!
 import type { ConnectorFactory } from '@anygpt/router';
 ```
 
 **After**: Lightweight types-only dependency
+
 ```typescript
 // Pure types, zero runtime cost
 import type { ConnectorFactory } from '@anygpt/types';
@@ -53,17 +57,21 @@ import type { ConnectorFactory } from '@anygpt/types';
 ## Type Categories
 
 ### Base Types
+
 - `ChatMessage`, `ChatCompletionRequest`, `ChatCompletionResponse`
 - `ModelInfo`, `ConnectorConfig`, `Logger`
 
-### Connector Types  
+### Connector Types
+
 - `IConnector`, `ConnectorFactory`, `IConnectorRegistry`
 
 ### Router Types
+
 - `RouterConfig`, `ApiConfig`, `ProviderConfig`
 - `ResponseRequest`, `ResponseResponse`, `Tool`, `ToolChoice`
 
 ### Configuration Types
+
 - `AnyGPTConfig`, `ConfigLoadOptions`
 
 ## Best Practices
@@ -76,11 +84,11 @@ import type { ConnectorFactory } from '@anygpt/types';
 ## Example: Connector Implementation
 
 ```typescript
-import type { 
-  ConnectorFactory, 
+import type {
+  ConnectorFactory,
   IConnector,
   BaseChatCompletionRequest,
-  BaseChatCompletionResponse 
+  BaseChatCompletionResponse,
 } from '@anygpt/types';
 
 export class MyConnectorFactory implements ConnectorFactory {
