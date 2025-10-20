@@ -1,6 +1,6 @@
 import type { ToolMetadata } from './types.js';
 import type { Rule } from '@anygpt/rules';
-import type { ToolRuleTarget } from '@anygpt/types';
+import type { MCPToolRuleTarget } from '@anygpt/types';
 import { RuleEngine } from '@anygpt/rules';
 
 /**
@@ -11,7 +11,7 @@ export class ToolMetadataManager {
 
   /**
    * Add or update a tool
-   * 
+   *
    * @param tool - Tool metadata to add
    */
   addTool(tool: ToolMetadata): void {
@@ -21,7 +21,7 @@ export class ToolMetadataManager {
 
   /**
    * Add multiple tools at once
-   * 
+   *
    * @param tools - Array of tool metadata to add
    */
   addTools(tools: ToolMetadata[]): void {
@@ -32,7 +32,7 @@ export class ToolMetadataManager {
 
   /**
    * Clear all tools for a specific server
-   * 
+   *
    * @param server - Server name
    */
   clearServerTools(server: string): void {
@@ -56,7 +56,7 @@ export class ToolMetadataManager {
 
   /**
    * Get a specific tool
-   * 
+   *
    * @param server - Server name
    * @param tool - Tool name
    * @returns Tool metadata or null if not found
@@ -68,14 +68,14 @@ export class ToolMetadataManager {
 
   /**
    * Get all tools from a specific server
-   * 
+   *
    * @param server - Server name
    * @param includeDisabled - Include disabled tools
    * @returns Array of tool metadata
    */
   getToolsByServer(server: string, includeDisabled = false): ToolMetadata[] {
     const tools: ToolMetadata[] = [];
-    
+
     for (const tool of this.tools.values()) {
       if (tool.server === server) {
         if (includeDisabled || tool.enabled) {
@@ -83,34 +83,34 @@ export class ToolMetadataManager {
         }
       }
     }
-    
+
     return tools;
   }
 
   /**
    * Get all tools from all servers
-   * 
+   *
    * @param includeDisabled - Include disabled tools
    * @returns Array of tool metadata
    */
   getAllTools(includeDisabled = false): ToolMetadata[] {
     const tools: ToolMetadata[] = [];
-    
+
     for (const tool of this.tools.values()) {
       if (includeDisabled || tool.enabled) {
         tools.push(tool);
       }
     }
-    
+
     return tools;
   }
 
   /**
    * Apply filtering rules to all tools using rule engine
-   * 
+   *
    * @param rules - Array of rules from @anygpt/rules
    */
-  applyRules(rules: Rule<ToolRuleTarget>[]): void {
+  applyRules(rules: Rule<MCPToolRuleTarget>[]): void {
     if (!rules || rules.length === 0) {
       return;
     }
@@ -119,12 +119,12 @@ export class ToolMetadataManager {
 
     // Apply rules to each tool
     for (const tool of this.tools.values()) {
-      // Convert ToolMetadata to ToolRuleTarget
-      const target: ToolRuleTarget = {
+      // Convert ToolMetadata to MCPToolRuleTarget
+      const target: MCPToolRuleTarget = {
         server: tool.server,
         name: tool.name,
         enabled: tool.enabled,
-        tags: [...tool.tags]
+        tags: [...tool.tags],
       };
 
       // Apply rules
@@ -132,13 +132,13 @@ export class ToolMetadataManager {
 
       // Update tool with results
       tool.enabled = result.enabled;
-      tool.tags = [...new Set(result.tags)]; // Deduplicate tags
+      tool.tags = [...new Set(result.tags as string[])]; // Deduplicate tags
     }
   }
 
   /**
    * Get total tool count for a server
-   * 
+   *
    * @param server - Server name
    * @returns Total tool count
    */
@@ -154,7 +154,7 @@ export class ToolMetadataManager {
 
   /**
    * Get enabled tool count for a server
-   * 
+   *
    * @param server - Server name
    * @returns Enabled tool count
    */
@@ -170,7 +170,7 @@ export class ToolMetadataManager {
 
   /**
    * Generate a unique key for a tool
-   * 
+   *
    * @param server - Server name
    * @param tool - Tool name
    * @returns Unique key

@@ -39,13 +39,9 @@ export default async function runExecutor(
       'packages/connectors/*/CHANGELOG.md',
     ],
     aiCommand,
-    aiTitleCommand,
     model,
-    maxLinesPerFile = 150,
-    aiTimeout = 20,
     autoMerge = true,
     skipPublish = true,
-    diffPaths = ['packages/*/src/**', 'packages/connectors/*/src/**'],
   } = options;
 
   // Override model in aiCommand if model parameter is provided
@@ -53,8 +49,6 @@ export default async function runExecutor(
     model && aiCommand
       ? aiCommand.replace(/--model\s+\S+/, `--model ${model}`)
       : aiCommand;
-
-  const finalAiTitleCommand = aiTitleCommand || finalAiCommand;
 
   try {
     console.log('🚀 Starting release process...\n');
@@ -308,7 +302,7 @@ export default async function runExecutor(
 
     // Extract changelog
     console.log('\n📋 Extracting changelog...');
-    const { changelog } = await extractChangelog(changelogPatterns);
+    await extractChangelog(changelogPatterns);
 
     // Build PR body with package list
     const prBody = buildPRBody('', releases);

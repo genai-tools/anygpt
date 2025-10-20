@@ -12,14 +12,15 @@ async function main() {
     enabled: true,
     cache: {
       enabled: true,
-      ttl: 3600 // 1 hour
+      ttl: 3600, // 1 hour
     },
-    toolRules: []
+    serverRules: [],
+    toolRules: [],
   };
 
   // Create and start server
   const server = new DiscoveryMCPServer(config);
-  
+
   // Log to stderr (stdout is used for MCP protocol)
   console.error('MCP Discovery Server starting...');
   console.error('Registered 5 meta-tools:');
@@ -28,7 +29,7 @@ async function main() {
   console.error('  - list_tools');
   console.error('  - get_tool_details');
   console.error('  - execute_tool');
-  
+
   await server.start();
   console.error('MCP Discovery Server ready');
 }

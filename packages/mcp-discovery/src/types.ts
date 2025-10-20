@@ -3,7 +3,7 @@
  */
 
 import type { Rule } from '@anygpt/rules';
-import type { MCPToolRuleTarget } from '@anygpt/types';
+import type { MCPServerRuleTarget, MCPToolRuleTarget } from '@anygpt/types';
 
 /**
  * Cache configuration
@@ -65,8 +65,10 @@ export interface DiscoveryConfig {
   cache?: CacheConfig;
   /** Configuration sources */
   sources?: ConfigSource[];
+  /** Rules for filtering and tagging MCP servers */
+  serverRules?: Rule<MCPServerRuleTarget>[];
   /** Rules for filtering and tagging tools */
-  rules?: Rule<MCPToolRuleTarget>[];
+  toolRules?: Rule<MCPToolRuleTarget>[];
 }
 
 /**

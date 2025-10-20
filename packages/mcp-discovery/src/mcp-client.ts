@@ -83,7 +83,9 @@ export class MCPClientManager {
       const transport = new StdioClientTransport({
         command: config.command,
         args: config.args || [],
-        env: config.env ? { ...process.env, ...config.env } : process.env,
+        env: config.env
+          ? { ...(process.env as Record<string, string>), ...config.env }
+          : (process.env as Record<string, string>),
         stderr: 'pipe', // Pipe stderr so we can capture it
       });
 
@@ -217,7 +219,9 @@ export class MCPClientManager {
         server: serverName,
         enabled: true, // Default to enabled, will be filtered by rules
         tags: [], // Initialize with empty tags array
-        parameters: convertJsonSchemaToParameters(tool.inputSchema),
+        parameters: convertJsonSchemaToParameters(
+          tool.inputSchema as unknown as Record<string, unknown>
+        ),
       }));
     } catch {
       // Silently return empty array on error

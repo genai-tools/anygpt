@@ -5,12 +5,11 @@ import type {
   SearchResult,
   ToolMetadata,
   ExecutionResult,
-  MCPServerConfig
+  MCPServerConfig,
 } from './types.js';
 import { SearchEngine } from './search-engine.js';
 import { ToolMetadataManager } from './tool-metadata-manager.js';
 import { CachingLayer } from './caching-layer.js';
-import { ToolExecutionProxy } from './tool-execution-proxy.js';
 import { MCPClientManager } from './mcp-client.js';
 
 /**
@@ -22,17 +21,18 @@ export class DiscoveryEngine {
   private searchEngine: SearchEngine;
   private metadataManager: ToolMetadataManager;
   private cache: CachingLayer;
-  private executionProxy: ToolExecutionProxy;
   private clientManager: MCPClientManager;
   private initialized = false;
 
-  constructor(config: DiscoveryConfig, mcpServers?: Record<string, MCPServerConfig>) {
+  constructor(
+    config: DiscoveryConfig,
+    mcpServers?: Record<string, MCPServerConfig>
+  ) {
     this.config = config;
     this.mcpServers = mcpServers || {};
     this.searchEngine = new SearchEngine();
     this.metadataManager = new ToolMetadataManager();
     this.cache = new CachingLayer();
-    this.executionProxy = new ToolExecutionProxy();
     this.clientManager = new MCPClientManager();
 
     // Apply initial configuration
@@ -41,71 +41,92 @@ export class DiscoveryEngine {
 
   /**
    * Initialize connections and discover tools from all servers
-   * 
+   *
    * @param onProgress - Optional callback for progress updates
    */
-  async initialize(onProgress?: (progress: import('./types.js').ServerProgress) => void): Promise<void> {
+  async initialize(
+    onProgress?: (progress: import('./types.js').ServerProgress) => void
+  ): Promise<void> {
     if (this.initialized) {
       return;
     }
 
     const { Readable } = await import('node:stream');
-    
+
     // Get all server entries
     const serverEntries = Object.entries(this.mcpServers);
-    
+
     // Process servers with concurrency control (max 5 at a time)
     const MAX_CONCURRENT = 5;
-    
+
     await Readable.from(serverEntries)
-      .map(async ([name, config]) => {
-        // Skip disabled servers
-        if (config.enabled === false) {
-          onProgress?.({ server: name, status: 'error', error: 'Server is disabled' });
-          return;
-        }
-        
-        try {
-          // Notify: connecting
-          onProgress?.({ server: name, status: 'connecting', message: 'Connecting to server...' });
-          
-          // Connect to server
-          const connection = await this.clientManager.connect(name, config);
-          
-          if (connection.status === 'connected') {
-            // Notify: discovering tools
-            onProgress?.({ server: name, status: 'discovering', message: 'Discovering tools...' });
-            
-            // Discover tools from this server
-            const tools = await this.clientManager.listTools(name);
-            
-            // Add tools to metadata manager
-            this.metadataManager.addTools(tools);
-            
-            // Notify: connected
-            onProgress?.({ server: name, status: 'connected', toolCount: tools.length });
-          } else {
+      .map(
+        async ([name, config]) => {
+          // Skip disabled servers
+          if (config.enabled === false) {
+            onProgress?.({
+              server: name,
+              status: 'error',
+              error: 'Server is disabled',
+            });
+            return;
+          }
+
+          try {
+            // Notify: connecting
+            onProgress?.({
+              server: name,
+              status: 'connecting',
+              message: 'Connecting to server...',
+            });
+
+            // Connect to server
+            const connection = await this.clientManager.connect(name, config);
+
+            if (connection.status === 'connected') {
+              // Notify: discovering tools
+              onProgress?.({
+                server: name,
+                status: 'discovering',
+                message: 'Discovering tools...',
+              });
+
+              // Discover tools from this server
+              const tools = await this.clientManager.listTools(name);
+
+              // Add tools to metadata manager
+              this.metadataManager.addTools(tools);
+
+              // Notify: connected
+              onProgress?.({
+                server: name,
+                status: 'connected',
+                toolCount: tools.length,
+              });
+            } else {
+              // Notify: error
+              onProgress?.({
+                server: name,
+                status: 'error',
+                error: connection.error || 'Failed to connect',
+              });
+            }
+          } catch (error) {
             // Notify: error
-            onProgress?.({ 
-              server: name, 
-              status: 'error', 
-              error: connection.error || 'Failed to connect'
+            onProgress?.({
+              server: name,
+              status: 'error',
+              error: error instanceof Error ? error.message : String(error),
             });
           }
-        } catch (error) {
-          // Notify: error
-          onProgress?.({ 
-            server: name, 
-            status: 'error', 
-            error: error instanceof Error ? error.message : String(error)
-          });
-        }
-      }, { concurrency: MAX_CONCURRENT })
+        },
+        { concurrency: MAX_CONCURRENT }
+      )
       .toArray(); // Consume the stream
 
     // Apply filtering rules after all tools are discovered
-    if (this.config.rules && this.config.rules.length > 0) {
-      this.metadataManager.applyRules(this.config.rules);
+    if (this.config.toolRules && this.config.toolRules.length > 0) {
+      this.metadataManager.applyRules(this.config.toolRules);
     }
 
     this.initialized = true;
@@ -113,7 +134,7 @@ export class DiscoveryEngine {
 
   /**
    * List all available MCP servers
-   * 
+   *
    * @returns Array of server metadata
    */
   async listServers(): Promise<ServerMetadata[]> {
@@ -132,24 +153,26 @@ export class DiscoveryEngine {
     const statuses = this.clientManager.getConnectionStatuses();
 
     // Convert MCP server configs to ServerMetadata
-    const servers: ServerMetadata[] = Object.entries(this.mcpServers).map(([name, config]) => {
-      // Get tools for this server from metadata manager
-      const tools = this.metadataManager.getToolsByServer(name, true);
-      const enabledTools = tools.filter(t => t.enabled);
+    const servers: ServerMetadata[] = Object.entries(this.mcpServers).map(
+      ([name, config]) => {
+        // Get tools for this server from metadata manager
+        const tools = this.metadataManager.getToolsByServer(name, true);
+        const enabledTools = tools.filter((t) => t.enabled);
 
-      return {
-        name,
-        description: config.description || `MCP server: ${name}`,
-        toolCount: tools.length,
-        enabledCount: enabledTools.length,
-        status: statuses.get(name) || 'disconnected',
-        config: {
-          command: config.command,
-          args: config.args || [],
-          env: config.env
-        }
-      };
-    });
+        return {
+          name,
+          description: config.description || `MCP server: ${name}`,
+          toolCount: tools.length,
+          enabledCount: enabledTools.length,
+          status: statuses.get(name) || 'disconnected',
+          config: {
+            command: config.command,
+            args: config.args || [],
+            env: config.env,
+          },
+        };
+      }
+    );
 
     // Cache if enabled
     if (this.config.cache?.enabled && this.config.cache.ttl) {
@@ -161,12 +184,15 @@ export class DiscoveryEngine {
 
   /**
    * Search for tools across all servers
-   * 
+   *
    * @param query - Search query
    * @param options - Search options
    * @returns Array of search results
    */
-  async searchTools(query: string, options?: SearchOptions): Promise<SearchResult[]> {
+  async searchTools(
+    query: string,
+    options?: SearchOptions
+  ): Promise<SearchResult[]> {
     // Ensure we're initialized
     await this.initialize();
 
@@ -182,12 +208,15 @@ export class DiscoveryEngine {
 
   /**
    * List tools from a specific server
-   * 
+   *
    * @param server - Server name
    * @param includeDisabled - Include disabled tools
    * @returns Array of tool metadata
    */
-  async listTools(server: string, includeDisabled = false): Promise<ToolMetadata[]> {
+  async listTools(
+    server: string,
+    includeDisabled = false
+  ): Promise<ToolMetadata[]> {
     // Ensure we're initialized
     await this.initialize();
 
@@ -200,10 +229,17 @@ export class DiscoveryEngine {
     }
 
     // Get tools from metadata manager
-    const tools = this.metadataManager.getToolsByServer(server, includeDisabled);
+    const tools = this.metadataManager.getToolsByServer(
+      server,
+      includeDisabled
+    );
 
     // Cache if enabled
-    if (this.config.cache?.enabled && this.config.cache.ttl && !includeDisabled) {
+    if (
+      this.config.cache?.enabled &&
+      this.config.cache.ttl &&
+      !includeDisabled
+    ) {
       this.cache.cacheToolSummaries(server, tools, this.config.cache.ttl);
     }
 
@@ -212,12 +248,15 @@ export class DiscoveryEngine {
 
   /**
    * Get detailed information about a specific tool
-   * 
+   *
    * @param server - Server name
    * @param tool - Tool name
    * @returns Tool metadata or null if not found
    */
-  async getToolDetails(server: string, tool: string): Promise<ToolMetadata | null> {
+  async getToolDetails(
+    server: string,
+    tool: string
+  ): Promise<ToolMetadata | null> {
     // Check cache first if enabled
     if (this.config.cache?.enabled) {
       const cached = this.cache.getToolDetails(server, tool);
@@ -239,7 +278,7 @@ export class DiscoveryEngine {
 
   /**
    * Execute a tool from any discovered MCP server
-   * 
+   *
    * @param server - Server name
    * @param tool - Tool name
    * @param args - Tool arguments
@@ -263,8 +302,8 @@ export class DiscoveryEngine {
           code: 'TOOL_NOT_FOUND',
           message: `Tool ${tool} not found on server ${server}`,
           server,
-          tool
-        }
+          tool,
+        },
       };
     }
 
@@ -275,8 +314,8 @@ export class DiscoveryEngine {
           code: 'TOOL_DISABLED',
           message: `Tool ${tool} is disabled`,
           server,
-          tool
-        }
+          tool,
+        },
       };
     }
 
@@ -285,7 +324,7 @@ export class DiscoveryEngine {
       const result = await this.clientManager.executeTool(server, tool, args);
       return {
         success: true,
-        result
+        result,
       };
     } catch (error) {
       return {
@@ -294,8 +333,8 @@ export class DiscoveryEngine {
           code: 'EXECUTION_ERROR',
           message: error instanceof Error ? error.message : String(error),
           server,
-          tool
-        }
+          tool,
+        },
       };
     }
   }
@@ -328,7 +367,7 @@ export class DiscoveryEngine {
 
   /**
    * Get current configuration
-   * 
+   *
    * @returns Current discovery configuration
    */
   getConfig(): DiscoveryConfig {
@@ -339,9 +378,9 @@ export class DiscoveryEngine {
    * Apply configuration to components
    */
   private applyConfiguration(): void {
-    // Apply rules to metadata manager
-    if (this.config.rules && this.config.rules.length > 0) {
-      this.metadataManager.applyRules(this.config.rules);
+    // Apply tool rules to metadata manager
+    if (this.config.toolRules && this.config.toolRules.length > 0) {
+      this.metadataManager.applyRules(this.config.toolRules);
     }
   }
 }

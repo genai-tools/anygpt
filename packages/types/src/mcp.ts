@@ -38,15 +38,16 @@ export interface MCPServerConfig {
  *
  * Simplified server metadata for filtering/configuring MCP servers.
  */
-export interface MCPServerRuleTarget {
+export interface MCPServerRuleTarget
+  extends Record<string, string | boolean | string[]> {
   /** Server name */
   name: string;
   /** Whether server is enabled */
   enabled: boolean;
   /** Server tags */
   tags: string[];
-  /** Optional tool name prefix (e.g., 'github:' -> 'github:create_issue') */
-  prefix?: string;
+  /** Tool name prefix (empty string if none, e.g., 'github:' -> 'github:create_issue') */
+  prefix: string;
 }
 
 /**
@@ -55,7 +56,8 @@ export interface MCPServerRuleTarget {
  * Simplified tool metadata containing only primitive values
  * that can be matched and transformed by the rule engine.
  */
-export interface MCPToolRuleTarget {
+export interface MCPToolRuleTarget
+  extends Record<string, string | boolean | string[]> {
   /** Server name */
   server: string;
   /** Tool name */

@@ -22,10 +22,11 @@ export class ConfigurationLoader {
       enabled: true,
       cache: {
         enabled: true,
-        ttl: 3600 // 1 hour
+        ttl: 3600, // 1 hour
       },
       sources: [],
-      rules: []
+      serverRules: [],
+      toolRules: [],
     };
   }
 
@@ -73,15 +74,21 @@ export class ConfigurationLoader {
     }
 
     // Validate rules (basic check - detailed validation handled by RuleEngine)
-    if (config.rules !== undefined) {
-      if (!Array.isArray(config.rules)) {
-        errors.push('rules must be an array');
+    if (config.serverRules !== undefined) {
+      if (!Array.isArray(config.serverRules)) {
+        errors.push('serverRules must be an array');
+      }
+    }
+
+    if (config.toolRules !== undefined) {
+      if (!Array.isArray(config.toolRules)) {
+        errors.push('toolRules must be an array');
       }
     }
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
@@ -95,7 +102,8 @@ export class ConfigurationLoader {
       enabled: partial.enabled ?? defaults.enabled,
       cache: partial.cache ?? defaults.cache,
       sources: partial.sources ?? defaults.sources,
-      rules: partial.rules ?? defaults.rules
+      serverRules: partial.serverRules ?? defaults.serverRules,
+      toolRules: partial.toolRules ?? defaults.toolRules,
     };
   }
 }

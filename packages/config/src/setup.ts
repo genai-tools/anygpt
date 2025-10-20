@@ -54,7 +54,12 @@ export async function setupRouterFromFactory(
   // Normalize mcpServers if present (convert array format to object format)
   const normalizedConfig = {
     ...factoryConfig,
-    mcpServers: normalizeMCPServers(factoryConfig.mcpServers),
+    mcp: factoryConfig.mcp
+      ? {
+          ...factoryConfig.mcp,
+          servers: normalizeMCPServers(factoryConfig.mcp.servers),
+        }
+      : undefined,
   };
 
   // Convert factory providers to router provider format for validation
@@ -116,7 +121,9 @@ function convertToRouterProviders(
 ): Record<string, RouterProviderConfig> {
   const routerProviders: Record<string, RouterProviderConfig> = {};
 
-  for (const [providerId, providerConfig] of Object.entries(config.providers)) {
+  for (const [providerId, providerConfig] of Object.entries(
+    config.providers || {}
+  )) {
     // Extract connector type from package name
     // e.g., "@anygpt/openai" -> "openai"
     const connectorConfig = providerConfig.connector as ExtendedConnectorConfig;

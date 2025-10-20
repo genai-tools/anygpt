@@ -100,7 +100,7 @@ export async function loadConnectors(
   logger?: Logger
 ): Promise<void> {
   // Create loading promises for all providers
-  const loadPromises = Object.entries(config.providers).map(
+  const loadPromises = Object.entries(config.providers || {}).map(
     ([providerId, providerConfig]) =>
       loadConnectorForProvider(router, providerId, providerConfig, logger)
   );
@@ -152,7 +152,7 @@ export function getConnectorConfig(
   config: AnyGPTConfig,
   providerId: string
 ): Record<string, unknown> {
-  const provider = config.providers[providerId];
+  const provider = config.providers?.[providerId];
   if (!provider) {
     throw new Error(`Provider '${providerId}' not found in configuration`);
   }

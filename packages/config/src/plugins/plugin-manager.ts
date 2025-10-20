@@ -1,35 +1,38 @@
 /**
  * Plugin Manager
- * 
+ *
  * Manages plugin lifecycle and configuration merging
+ *
+ * @deprecated This file uses an old plugin API and is not currently exported.
+ * It needs to be updated to match the current Plugin interface or removed.
+ *
+ * NOTE: This file has type errors but is not exported from the package.
+ * It's kept for reference but should be updated or removed in the future.
  */
 
 import type { AnyGPTConfig } from '@anygpt/types';
-import type {
-  ConfigPlugin,
-  PluginContext,
-  PluginOptions,
-  ConfigContribution,
-  PluginRegistryEntry,
-} from './types.js';
+import type { Plugin, PluginContext } from './types.js';
 
 /**
  * Deep merge two objects
  */
 function deepMerge<T>(target: T, source: Partial<T>): T {
   const result = { ...target };
-  
+
   for (const key in source) {
     const sourceValue = source[key];
     const targetValue = result[key];
-    
+
     if (sourceValue === undefined) {
       continue;
     }
-    
+
     if (Array.isArray(sourceValue) && Array.isArray(targetValue)) {
       // Merge arrays
-      result[key] = [...targetValue, ...sourceValue] as T[Extract<keyof T, string>];
+      result[key] = [...targetValue, ...sourceValue] as T[Extract<
+        keyof T,
+        string
+      >];
     } else if (
       typeof sourceValue === 'object' &&
       sourceValue !== null &&
@@ -38,13 +41,16 @@ function deepMerge<T>(target: T, source: Partial<T>): T {
       !Array.isArray(sourceValue)
     ) {
       // Recursively merge objects
-      result[key] = deepMerge(targetValue, sourceValue as Partial<T[Extract<keyof T, string>]>);
+      result[key] = deepMerge(
+        targetValue,
+        sourceValue as Partial<T[Extract<keyof T, string>]>
+      );
     } else {
       // Override primitive values
       result[key] = sourceValue as T[Extract<keyof T, string>];
     }
   }
-  
+
   return result;
 }
 
@@ -54,7 +60,7 @@ function deepMerge<T>(target: T, source: Partial<T>): T {
 export class PluginManager {
   private plugins: Map<string, PluginRegistryEntry> = new Map();
   private initialized = false;
-  
+
   /**
    * Register a plugin
    */
@@ -62,18 +68,20 @@ export class PluginManager {
     if (this.initialized) {
       throw new Error('Cannot register plugins after initialization');
     }
-    
+
     if (this.plugins.has(plugin.name)) {
       throw new Error(`Plugin "${plugin.name}" is already registered`);
     }
-    
+
     this.plugins.set(plugin.name, { plugin, options });
   }
-  
+
   /**
    * Register multiple plugins
    */
-  registerAll(plugins: Array<ConfigPlugin | [ConfigPlugin, PluginOptions]>): void {
+  registerAll(
+    plugins: Array<ConfigPlugin | [ConfigPlugin, PluginOptions]>
+  ): void {
     for (const item of plugins) {
       if (Array.isArray(item)) {
         const [plugin, options] = item;
@@ -83,7 +91,7 @@ export class PluginManager {
       }
     }
   }
-  
+
   /**
    * Initialize all plugins and merge their contributions
    */
@@ -94,49 +102,54 @@ export class PluginManager {
     if (this.initialized) {
       throw new Error('Plugin manager already initialized');
     }
-    
+
     let config = baseConfig as AnyGPTConfig;
-    
+
     // Process plugins in registration order
     for (const [name, entry] of this.plugins) {
       const { plugin, options } = entry;
-      
+
       // Skip disabled plugins
       if (options.enabled === false) {
         context.logger?.debug(`Plugin "${name}" is disabled, skipping`);
         continue;
       }
-      
+
       // Check if plugin can run
       if (plugin.canRun) {
         const canRun = await plugin.canRun(context);
         if (!canRun) {
-          context.logger?.warn(`Plugin "${name}" cannot run in current environment, skipping`);
+          context.logger?.warn(
+            `Plugin "${name}" cannot run in current environment, skipping`
+          );
           continue;
         }
       }
-      
+
       try {
         context.logger?.info(`Initializing plugin: ${name}`);
-        
+
         // Initialize plugin and get contributions
         const contribution = await plugin.initialize(context);
-        
+
         // Merge contributions into config
         config = this.mergeContribution(config, contribution);
-        
+
         context.logger?.debug(`Plugin "${name}" initialized successfully`);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        context.logger?.error(`Plugin "${name}" failed to initialize: ${message}`, error as Error);
+        context.logger?.error(
+          `Plugin "${name}" failed to initialize: ${message}`,
+          error as Error
+        );
         throw new Error(`Plugin "${name}" initialization failed: ${message}`);
       }
     }
-    
+
     this.initialized = true;
     return config;
   }
-  
+
   /**
    * Merge plugin contribution into config
    */
@@ -145,7 +158,7 @@ export class PluginManager {
     contribution: ConfigContribution
   ): AnyGPTConfig {
     let result = { ...config };
-    
+
     // Merge MCP servers
     if (contribution.mcpServers) {
       result.mcpServers = {
@@ -153,7 +166,7 @@ export class PluginManager {
         ...contribution.mcpServers,
       };
     }
-    
+
     // Merge discovery config
     if (contribution.discovery) {
       result.discovery = deepMerge(
@@ -161,7 +174,7 @@ export class PluginManager {
         contribution.discovery
       );
     }
-    
+
     // Merge providers
     if (contribution.providers) {
       result.providers = {
@@ -169,24 +182,21 @@ export class PluginManager {
         ...contribution.providers,
       };
     }
-    
+
     // Merge defaults
     if (contribution.defaults) {
-      result.defaults = deepMerge(
-        result.defaults || {},
-        contribution.defaults
-      );
+      result.defaults = deepMerge(result.defaults || {}, contribution.defaults);
     }
-    
+
     return result;
   }
-  
+
   /**
    * Dispose all plugins
    */
   async dispose(): Promise<void> {
     const disposePromises: Promise<void>[] = [];
-    
+
     for (const [name, entry] of this.plugins) {
       if (entry.plugin.dispose) {
         try {
@@ -199,16 +209,21 @@ export class PluginManager {
         }
       }
     }
-    
+
     await Promise.all(disposePromises);
     this.plugins.clear();
     this.initialized = false;
   }
-  
+
   /**
    * Get list of registered plugins
    */
-  getPlugins(): Array<{ name: string; version?: string; description?: string; enabled: boolean }> {
+  getPlugins(): Array<{
+    name: string;
+    version?: string;
+    description?: string;
+    enabled: boolean;
+  }> {
     return Array.from(this.plugins.entries()).map(([name, entry]) => ({
       name,
       version: entry.plugin.version,
