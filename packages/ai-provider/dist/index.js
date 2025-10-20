@@ -18,6 +18,7 @@ var AIProvider = class {
 			model: request.model || this.config.model,
 			messages: this.convertMessages(request.messages),
 			...request.tools && { tools: this.convertTools(request.tools) },
+			...request.tool_executor && { tool_executor: request.tool_executor },
 			...request.temperature !== void 0 && { temperature: request.temperature },
 			...request.maxTokens && { max_tokens: request.maxTokens }
 		};
