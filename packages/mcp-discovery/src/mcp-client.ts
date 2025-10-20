@@ -58,6 +58,7 @@ export interface MCPConnection {
   client: Client;
   transport: StdioClientTransport;
   serverName: string;
+  config: MCPServerConfig;
   status: 'connected' | 'disconnected' | 'error';
   error?: string;
 }
@@ -112,6 +113,7 @@ export class MCPClientManager {
         client,
         transport,
         serverName,
+        config,
         status: 'connected',
       };
 
@@ -142,6 +144,7 @@ export class MCPClientManager {
         client: null as any,
         transport: null as any,
         serverName,
+        config,
         status: 'error',
         error: errorMessage || 'Unknown error',
       };
@@ -204,8 +207,11 @@ export class MCPClientManager {
     try {
       const response = await connection.client.listTools();
 
+      // Get server config to check for prefix
+      const prefix = connection.config.prefix;
+
       return response.tools.map((tool) => ({
-        name: tool.name,
+        name: prefix ? `${prefix}${tool.name}` : tool.name,
         summary: tool.description || '',
         description: tool.description,
         server: serverName,

@@ -18,7 +18,11 @@ export interface CacheConfig {
 /**
  * Configuration source type
  */
-export type ConfigSourceType = 'docker-mcp' | 'claude-desktop' | 'windsurf' | 'custom';
+export type ConfigSourceType =
+  | 'docker-mcp'
+  | 'claude-desktop'
+  | 'windsurf'
+  | 'custom';
 
 /**
  * Configuration source
@@ -62,7 +66,7 @@ export interface DiscoveryConfig {
   /** Configuration sources */
   sources?: ConfigSource[];
   /** Rules for filtering and tagging tools */
-  rules?: Rule<ToolRuleTarget>[];
+  rules?: Rule<MCPToolRuleTarget>[];
 }
 
 /**
@@ -79,6 +83,8 @@ export interface MCPServerConfig {
   source?: string;
   /** Optional description */
   description?: string;
+  /** Optional tool name prefix (e.g., 'github' -> 'github:create_issue') */
+  prefix?: string;
 }
 
 /**
@@ -133,7 +139,7 @@ export interface ToolExample {
 export interface ToolMetadata {
   /** Server name */
   server: string;
-  /** Tool name */
+  /** Tool name (with prefix applied if configured) */
   name: string;
   /** Short summary */
   summary: string;
@@ -167,7 +173,7 @@ export interface SearchOptions {
 export interface SearchResult {
   /** Server name */
   server: string;
-  /** Tool name */
+  /** Tool name (with prefix applied if configured) */
   tool: string;
   /** Tool summary */
   summary: string;

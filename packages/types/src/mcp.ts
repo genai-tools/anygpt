@@ -1,6 +1,6 @@
 /**
  * MCP (Model Context Protocol) Types
- * 
+ *
  * All types related to MCP servers, tools, and configuration.
  */
 
@@ -24,6 +24,8 @@ export interface MCPServerConfig {
   source?: string;
   /** Whether this server is enabled (default: true) */
   enabled?: boolean;
+  /** Optional tool name prefix (e.g., 'github' -> 'github:create_issue') */
+  prefix?: string;
   /** Optional metadata (e.g., tool count for disabled servers) */
   metadata?: {
     toolCount?: number;
@@ -33,7 +35,7 @@ export interface MCPServerConfig {
 
 /**
  * MCP Server rule target for rule engine
- * 
+ *
  * Simplified server metadata for filtering/configuring MCP servers.
  */
 export interface MCPServerRuleTarget {
@@ -43,11 +45,13 @@ export interface MCPServerRuleTarget {
   enabled: boolean;
   /** Server tags */
   tags: string[];
+  /** Optional tool name prefix (e.g., 'github:' -> 'github:create_issue') */
+  prefix?: string;
 }
 
 /**
  * MCP Tool rule target for rule engine
- * 
+ *
  * Simplified tool metadata containing only primitive values
  * that can be matched and transformed by the rule engine.
  */
@@ -98,7 +102,7 @@ export interface MCPDiscoveryConfig {
 
 /**
  * MCP Configuration
- * 
+ *
  * Unified configuration for all MCP-related settings:
  * - servers: MCP server definitions
  * - discovery: Discovery settings
@@ -108,13 +112,13 @@ export interface MCPDiscoveryConfig {
 export interface MCPConfig {
   /** MCP Server configurations (object or array format) */
   servers?: Record<string, MCPServerConfig> | MCPServerConfig[];
-  
+
   /** Discovery configuration */
   discovery?: MCPDiscoveryConfig;
-  
+
   /** Rules for filtering and tagging MCP servers */
   serverRules?: Rule<MCPServerRuleTarget>[];
-  
+
   /** Rules for filtering and tagging tools */
   toolRules?: Rule<MCPToolRuleTarget>[];
 }

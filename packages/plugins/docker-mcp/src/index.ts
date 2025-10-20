@@ -1,13 +1,13 @@
 /**
  * @anygpt/docker-mcp-plugin
- * 
+ *
  * Auto-discovers Docker MCP servers and generates MCP server configurations.
- * 
+ *
  * @example
  * ```ts
  * import { defineConfig } from '@anygpt/config';
  * import DockerMCP from '@anygpt/docker-mcp-plugin';
- * 
+ *
  * export default defineConfig({
  *   plugins: [
  *     DockerMCP({
@@ -31,7 +31,12 @@ import { execSync, exec } from 'node:child_process';
 import { promisify } from 'node:util';
 import { Readable } from 'node:stream';
 import type { AnyGPTConfig, MCPServerConfig } from '@anygpt/types';
-import type { Plugin, PluginContext, BasePluginOptions, PluginFactory } from '@anygpt/config';
+import type {
+  Plugin,
+  PluginContext,
+  BasePluginOptions,
+  PluginFactory,
+} from '@anygpt/config';
 
 const execAsync = promisify(exec);
 
@@ -53,7 +58,7 @@ interface DockerMCPServerInfo {
 
 /**
  * Plugin configuration options
- * 
+ *
  * Extends BasePluginOptions to inherit standard serverRules and debug options
  */
 export interface DockerMCPOptions extends BasePluginOptions {
@@ -61,7 +66,7 @@ export interface DockerMCPOptions extends BasePluginOptions {
    * Environment variables per server
    */
   env?: Record<string, Record<string, string>>;
-  
+
   /**
    * Docker MCP runtime flags
    */
@@ -72,12 +77,12 @@ export interface DockerMCPOptions extends BasePluginOptions {
     static?: boolean;
     transport?: 'stdio' | 'sse' | 'streaming';
   };
-  
+
   /**
    * Prefix for generated server names (default: '')
    */
   prefix?: string;
-  
+
   /**
    * Maximum number of concurrent server inspections (default: 5)
    */
@@ -86,7 +91,7 @@ export interface DockerMCPOptions extends BasePluginOptions {
 
 /**
  * Docker MCP Plugin Factory
- * 
+ *
  * Creates a plugin that auto-discovers Docker MCP servers
  */
 const DockerMCP: PluginFactory<DockerMCPOptions> = (options = {}) => {
@@ -98,16 +103,18 @@ const DockerMCP: PluginFactory<DockerMCPOptions> = (options = {}) => {
     debug = false,
     serverRules = [],
   } = options;
-  
+
   return {
     name: 'docker-mcp',
-    
+
     async config(context: PluginContext): Promise<Partial<AnyGPTConfig>> {
       const log = (msg: string) => debug && console.log(`[docker-mcp] ${msg}`);
-      const warn = (msg: string) => debug && console.warn(`[docker-mcp] ${msg}`);
+      const warn = (msg: string) =>
+        debug && console.warn(`[docker-mcp] ${msg}`);
       // Silent error logging - errors will be shown by CLI when servers fail to connect
-      const error = (msg: string, err?: Error) => debug && console.error(`[docker-mcp] ${msg}`, err);
-      
+      const error = (msg: string, err?: Error) =>
+        debug && console.error(`[docker-mcp] ${msg}`, err);
+
       // Check if Docker MCP is available
       try {
         execSync('docker mcp server ls', { stdio: 'pipe', encoding: 'utf-8' });
@@ -115,17 +122,21 @@ const DockerMCP: PluginFactory<DockerMCPOptions> = (options = {}) => {
         // Silently skip if Docker MCP not available
         return {};
       }
-      
+
       // Discover servers
       const serverNames = discoverServers(log, error);
-      log(`Discovered ${serverNames.length} servers: ${serverNames.join(', ')}`);
-      
+      log(
+        `Discovered ${serverNames.length} servers: ${serverNames.join(', ')}`
+      );
+
       if (serverNames.length === 0) {
         return {};
       }
-      
+
       // Inspect servers with concurrency limit using Readable.map()
-      log(`Inspecting ${serverNames.length} servers (concurrency: ${concurrency})...`);
+      log(
+        `Inspecting ${serverNames.length} servers (concurrency: ${concurrency})...`
+      );
       const inspectStream = Readable.from(serverNames).map(
         async (serverName) => {
           try {
@@ -139,17 +150,18 @@ const DockerMCP: PluginFactory<DockerMCPOptions> = (options = {}) => {
         },
         { concurrency }
       );
-      
+
       // Generate MCP server configs
       const mcpServers: Record<string, MCPServerConfig> = {};
-      
+
       for await (const result of inspectStream) {
         const { serverName, serverInfo, success } = result;
         const configName = `${prefix}${serverName}`;
-        
-        // Check if server should be enabled based on serverRules
+
+        // Check if server should be enabled and get prefix from serverRules
         const enabled = isServerEnabled(serverName, serverRules);
-        
+        const toolPrefix = getServerPrefix(serverName, serverRules);
+
         if (success && serverInfo) {
           // Successfully inspected - create config with full details
           try {
@@ -160,13 +172,18 @@ const DockerMCP: PluginFactory<DockerMCPOptions> = (options = {}) => {
               flags,
               log
             );
-            
-            mcpServers[configName] = { 
-              ...mcpConfig, 
+
+            mcpServers[configName] = {
+              ...mcpConfig,
               enabled,
-              metadata: { toolCount: serverInfo.tools.length }
+              prefix: toolPrefix,
+              metadata: { toolCount: serverInfo.tools.length },
             };
-            log(`Configured ${configName}: ${serverInfo.tools.length} tools${enabled ? '' : ' (disabled)'}`);
+            log(
+              `Configured ${configName}: ${serverInfo.tools.length} tools${
+                toolPrefix ? ` (prefix: "${toolPrefix}")` : ''
+              }${enabled ? '' : ' (disabled)'}`
+            );
           } catch (err) {
             error(`Failed to configure server "${serverName}"`, err as Error);
           }
@@ -176,19 +193,28 @@ const DockerMCP: PluginFactory<DockerMCPOptions> = (options = {}) => {
           mcpServers[configName] = {
             command: 'docker',
             args: [
-              'mcp', 'gateway', 'run',
-              '--servers', serverName,
-              '--transport', flags.transport || 'stdio',
+              'mcp',
+              'gateway',
+              'run',
+              '--servers',
+              serverName,
+              '--transport',
+              flags.transport || 'stdio',
             ],
             env: env[serverName],
             description: `Docker MCP: ${serverName}`,
             source: 'docker-mcp-plugin',
             enabled,
+            prefix: toolPrefix,
           };
-          log(`Created config for ${configName} (inspection failed, will show error in CLI)${enabled ? '' : ' (disabled)'}`);
+          log(
+            `Created config for ${configName} (inspection failed, will show error in CLI)${
+              toolPrefix ? ` (prefix: "${toolPrefix}")` : ''
+            }${enabled ? '' : ' (disabled)'}`
+          );
         }
       }
-      
+
       return {
         mcpServers,
       };
@@ -211,16 +237,16 @@ function discoverServers(
       encoding: 'utf-8',
       stdio: 'pipe',
     });
-    
+
     // Parse comma-separated server names
     const allServers = output
       .trim()
       .split(',')
-      .map(s => s.trim())
+      .map((s) => s.trim())
       .filter(Boolean);
-    
+
     log(`Found ${allServers.length} servers: ${allServers.join(', ')}`);
-    
+
     return allServers;
   } catch (err) {
     error('Failed to list Docker MCP servers', err as Error);
@@ -238,11 +264,14 @@ async function inspectServerAsync(
 ): Promise<DockerMCPServerInfo> {
   try {
     log(`Inspecting server: ${serverName}`);
-    
-    const { stdout } = await execAsync(`docker mcp server inspect ${serverName}`, {
-      encoding: 'utf-8',
-    });
-    
+
+    const { stdout } = await execAsync(
+      `docker mcp server inspect ${serverName}`,
+      {
+        encoding: 'utf-8',
+      }
+    );
+
     const info = JSON.parse(stdout) as DockerMCPServerInfo;
     log(`Server ${serverName}: ${info.tools.length} tools`);
     return info;
@@ -262,15 +291,12 @@ function generateMCPConfig(
   flags: DockerMCPOptions['flags'],
   log: (msg: string) => void
 ): MCPServerConfig {
-  const args = [
-    'mcp', 'gateway', 'run',
-    '--servers', serverName,
-  ];
-  
+  const args = ['mcp', 'gateway', 'run', '--servers', serverName];
+
   // Add transport
   const transport = flags.transport || 'stdio';
   args.push('--transport', transport);
-  
+
   // Add resource flags
   if (flags.cpus) {
     args.push('--cpus', flags.cpus.toString());
@@ -284,7 +310,7 @@ function generateMCPConfig(
   if (flags.static) {
     args.push('--static');
   }
-  
+
   return {
     command: 'docker',
     args,
@@ -296,7 +322,7 @@ function generateMCPConfig(
 
 /**
  * Check if a server should be enabled based on serverRules
- * 
+ *
  * Uses simplified matching - checks if rule's 'when' condition matches server name
  * and returns the 'set.enabled' value
  */
@@ -307,24 +333,56 @@ function isServerEnabled(
   if (!serverRules || serverRules.length === 0) {
     return true; // No rules = all enabled
   }
-  
+
   // Check each rule - simplified matching for now
   for (const rule of serverRules) {
-    const when = rule.when as { name?: string; enabled?: boolean; tags?: string[] };
+    const when = rule.when as {
+      name?: string;
+      enabled?: boolean;
+      tags?: string[];
+    };
     const set = rule.set as { enabled?: boolean };
-    
+
     // Check if rule matches this server by name
     if (when.name === serverName) {
       return set.enabled ?? true;
     }
-    
+
     // TODO: Add tag matching when we have server tags
     // if (when.tags && serverTags.some(tag => when.tags?.includes(tag))) {
     //   return set.enabled ?? true;
     // }
   }
-  
+
   // No matching rule = enabled by default
   return true;
 }
 
+/**
+ * Get tool name prefix for a server from serverRules
+ *
+ * Checks if any rule matches the server and has a prefix in the 'set' clause
+ */
+function getServerPrefix(
+  serverName: string,
+  serverRules: BasePluginOptions['serverRules']
+): string | undefined {
+  if (!serverRules || serverRules.length === 0) {
+    return undefined;
+  }
+
+  // Check each rule
+  for (const rule of serverRules) {
+    const when = rule.when as { name?: string; tags?: string[] };
+    const set = rule.set as { prefix?: string };
+
+    // Check if rule matches this server by name
+    if (when.name === serverName && set.prefix) {
+      return set.prefix;
+    }
+
+    // TODO: Add tag matching when we have server tags
+  }
+
+  return undefined;
+}
