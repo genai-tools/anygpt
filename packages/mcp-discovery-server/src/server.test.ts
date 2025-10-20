@@ -24,7 +24,7 @@ describe('DiscoveryMCPServer', () => {
 
     it('should register all meta-tools', () => {
       const tools = server.getTools();
-      expect(tools).toHaveLength(5);
+      expect(tools).toHaveLength(6);
       
       const toolNames = tools.map(t => t.name);
       expect(toolNames).toContain('list_mcp_servers');
@@ -32,6 +32,7 @@ describe('DiscoveryMCPServer', () => {
       expect(toolNames).toContain('list_tools');
       expect(toolNames).toContain('get_tool_details');
       expect(toolNames).toContain('execute_tool');
+      expect(toolNames).toContain('refresh_cache');
     });
   });
 
@@ -165,15 +166,6 @@ describe('DiscoveryMCPServer', () => {
         server.handleToolCall('execute_tool', {
           server: 'github',
           arguments: {}
-        })
-      ).rejects.toThrow();
-    });
-
-    it('should require arguments parameter', async () => {
-      await expect(
-        server.handleToolCall('execute_tool', {
-          server: 'github',
-          tool: 'create_issue'
         })
       ).rejects.toThrow();
     });

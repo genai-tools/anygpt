@@ -6,13 +6,14 @@
 
 ## Overview
 
-This is an MCP protocol server that exposes the Discovery Engine via 5 meta-tools, enabling AI agents to:
+This is an MCP protocol server that exposes the Discovery Engine via 5 meta-tools and comprehensive usage prompts, enabling AI agents to:
 
 - Discover available MCP servers
 - Search for tools using free-text queries
 - List tools from specific servers
 - Get detailed tool information on-demand
 - **Execute tools from any MCP server (gateway capability!)**
+- **Access comprehensive usage instructions via prompts**
 
 **Key Capability**: Reduces token consumption from 100,000+ tokens to ~600 tokens per message (99% reduction).
 
@@ -278,6 +279,69 @@ execute_tool({
   }
 }
 ```
+
+## 📖 Usage Guide Prompt
+
+The server exposes a comprehensive usage guide via MCP prompts that AI agents can access for detailed instructions.
+
+### Accessing the Guide
+
+**In Claude Desktop / Windsurf / Cursor:**
+- The prompt appears as "MCP Discovery Server - Complete Usage Guide"
+- AI agents can reference it to understand best practices
+- Contains extensive examples and workflow patterns
+
+### What's Included
+
+The usage guide provides:
+
+1. **Critical Workflow Rules**
+   - Rule #1: Always use `search_tools` as primary discovery method
+   - Rule #2: `search_tools` is your fallback for unknown tools
+   - Rule #3: Be specific in search queries
+   - Rule #4: Use `list_mcp_servers` to understand capabilities
+   - Rule #5: Use `list_tools` only when you know the server
+
+2. **The 5 Meta-Tools Documentation**
+   - Detailed purpose, parameters, and return values
+   - When to use each tool
+   - Pro tips for effective usage
+
+3. **Best Practices**
+   - Discovery Pattern (Search → Details → Execute)
+   - Exploration Pattern (List → Inspect → Use)
+   - Error Recovery Pattern (Fail → Verify → Retry)
+
+4. **Common Scenarios**
+   - File operations examples
+   - GitHub operations examples
+   - Command execution examples
+   - "What can you do?" responses
+
+5. **Common Mistakes to Avoid**
+   - Don't assume tools don't exist - search first!
+   - Don't use `list_tools` as primary discovery
+   - Don't execute without getting details
+   - Don't give up if first search fails
+   - Don't use overly broad searches
+
+6. **Token Efficiency Guidelines**
+   - Understanding the 99%+ token savings
+   - How to maintain efficiency through smart searching
+
+### Key Principle: search_tools First
+
+The guide emphasizes that AI agents should **ALWAYS** use `search_tools` as their primary discovery method:
+
+```
+User: "Read the package.json file"
+
+❌ Bad: "I don't have file system access"
+✅ Good: search_tools({ query: "read file" })
+  → Finds: filesystem:read_file, file:read_file, etc.
+```
+
+This ensures agents discover available tools instead of assuming limitations.
 
 ## Agentic Discovery Workflow
 
