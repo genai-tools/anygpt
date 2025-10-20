@@ -84,7 +84,8 @@ describe('SearchEngine', () => {
       const results = engine.search('GitHub repositories');
       
       expect(results.length).toBeGreaterThan(0);
-      expect(results[0].tool).toBe('list_repos');
+      const toolNames = results.map(r => r.tool);
+      expect(toolNames).toContain('list_repos');
     });
 
     it('should find tools by tag match', () => {

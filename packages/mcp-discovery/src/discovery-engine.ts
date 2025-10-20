@@ -25,6 +25,7 @@ export class DiscoveryEngine {
   private cache: CachingLayer;
   private clientManager: MCPClientManager;
   private initialized = false;
+  private initializationPromise: Promise<void> | null = null;
 
   constructor(config: DiscoveryConfig, mcp?: Record<string, MCPServerConfig>) {
     this.config = config;
@@ -52,10 +53,25 @@ export class DiscoveryEngine {
   async initialize(
     onProgress?: (progress: import('./types.js').ServerProgress) => void
   ): Promise<void> {
+    // If already initialized, return immediately
     if (this.initialized) {
       return;
     }
 
+    // If initialization is in progress, wait for it
+    if (this.initializationPromise) {
+      return this.initializationPromise;
+    }
+
+    // Start initialization and store the promise
+    this.initializationPromise = this.doInitialize(onProgress);
+    await this.initializationPromise;
+    this.initializationPromise = null;
+  }
+
+  private async doInitialize(
+    onProgress?: (progress: import('./types.js').ServerProgress) => void
+  ): Promise<void> {
     const { Readable } = await import('node:stream');
 
     // Get all server entries

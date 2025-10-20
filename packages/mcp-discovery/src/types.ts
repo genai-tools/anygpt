@@ -156,6 +156,9 @@ export interface ToolMetadata {
   description?: string;
   /** Tool parameters */
   parameters?: ToolParameter[];
+  /** Tool input schema (JSON Schema format) */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  inputSchema?: any;
   /** Usage examples */
   examples?: ToolExample[];
   /** Whether tool is enabled */
@@ -190,6 +193,9 @@ export interface SearchResult {
   relevance: number;
   /** Tool tags */
   tags: string[];
+  /** Tool input schema (JSON Schema format) */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  inputSchema?: any;
 }
 
 /**

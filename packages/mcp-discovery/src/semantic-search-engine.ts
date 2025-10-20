@@ -106,7 +106,8 @@ export class SemanticSearchEngine {
         tool: tool.name,
         summary: tool.summary,
         relevance: similarity,
-        tags: tool.tags
+        tags: tool.tags,
+        inputSchema: tool.inputSchema
       });
     }
 

@@ -235,6 +235,7 @@ export class MCPClientManager {
         parameters: convertJsonSchemaToParameters(
           tool.inputSchema as unknown as Record<string, unknown>
         ),
+        inputSchema: tool.inputSchema, // Store raw schema for search results
       }));
     } catch {
       // Silently return empty array on error

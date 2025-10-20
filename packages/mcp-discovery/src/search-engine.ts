@@ -51,7 +51,8 @@ export class SearchEngine {
           tool: tool.name,
           summary: tool.summary,
           relevance,
-          tags: tool.tags
+          tags: tool.tags,
+          inputSchema: tool.inputSchema
         });
       }
     }
