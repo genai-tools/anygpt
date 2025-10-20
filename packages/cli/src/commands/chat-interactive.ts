@@ -18,9 +18,34 @@ export async function chatInteractiveCommand(
 ) {
   const chatLoop = new ChatLoop();
 
-  // Determine provider and model
-  const providerId = options.provider || context.defaults.provider || 'openai';
-  const modelId = options.model || context.defaults.model || 'gpt-4o-mini';
+  // Determine provider and model (same logic as chat command)
+  let providerId = options.provider || context.defaults.provider || 'openai';
+  let modelId: string;
+
+  if (options.model) {
+    // Explicit model specified
+    modelId = options.model;
+  } else {
+    // Use defaults - check for tag first, then model
+    const defaultTag = context.defaults.providers?.[providerId]?.tag;
+    const defaultModel = context.defaults.providers?.[providerId]?.model || context.defaults.model;
+
+    if (defaultTag && context.tagRegistry) {
+      // Resolve tag to model
+      const resolution = context.tagRegistry.resolve(defaultTag, providerId || undefined);
+      if (resolution) {
+        providerId = resolution.provider;
+        modelId = resolution.model;
+        context.logger.info(`🔗 Resolved tag '${defaultTag}' → ${modelId}`);
+      } else {
+        throw new Error(`Could not resolve tag '${defaultTag}' for provider '${providerId}'`);
+      }
+    } else if (defaultModel) {
+      modelId = defaultModel;
+    } else {
+      throw new Error('No model specified. Use --model or configure a default model/tag.');
+    }
+  }
 
   console.log('🤖 Interactive AI Chat');
   console.log(`Provider: ${providerId}`);
