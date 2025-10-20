@@ -29,11 +29,11 @@ export async function setupRouter(
   // Load configuration
   const config = await loadConfig(options);
 
-  // Normalize mcpServers if present (convert array format to object format)
+  // Normalize mcp if present (convert array format to object format)
   const normalizedConfig = {
     ...config,
-    mcpServers: config.mcpServers?.servers
-      ? normalizeMCPServers(config.mcpServers.servers)
+    mcp: config.mcp?.servers
+      ? normalizeMCPServers(config.mcp.servers)
       : undefined,
   };
 

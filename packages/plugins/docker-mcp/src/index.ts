@@ -20,7 +20,7 @@
  *       },
  *     }),
  *   ],
- *   mcpServers: {
+ *   mcp: {
  *     git: { command: 'uvx', args: ['mcp-server-git'] },
  *   },
  * });
@@ -152,7 +152,7 @@ const DockerMCP: PluginFactory<DockerMCPOptions> = (options = {}) => {
       );
 
       // Generate MCP server configs
-      const mcpServers: Record<string, MCPServerConfig> = {};
+      const mcp: Record<string, MCPServerConfig> = {};
 
       for await (const result of inspectStream) {
         const { serverName, serverInfo, success } = result;
@@ -173,7 +173,7 @@ const DockerMCP: PluginFactory<DockerMCPOptions> = (options = {}) => {
               log
             );
 
-            mcpServers[configName] = {
+            mcp[configName] = {
               ...mcpConfig,
               enabled,
               prefix: toolPrefix,
@@ -190,7 +190,7 @@ const DockerMCP: PluginFactory<DockerMCPOptions> = (options = {}) => {
         } else {
           // Failed to inspect - still create config so it appears in list
           // The CLI will show it with error status when it fails to connect
-          mcpServers[configName] = {
+          mcp[configName] = {
             command: 'docker',
             args: [
               'mcp',
@@ -216,7 +216,9 @@ const DockerMCP: PluginFactory<DockerMCPOptions> = (options = {}) => {
       }
 
       return {
-        mcpServers,
+        mcp: {
+          servers: mcp,
+        },
       };
     },
   };

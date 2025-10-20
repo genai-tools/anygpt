@@ -246,7 +246,7 @@ describe('MCP Server Configuration - Array Format', () => {
           },
         },
       },
-      mcpServers: [
+      mcp: [
         {
           name: 'sequential-thinking',
           command: 'npx',
@@ -276,7 +276,7 @@ describe('MCP Server Configuration - Array Format', () => {
           },
         },
       },
-      mcpServers: {
+      mcp: {
         'sequential-thinking': {
           command: 'npx',
           args: ['-y', '@modelcontextprotocol/server-sequential-thinking'],
@@ -305,7 +305,7 @@ describe('MCP Server Configuration - Array Format', () => {
           },
         },
       },
-      mcpServers: [
+      mcp: [
         {
           name: 'sequential-thinking',
           command: 'npx',
@@ -320,13 +320,13 @@ describe('MCP Server Configuration - Array Format', () => {
     };
 
     // Simulate normalization (this happens internally during merge)
-    const mcpServers = arrayConfig.mcpServers;
-    expect(Array.isArray(mcpServers)).toBe(true);
+    const mcp = arrayConfig.mcp;
+    expect(Array.isArray(mcp)).toBe(true);
 
     // After normalization, it should be an object
-    if (Array.isArray(mcpServers)) {
+    if (Array.isArray(mcp)) {
       const normalized: Record<string, any> = {};
-      for (const server of mcpServers) {
+      for (const server of mcp) {
         if (server.name) {
           const { name, ...config } = server;
           normalized[name] = config;
@@ -351,7 +351,7 @@ describe('MCP Server Configuration - Array Format', () => {
           },
         },
       },
-      mcpServers: [
+      mcp: [
         {
           // Missing 'name' field
           command: 'npx',
@@ -364,7 +364,7 @@ describe('MCP Server Configuration - Array Format', () => {
     expect(() => {
       // Simulate the normalization that happens during merge
       const normalized: Record<string, any> = {};
-      for (const server of config.mcpServers as any[]) {
+      for (const server of config.mcp as any[]) {
         if (!server.name) {
           throw new ConfigValidationError([
             'MCP server in array format must have a "name" field',
@@ -387,7 +387,7 @@ describe('MCP Server Configuration - Array Format', () => {
           },
         },
       },
-      mcpServers: {
+      mcp: {
         'sequential-thinking': {
           command: 'npx',
           args: ['-y', '@modelcontextprotocol/server-sequential-thinking'],
@@ -396,7 +396,7 @@ describe('MCP Server Configuration - Array Format', () => {
     };
 
     const overrideConfig: Partial<AnyGPTConfig> = {
-      mcpServers: [
+      mcp: [
         {
           name: 'git',
           command: 'npx',
@@ -420,7 +420,7 @@ describe('MCP Server Configuration - Array Format', () => {
           },
         },
       },
-      mcpServers: [
+      mcp: [
         {
           name: 'github',
           command: 'npx',
@@ -433,7 +433,7 @@ describe('MCP Server Configuration - Array Format', () => {
     };
 
     expect(() => validateConfig(config)).not.toThrow();
-    const server = (config.mcpServers as any[])[0];
+    const server = (config.mcp as any[])[0];
     expect(server.env).toBeDefined();
     expect(server.env.GITHUB_TOKEN).toBe('test-token');
   });
@@ -521,7 +521,7 @@ describe('mergeConfigs', () => {
     expect(result).toEqual(config);
   });
 
-  it('should merge mcpServers', () => {
+  it('should merge mcp', () => {
     const base = {
       version: '1.0',
       providers: {
@@ -530,7 +530,7 @@ describe('mergeConfigs', () => {
           connector: { connector: '@anygpt/mock' },
         },
       },
-      mcpServers: {
+      mcp: {
         git: {
           command: 'npx',
           args: ['-y', 'mcp-server-git'],
@@ -539,7 +539,7 @@ describe('mergeConfigs', () => {
     } as any;
 
     const override = {
-      mcpServers: {
+      mcp: {
         filesystem: {
           command: 'npx',
           args: ['-y', 'mcp-server-filesystem'],
@@ -549,10 +549,10 @@ describe('mergeConfigs', () => {
 
     const result = mergeConfigs(base, override);
 
-    expect(result.mcpServers).toBeDefined();
-    expect(Object.keys((result as any).mcpServers)).toHaveLength(2);
-    expect((result as any).mcpServers.git).toBeDefined();
-    expect((result as any).mcpServers.filesystem).toBeDefined();
+    expect(result.mcp).toBeDefined();
+    expect(Object.keys((result as any).mcp)).toHaveLength(2);
+    expect((result as any).mcp.git).toBeDefined();
+    expect((result as any).mcp.filesystem).toBeDefined();
   });
 
   it('should override provider with same name', () => {

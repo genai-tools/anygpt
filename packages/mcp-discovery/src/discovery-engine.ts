@@ -17,19 +17,16 @@ import { MCPClientManager } from './mcp-client.js';
  */
 export class DiscoveryEngine {
   private config: DiscoveryConfig;
-  private mcpServers: Record<string, MCPServerConfig>;
+  private mcp: Record<string, MCPServerConfig>;
   private searchEngine: SearchEngine;
   private metadataManager: ToolMetadataManager;
   private cache: CachingLayer;
   private clientManager: MCPClientManager;
   private initialized = false;
 
-  constructor(
-    config: DiscoveryConfig,
-    mcpServers?: Record<string, MCPServerConfig>
-  ) {
+  constructor(config: DiscoveryConfig, mcp?: Record<string, MCPServerConfig>) {
     this.config = config;
-    this.mcpServers = mcpServers || {};
+    this.mcp = mcp || {};
     this.searchEngine = new SearchEngine();
     this.metadataManager = new ToolMetadataManager();
     this.cache = new CachingLayer();
@@ -54,7 +51,7 @@ export class DiscoveryEngine {
     const { Readable } = await import('node:stream');
 
     // Get all server entries
-    const serverEntries = Object.entries(this.mcpServers);
+    const serverEntries = Object.entries(this.mcp);
 
     // Process servers with concurrency control (max 5 at a time)
     const MAX_CONCURRENT = 5;
@@ -153,7 +150,7 @@ export class DiscoveryEngine {
     const statuses = this.clientManager.getConnectionStatuses();
 
     // Convert MCP server configs to ServerMetadata
-    const servers: ServerMetadata[] = Object.entries(this.mcpServers).map(
+    const servers: ServerMetadata[] = Object.entries(this.mcp).map(
       ([name, config]) => {
         // Get tools for this server from metadata manager
         const tools = this.metadataManager.getToolsByServer(name, true);

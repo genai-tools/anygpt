@@ -199,17 +199,17 @@ function mergeTwoConfigs(base: Config, override: Partial<Config>): Config {
     },
   };
 
-  // Normalize and merge mcpServers if either base or override has them
+  // Normalize and merge mcp if either base or override has them
   const baseWithMcp = base as typeof base & {
-    mcpServers?: Record<string, MCPServerConfig>;
+    mcp?: Record<string, MCPServerConfig>;
   };
   const overrideWithMcp = override as typeof override & {
-    mcpServers?: Record<string, MCPServerConfig>;
+    mcp?: Record<string, MCPServerConfig>;
   };
-  if (baseWithMcp.mcpServers || overrideWithMcp.mcpServers) {
-    const normalizedBase = normalizeMCPServers(baseWithMcp.mcpServers);
-    const normalizedOverride = normalizeMCPServers(overrideWithMcp.mcpServers);
-    result['mcpServers'] = {
+  if (baseWithMcp.mcp || overrideWithMcp.mcp) {
+    const normalizedBase = normalizeMCPServers(baseWithMcp.mcp);
+    const normalizedOverride = normalizeMCPServers(overrideWithMcp.mcp);
+    result['mcp'] = {
       ...normalizedBase,
       ...normalizedOverride,
     };

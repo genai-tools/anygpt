@@ -108,7 +108,7 @@ export async function setupCLIContext(
     const module = await import(absoluteConfigPath);
     let loadedConfig = module.default;
 
-    // Process plugins to generate mcpServers and other dynamic config
+    // Process plugins to generate mcp and other dynamic config
     loadedConfig = await resolveConfig(loadedConfig);
 
     // Check if it's a factory config (has providers with connector instances)
@@ -145,7 +145,7 @@ export async function setupCLIContext(
 
       return {
         router,
-        config: loadedConfig, // Use the resolved config with mcpServers from plugins
+        config: loadedConfig, // Use the resolved config with mcp from plugins
         configSource: resolvedConfigPath,
         providers: config.providers || {},
         tagRegistry,
@@ -166,7 +166,7 @@ export async function setupCLIContext(
       // Don't call setupRouter again as it would reload and re-process plugins
       return {
         router: null, // Standard configs don't have router
-        config: loadedConfig, // Use the resolved config with mcpServers from plugins
+        config: loadedConfig, // Use the resolved config with mcp from plugins
         configSource: resolvedConfigPath,
         providers: {}, // Standard configs don't have provider metadata
         logger: consoleLogger,
@@ -182,7 +182,7 @@ export async function setupCLIContext(
 
     return {
       router,
-      config, // Return full config including mcpServers and discovery
+      config, // Return full config including mcp and discovery
       configSource: configPath || 'fallback config search',
       providers: {}, // Fallback configs don't have provider metadata
       logger: consoleLogger,

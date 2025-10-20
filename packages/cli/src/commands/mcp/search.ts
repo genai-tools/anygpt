@@ -23,7 +23,7 @@ export async function mcpSearchCommand(
     cache: { enabled: true, ttl: 3600 },
   };
 
-  const engine = new DiscoveryEngine(discoveryConfig, config.mcpServers);
+  const engine = new DiscoveryEngine(discoveryConfig, config.mcp?.servers);
 
   try {
     // Search for tools

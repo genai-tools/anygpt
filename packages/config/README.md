@@ -154,7 +154,7 @@ Use `mergeConfigs()` to merge **factory-style configs** (legacy format). Accepts
 import { defineConfig, mergeConfigs } from '@anygpt/config';
 
 const baseConfig = defineConfig({
-  mcpServers: {
+  mcp: {
     git: {
       command: 'uvx',
       args: ['mcp-server-git'],
@@ -163,7 +163,7 @@ const baseConfig = defineConfig({
 });
 
 const devConfig = defineConfig({
-  mcpServers: {
+  mcp: {
     filesystem: {
       command: 'npx',
       args: ['-y', '@modelcontextprotocol/server-filesystem', '/tmp'],
@@ -188,7 +188,7 @@ import customServers from './mcp/custom-servers.js';
 // Merge multiple configs from left to right
 export default mergeConfigs(dockerMcpGateway, customServers, {
   // Inline overrides
-  mcpServers: {
+  mcp: {
     'my-server': {
       command: 'node',
       args: ['./my-server.js'],
@@ -202,7 +202,7 @@ export default mergeConfigs(dockerMcpGateway, customServers, {
 - **Objects**: Deep merged recursively
 - **Arrays**: Concatenated (later arrays appended to earlier ones)
 - **Primitives**: Later values override earlier ones
-- **mcpServers**: Merged by server name (later servers override earlier ones)
+- **mcp**: Merged by server name (later servers override earlier ones)
 - **providers**: Merged by provider name
 - **settings**: Deep merged with nested objects
 

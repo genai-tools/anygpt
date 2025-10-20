@@ -130,7 +130,7 @@ export interface Config {
   aliases?: Record<string, ModelAlias>;
 
   /** MCP servers */
-  mcpServers?: MCPConfig;
+  mcp?: MCPConfig;
 
   /** Discovery configuration */
   discovery?: MCPDiscoveryConfig;

@@ -2,12 +2,13 @@
 
 A flexible plugin system for dynamically generating and modifying AnyGPT configuration.
 
-> **Note**: This package provides the plugin **system** (types, manager, interfaces). 
+> **Note**: This package provides the plugin **system** (types, manager, interfaces).
 > Individual plugins are separate packages (e.g., `@anygpt/docker-mcp-plugin`).
 
 ## Overview
 
 Plugins allow you to:
+
 - **Auto-discover resources** (e.g., Docker MCP servers)
 - **Generate configuration dynamically** (e.g., MCP server entries)
 - **Apply rules and filters** (e.g., tool selection per server)
@@ -37,13 +38,15 @@ interface ConfigPlugin {
   name: string;
   version?: string;
   description?: string;
-  
+
   // Initialize and return config contributions
-  initialize(context: PluginContext): ConfigContribution | Promise<ConfigContribution>;
-  
+  initialize(
+    context: PluginContext
+  ): ConfigContribution | Promise<ConfigContribution>;
+
   // Optional: Check if plugin can run
   canRun?(context: PluginContext): boolean | Promise<boolean>;
-  
+
   // Optional: Cleanup
   dispose?(): void | Promise<void>;
 }
@@ -68,7 +71,7 @@ interface PluginContext {
 
 ```typescript
 interface ConfigContribution {
-  mcpServers?: Record<string, MCPServerConfig>;
+  mcp?: Record<string, MCPServerConfig>;
   discovery?: Partial<DiscoveryConfig>;
   providers?: Record<string, ProviderConfig>;
   defaults?: Partial<DefaultsConfig>;
@@ -82,6 +85,7 @@ interface ConfigContribution {
 Auto-discovers Docker MCP servers and generates configurations.
 
 **Features:**
+
 - Discovers servers using `docker mcp server ls`
 - Inspects each server using `docker mcp server inspect <name>`
 - Generates separate MCP server entry per Docker server
@@ -105,20 +109,20 @@ pluginManager.register(
         when: {
           and: [
             { server: { match: /docker-mcp-github-official/ } },
-            { name: { match: /^(get_|list_|create_issue)/ } }
-          ]
+            { name: { match: /^(get_|list_|create_issue)/ } },
+          ],
         },
-        set: { enabled: true }
+        set: { enabled: true },
       },
       {
         when: {
           and: [
             { server: { match: /docker-mcp-github-official/ } },
-            { name: { match: /(delete|force)/ } }
-          ]
+            { name: { match: /(delete|force)/ } },
+          ],
         },
-        set: { enabled: false }
-      }
+        set: { enabled: false },
+      },
     ],
     serverEnv: {
       'github-official': {
@@ -137,19 +141,19 @@ const config = await pluginManager.initialize(baseConfig, context);
 interface DockerMCPPluginConfig {
   // Auto-discover servers (default: true)
   autoDiscover?: boolean;
-  
+
   // Specific servers to include
   includeServers?: string[];
-  
+
   // Servers to exclude
   excludeServers?: string[];
-  
+
   // Tool filtering rules (using @anygpt/rules)
   rules?: Rule<ToolRuleTarget>[];
-  
+
   // Environment variables per server
   serverEnv?: Record<string, Record<string, string>>;
-  
+
   // Docker MCP flags
   flags?: {
     cpus?: number;
@@ -158,7 +162,7 @@ interface DockerMCPPluginConfig {
     static?: boolean;
     transport?: 'stdio' | 'sse' | 'streaming';
   };
-  
+
   // Prefix for generated server names (default: 'docker-mcp-')
   serverPrefix?: string;
 }
@@ -172,7 +176,7 @@ interface DockerMCPPluginConfig {
 
 // Generated config:
 {
-  mcpServers: {
+  mcp: {
     'docker-github-official': {
       command: 'docker',
       args: [
@@ -203,13 +207,17 @@ interface DockerMCPPluginConfig {
 ### Example: Kubernetes Plugin
 
 ```typescript
-import type { ConfigPlugin, PluginContext, ConfigContribution } from '@anygpt/config/plugins';
+import type {
+  ConfigPlugin,
+  PluginContext,
+  ConfigContribution,
+} from '@anygpt/config/plugins';
 
 export class KubernetesPlugin implements ConfigPlugin {
   name = 'kubernetes';
   version = '1.0.0';
   description = 'Auto-discovers Kubernetes clusters';
-  
+
   async canRun(context: PluginContext): Promise<boolean> {
     // Check if kubectl is available
     try {
@@ -219,20 +227,24 @@ export class KubernetesPlugin implements ConfigPlugin {
       return false;
     }
   }
-  
+
   async initialize(context: PluginContext): Promise<ConfigContribution> {
     // Discover clusters from kubeconfig
     const clusters = this.discoverClusters(context);
-    
-    const mcpServers: Record<string, MCPServerConfig> = {};
-    
+
+    const mcp: Record<string, MCPServerConfig> = {};
+
     for (const cluster of clusters) {
-      mcpServers[`k8s-${cluster.name}`] = {
+      mcp[`k8s-${cluster.name}`] = {
         command: 'docker',
         args: [
-          'mcp', 'gateway', 'run',
-          '--servers', 'kubernetes',
-          '--transport', 'stdio',
+          'mcp',
+          'gateway',
+          'run',
+          '--servers',
+          'kubernetes',
+          '--transport',
+          'stdio',
         ],
         env: {
           KUBECONFIG: cluster.configPath,
@@ -241,10 +253,10 @@ export class KubernetesPlugin implements ConfigPlugin {
         description: `Kubernetes: ${cluster.name}`,
       };
     }
-    
-    return { mcpServers };
+
+    return { mcp };
   }
-  
+
   private discoverClusters(context: PluginContext) {
     // Implementation...
   }
@@ -257,19 +269,19 @@ export class KubernetesPlugin implements ConfigPlugin {
 export class EnvironmentPlugin implements ConfigPlugin {
   name = 'environment';
   description = 'Loads config based on environment';
-  
+
   constructor(private env: string = process.env.NODE_ENV || 'development') {}
-  
+
   async initialize(context: PluginContext): Promise<ConfigContribution> {
     // Load environment-specific config
     const envConfig = await this.loadEnvConfig(this.env, context);
-    
+
     return {
-      mcpServers: envConfig.mcpServers,
+      mcp: envConfig.mcp,
       discovery: envConfig.discovery,
     };
   }
-  
+
   private async loadEnvConfig(env: string, context: PluginContext) {
     // Load from .anygpt/env/${env}.ts
     const configPath = `${context.cwd}/.anygpt/env/${env}.ts`;

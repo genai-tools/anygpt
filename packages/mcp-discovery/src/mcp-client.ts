@@ -256,9 +256,17 @@ export class MCPClientManager {
       throw new Error(`Server ${serverName} is not connected`);
     }
 
+    // Strip prefix from tool name if present
+    // The tool name in metadata includes the prefix, but MCP servers expect unprefixed names
+    const prefix = connection.config.prefix;
+    const actualToolName =
+      prefix && toolName.startsWith(prefix)
+        ? toolName.slice(prefix.length)
+        : toolName;
+
     try {
       const response = await connection.client.callTool({
-        name: toolName,
+        name: actualToolName,
         arguments: args,
       });
 

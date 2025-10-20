@@ -15,15 +15,13 @@ import { configCommand } from './commands/config.js';
 import { listModelsCommand } from './commands/list-models.js';
 import { listTagsCommand } from './commands/list-tags.js';
 import { benchmarkCommand } from './commands/benchmark.js';
-import { 
-  mcpListCommand,
+import {
   mcpSearchCommand,
-  mcpToolsCommand,
   mcpInspectCommand,
   mcpExecuteCommand,
   mcpConfigShowCommand,
   mcpConfigValidateCommand,
-  mcpConfigReloadCommand
+  mcpConfigReloadCommand,
 } from './commands/mcp.js';
 import { withCLIContext } from './utils/cli-context.js';
 
@@ -333,20 +331,23 @@ conversation
   });
 
 // MCP Discovery commands
-const mcp = program
-  .command('mcp')
-  .description('Manage MCP servers and tools');
+const mcp = program.command('mcp').description('Manage MCP servers and tools');
 
 mcp
-  .command('list')
-  .description('List all configured MCP servers')
-  .option('--tools', 'show tool list with descriptions')
-  .option('--compact', 'show tools in compact comma-separated format (use with --tools)')
-  .option('--enabled', 'show only enabled servers')
-  .option('--disabled', 'show only disabled servers')
-  .option('--all', 'show all servers (default)')
+  .command('inspect [target]')
+  .description(
+    'Inspect servers and tools (no target = list all servers, <server> = inspect server, <tool> = inspect tool)'
+  )
+  .option('--server <name>', 'specify server to inspect or disambiguate tool')
+  .option('--tools', 'show tools when listing servers or inspecting server')
+  .option('--compact', 'show tools in compact format (use with --tools)')
+  .option('--args', 'show detailed parameter schemas for tools')
+  .option('--examples', 'show usage examples for tools')
+  .option('--enabled', 'show only enabled servers (when listing)')
+  .option('--disabled', 'show only disabled servers (when listing)')
+  .option('--all', 'show all servers including disabled (when listing)')
   .option('--json', 'output as JSON')
-  .action(withCLIContext(mcpListCommand));
+  .action(withCLIContext(mcpInspectCommand));
 
 mcp
   .command('search <query>')
@@ -357,26 +358,13 @@ mcp
   .action(withCLIContext(mcpSearchCommand));
 
 mcp
-  .command('tools <server>')
-  .description('List tools from a specific MCP server')
-  .option('--all', 'show all tools including disabled')
-  .option('--tags', 'show tool tags')
-  .option('--json', 'output as JSON')
-  .action(withCLIContext(mcpToolsCommand));
-
-mcp
-  .command('inspect <tool>')
-  .description('Get detailed information about a tool (auto-resolves server if tool name is unique)')
-  .option('--server <name>', 'specify server name (optional if tool is unique)')
-  .option('--examples', 'show usage examples')
-  .option('--json', 'output as JSON')
-  .action(withCLIContext(mcpInspectCommand));
-
-mcp
   .command('execute <tool> [args...]')
   .description('Execute a tool (auto-resolves server if tool name is unique)')
   .option('--server <name>', 'specify server name (optional if tool is unique)')
-  .option('--args <json>', 'tool arguments as JSON string (overrides positional args)')
+  .option(
+    '--args <json>',
+    'tool arguments as JSON string (overrides positional args)'
+  )
   .option('--json', 'output as JSON')
   .option('--stream', 'stream output (if supported)')
   .action(withCLIContext(mcpExecuteCommand));
