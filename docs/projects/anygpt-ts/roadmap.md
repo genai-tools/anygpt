@@ -12,7 +12,7 @@ See [architecture.md](./architecture.md) for high-level system design, component
 
 ## Feature List
 
-**Total features**: 18 (+ 2 future)
+**Total features**: 24 (+ 3 future)
 
 ### Phase 1: Foundation (4 features)
 
@@ -35,7 +35,7 @@ See [architecture.md](./architecture.md) for high-level system design, component
 - 3-4-cli-conversation-summarize
 - 3-5-cli-benchmark
 
-### Phase 4: Integrations (6 features)
+### Phase 4: MCP Discovery (6 features)
 
 - 4-1-docker-mcp-container
 - 4-2-docker-compose-config
@@ -43,6 +43,15 @@ See [architecture.md](./architecture.md) for high-level system design, component
 - 4-4-mcp-discovery-engine
 - 4-5-mcp-discovery-server
 - 4-6-cli-discovery-commands
+
+### Phase 5: Agentic Capabilities (6 features)
+
+- 5-1-chat-loop
+- 5-2-ai-provider
+- 5-3-mcp-client
+- 5-4-agentic-orchestrator
+- 5-5-non-interactive
+- 5-6-output-formatting
 
 ### Future (not prioritized)
 
@@ -463,15 +472,130 @@ docs/projects/anygpt-ts/features/[feature-name]/
 └── status.md
 ```
 
+### Phase 5: Agentic Capabilities
+
+**Goal**: Build autonomous AI agent with tool discovery for CI/CD automation
+
+**Status**: 📋 Ready to Start (0/6 complete)
+
+#### 5-1-chat-loop 📋 READY
+
+- **Spec**: [Agentic Chat](../../../products/anygpt/specs/anygpt/agentic-chat.md)
+- **Use Case**: [Agentic CI/CD Automation](../../../products/anygpt/cases/agentic-cicd-automation.md)
+- **Purpose**: Basic chat loop foundation with REPL and history
+- **Dependencies**: None (foundation)
+- **Status**: 📋 Ready to Implement
+- **Key Features**:
+  - Interactive REPL
+  - Message history management
+  - Basic commands (/exit, /help, /clear)
+  - Graceful shutdown
+- **Acceptance**:
+  - [ ] REPL starts and accepts input
+  - [ ] History navigation works
+  - [ ] Commands execute correctly
+  - [ ] Graceful shutdown on Ctrl+C
+
+#### 5-2-ai-provider 🔒 BLOCKED
+
+- **Spec**: [Agentic Chat](../../../products/anygpt/specs/anygpt/agentic-chat.md)
+- **Use Case**: [Agentic CI/CD Automation](../../../products/anygpt/cases/agentic-cicd-automation.md)
+- **Purpose**: Integrate OpenAI/Anthropic with function calling
+- **Dependencies**: 5-1-chat-loop
+- **Status**: 🔒 Blocked by 5-1
+- **Key Features**:
+  - OpenAI provider with function calling
+  - Anthropic provider with tool use
+  - Streaming responses
+  - Token usage tracking
+- **Acceptance**:
+  - [ ] OpenAI chat works
+  - [ ] Anthropic chat works
+  - [ ] Function calling works
+  - [ ] Streaming works
+
+#### 5-3-mcp-client 🔒 BLOCKED
+
+- **Spec**: [Agentic Chat](../../../products/anygpt/specs/anygpt/agentic-chat.md)
+- **Use Case**: [Agentic CI/CD Automation](../../../products/anygpt/cases/agentic-cicd-automation.md)
+- **Purpose**: Connect to @anygpt/mcp-discovery for tool discovery
+- **Dependencies**: 5-2-ai-provider, 4-5-mcp-discovery-server
+- **Status**: 🔒 Blocked by 5-2
+- **Key Features**:
+  - Connect to discovery server
+  - Call meta-tools (search, execute)
+  - Local caching
+  - Error handling
+- **Acceptance**:
+  - [ ] Connect to discovery server
+  - [ ] All meta-tools work
+  - [ ] Caching works
+  - [ ] 99% token reduction achieved
+
+#### 5-4-agentic-orchestrator 🔒 BLOCKED
+
+- **Spec**: [Agentic Chat](../../../products/anygpt/specs/anygpt/agentic-chat.md)
+- **Use Case**: [Agentic CI/CD Automation](../../../products/anygpt/cases/agentic-cicd-automation.md)
+- **Purpose**: Autonomous multi-step task execution
+- **Dependencies**: 5-2-ai-provider, 5-3-mcp-client
+- **Status**: 🔒 Blocked by 5-2, 5-3
+- **Key Features**:
+  - Multi-step execution loop
+  - Tool discovery integration
+  - Error recovery
+  - Progress tracking
+- **Acceptance**:
+  - [ ] Multi-step tasks complete
+  - [ ] Tool discovery works
+  - [ ] Error recovery works
+  - [ ] >95% success rate
+
+#### 5-5-non-interactive 🔒 BLOCKED
+
+- **Spec**: [Agentic Chat](../../../products/anygpt/specs/anygpt/agentic-chat.md)
+- **Use Case**: [Agentic CI/CD Automation](../../../products/anygpt/cases/agentic-cicd-automation.md)
+- **Purpose**: Single-shot execution for CI/CD
+- **Dependencies**: 5-4-agentic-orchestrator
+- **Status**: 🔒 Blocked by 5-4
+- **Key Features**:
+  - Single-shot execution
+  - JSON output
+  - Exit codes
+  - Timeout handling
+- **Acceptance**:
+  - [ ] Single-shot execution works
+  - [ ] JSON output is valid
+  - [ ] Exit codes correct
+  - [ ] Works in CI/CD
+
+#### 5-6-output-formatting 🔒 BLOCKED
+
+- **Spec**: [Agentic Chat](../../../products/anygpt/specs/anygpt/agentic-chat.md)
+- **Use Case**: [Agentic CI/CD Automation](../../../products/anygpt/cases/agentic-cicd-automation.md)
+- **Purpose**: Production-ready output formatting
+- **Dependencies**: 5-1-chat-loop, 5-4-agentic-orchestrator, 5-5-non-interactive
+- **Status**: 🔒 Blocked by 5-1, 5-4, 5-5
+- **Key Features**:
+  - Colors and spinners
+  - Progress indicators
+  - Verbose/quiet modes
+  - Beautiful UX
+- **Acceptance**:
+  - [ ] Colors work
+  - [ ] Spinners work
+  - [ ] JSON is valid
+  - [ ] Modes switch correctly
+
 ## Progress Tracking
 
 - **Phase 1**: 4/4 features (100%) ✅
 - **Phase 2**: 3/3 features (100%) ✅
 - **Phase 3**: 5/5 features (100%) ✅
-- **Phase 4**: 3/6 features (50%) 🔄 - Design phase complete for 4-4, 4-5, 4-6
+- **Phase 4**: 3/6 features (50%) 🔄 - Discovery engine complete
+- **Phase 5**: 0/6 features (0%) 📋 - Ready to start
 
-**Overall**: 12/18 features (67%)  
-**Design Complete**: 15/18 features (83%)
+**Overall**: 12/24 features (50%)  
+**Design Complete**: 18/24 features (75%)
 
 ### Completed Features
 
