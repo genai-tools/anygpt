@@ -82,9 +82,23 @@ export class SearchEngine {
   ): number {
     const toolNameLower = tool.name.toLowerCase();
     const summaryLower = tool.summary.toLowerCase();
+    const serverLower = tool.server.toLowerCase();
     const tagsLower = tool.tags.map(t => t.toLowerCase());
 
     let score = 0;
+
+    // Server name match (MASSIVE weight - if user mentions server, heavily prioritize its tools)
+    // This ensures that "who am I on atlassian?" finds atlassian tools, not others
+    if (query.includes(serverLower) || serverLower.includes(query)) {
+      score += 5.0; // Very high boost
+    }
+    for (const token of queryTokens) {
+      if (serverLower === token) {
+        score += 5.0; // Exact server name match
+      } else if (serverLower.includes(token) || token.includes(serverLower)) {
+        score += 3.0; // Partial server name match
+      }
+    }
 
     // Exact match in tool name (highest weight)
     if (toolNameLower === query) {

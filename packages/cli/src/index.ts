@@ -12,6 +12,7 @@ import { conversationContinueCommand } from './commands/conversation/continue.js
 import { conversationDeleteCommand } from './commands/conversation/delete.js';
 import { chatCommand } from './commands/chat.js';
 import { chatInteractiveCommand } from './commands/chat-interactive.js';
+import { chatAgenticCommand } from './commands/chat-agentic.js';
 import { configCommand } from './commands/config.js';
 import { listModelsCommand } from './commands/list-models.js';
 import { listTagsCommand } from './commands/list-tags.js';
@@ -69,6 +70,16 @@ program
   .option('--model <model>', 'model to use (e.g., gpt-4o-mini, claude-3-5-sonnet)')
   .option('--provider <provider>', 'provider to use (e.g., openai, anthropic)')
   .action(withCLIContext(chatInteractiveCommand));
+
+// Agentic chat command (with MCP tools)
+program
+  .command('chat-agentic [message]')
+  .alias('agent')
+  .description('Start agentic chat with MCP tool discovery and execution')
+  .option('--model <model>', 'model to use (e.g., gpt-4o-mini, claude-3-5-sonnet)')
+  .option('--provider <provider>', 'provider to use (e.g., openai, anthropic)')
+  .option('--max-iterations <number>', 'max agentic iterations', parseInt, 10)
+  .action(withCLIContext(chatAgenticCommand));
 
 // Config inspection command
 program

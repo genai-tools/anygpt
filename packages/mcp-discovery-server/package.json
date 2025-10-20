@@ -49,6 +49,7 @@
     "build:dts": "tsc --project tsconfig.lib.json"
   },
   "dependencies": {
+    "@anygpt/config": "2.0.0",
     "@anygpt/mcp-discovery": "0.1.0",
     "@modelcontextprotocol/sdk": "1.20.0"
   }

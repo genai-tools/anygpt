@@ -59,6 +59,8 @@ export class GenAIRouter implements IRouter {
       presence_penalty: request.presence_penalty,
       reasoning: request.reasoning,
       extra_body: request.extra_body,
+      tools: request.tools,
+      tool_executor: request.tool_executor,
     };
 
     // Execute with automatic retry logic
@@ -83,6 +85,7 @@ export class GenAIRouter implements IRouter {
         message: {
           role: choice.message.role,
           content: choice.message.content,
+          ...(choice.message.tool_calls && { tool_calls: choice.message.tool_calls }),
         },
         finish_reason: choice.finish_reason,
       })),

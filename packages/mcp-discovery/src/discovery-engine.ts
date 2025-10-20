@@ -8,6 +8,7 @@ import type {
   MCPServerConfig,
 } from './types.js';
 import { SearchEngine } from './search-engine.js';
+import { SemanticSearchEngine } from './semantic-search-engine.js';
 import { ToolMetadataManager } from './tool-metadata-manager.js';
 import { CachingLayer } from './caching-layer.js';
 import { MCPClientManager } from './mcp-client.js';
@@ -19,6 +20,7 @@ export class DiscoveryEngine {
   private config: DiscoveryConfig;
   private mcp: Record<string, MCPServerConfig>;
   private searchEngine: SearchEngine;
+  private semanticSearchEngine: SemanticSearchEngine | null = null;
   private metadataManager: ToolMetadataManager;
   private cache: CachingLayer;
   private clientManager: MCPClientManager;
@@ -28,6 +30,12 @@ export class DiscoveryEngine {
     this.config = config;
     this.mcp = mcp || {};
     this.searchEngine = new SearchEngine();
+    
+    // Initialize semantic search if configured
+    if (config.searchMode === 'semantic') {
+      this.semanticSearchEngine = new SemanticSearchEngine();
+    }
+    
     this.metadataManager = new ToolMetadataManager();
     this.cache = new CachingLayer();
     this.clientManager = new MCPClientManager();
@@ -126,6 +134,12 @@ export class DiscoveryEngine {
       this.metadataManager.applyRules(this.config.toolRules);
     }
 
+    // Index tools for semantic search if enabled
+    if (this.semanticSearchEngine) {
+      const allTools = this.metadataManager.getAllTools();
+      await this.semanticSearchEngine.index(allTools);
+    }
+
     this.initialized = true;
   }
 
@@ -193,13 +207,14 @@ export class DiscoveryEngine {
     // Ensure we're initialized
     await this.initialize();
 
-    // Get all tools from metadata manager
+    // Use semantic search if enabled, otherwise use fuzzy search
+    if (this.semanticSearchEngine) {
+      return await this.semanticSearchEngine.search(query, options);
+    }
+
+    // Fallback to fuzzy search
     const tools = this.metadataManager.getAllTools(options?.includeDisabled);
-
-    // Index tools in search engine
     this.searchEngine.index(tools);
-
-    // Perform search
     return this.searchEngine.search(query, options);
   }
 

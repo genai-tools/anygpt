@@ -52,6 +52,7 @@ export interface TokenUsage {
 export interface ChatRequest {
   messages: Message[];
   tools?: Tool[];
+  tool_executor?: (call: { id: string; name: string; arguments: Record<string, unknown> }) => Promise<string>;
   model?: string;
   temperature?: number;
   maxTokens?: number;

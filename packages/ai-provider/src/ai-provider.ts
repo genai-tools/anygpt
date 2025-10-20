@@ -30,6 +30,7 @@ export class AIProvider implements IAIProvider {
       model: request.model || this.config.model,
       messages: this.convertMessages(request.messages),
       ...(request.tools && { tools: this.convertTools(request.tools) }),
+      ...(request.tool_executor && { tool_executor: request.tool_executor }),
       ...(request.temperature !== undefined && {
         temperature: request.temperature,
       }),

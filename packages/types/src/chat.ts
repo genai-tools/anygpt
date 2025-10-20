@@ -9,8 +9,17 @@
 export type ExtraBodyParams = Record<string, unknown>;
 
 export interface ChatMessage {
-  role: 'system' | 'user' | 'assistant';
+  role: 'system' | 'user' | 'assistant' | 'tool';
   content: string;
+  toolCallId?: string; // For tool result messages
+  tool_calls?: Array<{
+    id: string;
+    type: 'function';
+    function: {
+      name: string;
+      arguments: string;
+    };
+  }>; // For assistant messages with tool calls
 }
 
 export interface ChatCompletionRequest {

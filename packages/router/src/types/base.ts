@@ -8,8 +8,10 @@ import type { Logger } from '@anygpt/types';
 export type { Logger };
 
 export interface ChatMessage {
-  role: 'system' | 'user' | 'assistant';
+  role: 'system' | 'user' | 'assistant' | 'tool';
   content: string;
+  toolCallId?: string; // For tool result messages
+  tool_calls?: ToolCall[]; // For assistant messages with tool calls
 }
 
 /**
@@ -24,6 +26,30 @@ export interface ExtraBodyParams {
   // Allow any other provider-specific parameters
   [key: string]: unknown;
 }
+
+export interface Tool {
+  type: 'function';
+  function: {
+    name: string;
+    description?: string;
+    parameters?: Record<string, unknown>;
+  };
+}
+
+export interface ToolCall {
+  id: string;
+  type: 'function';
+  function: {
+    name: string;
+    arguments: string;
+  };
+}
+
+export type ToolExecutor = (call: {
+  id: string;
+  name: string;
+  arguments: Record<string, unknown>;
+}) => Promise<string>;
 
 export interface ChatCompletionRequest {
   messages: ChatMessage[];
@@ -51,6 +77,9 @@ export interface ChatCompletionRequest {
     // OpenAI o1/o3 models: reasoning_effort parameter
     effort?: 'minimal' | 'low' | 'medium' | 'high';
   };
+  // Tool use support
+  tools?: Tool[];
+  tool_executor?: ToolExecutor;
   // Provider-specific extra parameters that will be merged into the API request body
   extra_body?: ExtraBodyParams;
 }
@@ -66,6 +95,7 @@ export interface ChatCompletionResponse {
     message: {
       role: string;
       content: string;
+      tool_calls?: ToolCall[];
     };
     finish_reason: string;
   }>;

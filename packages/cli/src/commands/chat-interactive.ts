@@ -80,8 +80,13 @@ export async function chatInteractiveCommand(
           content: msg.content,
         }));
 
+        // Debug: Show conversation history
+        context.logger.debug(`Sending ${messages.length} messages to AI:`);
+        messages.forEach((msg, i) => {
+          context.logger.debug(`  [${i}] ${msg.role}: ${msg.content.substring(0, 50)}...`);
+        });
+
         // Call AI
-        context.logger.debug('Sending request to AI...');
         const response = await aiProvider.chat({ messages });
 
         // Log token usage

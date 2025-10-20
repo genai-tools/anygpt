@@ -18,8 +18,8 @@ export class DiscoveryMCPServer {
   private engine: DiscoveryEngine;
   private tools: Tool[];
 
-  constructor(config: DiscoveryConfig) {
-    this.engine = new DiscoveryEngine(config);
+  constructor(config: DiscoveryConfig, mcpServers?: Record<string, any>) {
+    this.engine = new DiscoveryEngine(config, mcpServers);
     this.server = new Server(
       {
         name: 'mcp-discovery-server',
@@ -295,6 +295,9 @@ export class DiscoveryMCPServer {
    * Start the server
    */
   async start(): Promise<void> {
+    // Initialize the discovery engine to connect to MCP servers
+    await this.engine.initialize();
+    
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
   }

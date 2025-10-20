@@ -10,6 +10,8 @@ export type {
   ModelInfo,
   ConnectorConfig,
   Logger,
+  ToolCall,
+  ToolExecutor,
 } from './base.js';
 
 // Connector types

@@ -15,6 +15,7 @@ export class ChatLoop implements IChatLoop {
   private rl: readline.Interface | null = null;
   private options: ChatLoopOptions = {};
   private commands: Commands = {};
+  private sigintCount = 0;
 
   constructor() {
     this.setupCommands();
@@ -99,12 +100,21 @@ export class ChatLoop implements IChatLoop {
 
     // Handle SIGINT (Ctrl+C)
     this.rl.on('SIGINT', () => {
-      console.log('\n(To exit, type /exit or press Ctrl+C again)');
-      this.rl?.prompt();
+      this.sigintCount++;
+      if (this.sigintCount >= 2) {
+        console.log('\n👋 Exiting...');
+        this.stop();
+      } else {
+        console.log('\n(To exit, type /exit or press Ctrl+C again)');
+        this.rl?.prompt();
+      }
     });
 
     // Handle line input
     this.rl.on('line', async (input: string) => {
+      // Reset SIGINT counter on any input
+      this.sigintCount = 0;
+
       const trimmed = input.trim();
 
       if (!trimmed) {

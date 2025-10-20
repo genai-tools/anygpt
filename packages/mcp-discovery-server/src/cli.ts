@@ -1,5 +1,9 @@
 #!/usr/bin/env node
+// Suppress transformers library warnings BEFORE any imports
+process.env['TRANSFORMERS_VERBOSITY'] = 'error';
+
 import { DiscoveryMCPServer } from './server.js';
+import { loadConfig } from '@anygpt/config';
 import type { DiscoveryConfig } from '@anygpt/mcp-discovery';
 
 /**
@@ -7,31 +11,34 @@ import type { DiscoveryConfig } from '@anygpt/mcp-discovery';
  * Starts the server with stdio transport
  */
 async function main() {
-  // Default configuration
+  
+  // Load AnyGPT configuration to get MCP servers
+  let mcpServers = {};
+  
+  try {
+    const anygptConfig = await loadConfig();
+    // MCP config is nested under mcp.servers
+    mcpServers = anygptConfig.mcp?.servers || {};
+  } catch {
+    // Silently fail - will use empty servers
+  }
+
+  // Discovery configuration
   const config: DiscoveryConfig = {
     enabled: true,
+    searchMode: 'semantic', // Use semantic search for better accuracy
     cache: {
       enabled: true,
-      ttl: 3600, // 1 hour
+      ttl: 3600, // 1 hour,
     },
     serverRules: [],
     toolRules: [],
   };
-
-  // Create and start server
-  const server = new DiscoveryMCPServer(config);
-
-  // Log to stderr (stdout is used for MCP protocol)
-  console.error('MCP Discovery Server starting...');
-  console.error('Registered 5 meta-tools:');
-  console.error('  - list_mcp_servers');
-  console.error('  - search_tools');
-  console.error('  - list_tools');
-  console.error('  - get_tool_details');
-  console.error('  - execute_tool');
-
+  
+  // Create and start server with MCP servers
+  const server = new DiscoveryMCPServer(config, mcpServers);
+  
   await server.start();
-  console.error('MCP Discovery Server ready');
 }
 
 main().catch((error) => {

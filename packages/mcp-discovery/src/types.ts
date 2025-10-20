@@ -56,11 +56,18 @@ export interface ServerProgress {
 export type ProgressCallback = (progress: ServerProgress) => void;
 
 /**
+ * Search mode for tool discovery
+ */
+export type SearchMode = 'fuzzy' | 'semantic';
+
+/**
  * Discovery configuration
  */
 export interface DiscoveryConfig {
   /** Whether discovery is enabled */
   enabled: boolean;
+  /** Search mode (default: fuzzy) */
+  searchMode?: SearchMode;
   /** Cache configuration */
   cache?: CacheConfig;
   /** Configuration sources */

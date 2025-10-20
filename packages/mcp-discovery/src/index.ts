@@ -8,6 +8,7 @@ export type {
   CacheConfig,
   ConfigSourceType,
   ConfigSource,
+  SearchMode,
   DiscoveryConfig,
   MCPServerConfig,
   ServerMetadata,
@@ -29,8 +30,9 @@ export type { ValidationResult } from './configuration-loader.js';
 // Export pattern matcher (DEPRECATED: Use @anygpt/rules instead)
 // export { PatternMatcher } from './pattern-matcher.js';
 
-// Export search engine
+// Export search engines
 export { SearchEngine } from './search-engine.js';
+export { SemanticSearchEngine } from './semantic-search-engine.js';
 
 // Export tool metadata manager
 export { ToolMetadataManager } from './tool-metadata-manager.js';

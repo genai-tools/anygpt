@@ -6,9 +6,18 @@
  * Message in the chat history
  */
 export interface Message {
-  role: 'user' | 'assistant' | 'system';
+  role: 'user' | 'assistant' | 'system' | 'tool';
   content: string;
   timestamp: Date;
+  toolCallId?: string; // For tool result messages
+  tool_calls?: Array<{
+    id: string;
+    type: 'function';
+    function: {
+      name: string;
+      arguments: string;
+    };
+  }>; // For assistant messages with tool calls
 }
 
 /**

@@ -88,17 +88,10 @@ export class OpenAIConnector extends BaseConnector {
       timeout: config.timeout,
       maxRetries: config.maxRetries ?? 2,
       fetch: async (url: Request | URL | string, init?: RequestInit) => {
-        // Custom fetch to log requests/responses
-        this.logger.debug(`[${this.providerId}] HTTP Request:`, {
-          method: init?.method || 'GET',
-          url: url.toString(),
-          headers: init?.headers,
-          body: init?.body ? JSON.parse(init.body as string) : undefined,
-        });
-
         const response = await fetch(url, init);
         const responseText = await response.text();
 
+        // Parse response for error handling
         let parsedResponse;
         if (responseText) {
           try {
@@ -107,13 +100,6 @@ export class OpenAIConnector extends BaseConnector {
             parsedResponse = responseText;
           }
         }
-
-        this.logger.debug(`[${this.providerId}] HTTP Response:`, {
-          status: response.status,
-          statusText: response.statusText,
-          headers: Object.fromEntries(response.headers.entries()),
-          body: parsedResponse,
-        });
 
         // Store error body for later use
         if (!response.ok && parsedResponse) {
