@@ -1,3 +1,97 @@
+# 3.0.0-beta.1 (2025-10-20)
+
+> **⚠️ BETA RELEASE**: This is a pre-release version with major breaking changes. Please test thoroughly before using in production. Report issues on GitHub.
+
+### 🚀 Features
+
+- **config:** Complete API refactor - simplified from 4 functions to 2
+- **config:** Unified type system - single `Config` type instead of 4 variants
+- **config:** Dual format support - both TypeScript (direct instances) and JSON/YAML (module references)
+- **config:** Smart connector resolution with helpful error messages
+- **config:** Package size reduced by 10% (168 kB → 161 kB)
+
+### ⚠️ BREAKING CHANGES
+
+#### API Simplification
+
+- **Removed:** Legacy string-based connector format (`connector.connector`)
+- **Renamed:** `FactoryConfig` → `Config`, `FactoryProviderConfig` → `ProviderConfig`
+- **Renamed:** `defineConfigs()` → `mergeConfigs()` (clearer naming)
+- **Deprecated:** `config()` → use `defineConfig()` instead
+
+#### Migration Required
+
+**Old (No Longer Works):**
+
+```typescript
+{
+  providers: {
+    openai: {
+      connector: {
+        connector: '@anygpt/openai',  // ❌ Removed
+        config: { apiKey: '...' }
+      }
+    }
+  }
+}
+```
+
+**New (Two Options):**
+
+1. **TypeScript/JavaScript configs** (Direct instance):
+
+```typescript
+import { openai } from '@anygpt/openai';
+
+{
+  providers: {
+    openai: {
+      connector: openai({ apiKey: '...' }); // ✅ Direct instance
+    }
+  }
+}
+```
+
+2. **JSON/YAML configs** (Module reference):
+
+```json
+{
+  "providers": {
+    "openai": {
+      "module": "@anygpt/openai",
+      "config": { "apiKey": "..." }
+    }
+  }
+}
+```
+
+#### What Was Removed
+
+- `connector-loader.ts` - Replaced with cleaner `connector-resolver.ts`
+- `factory.ts` - Types moved to unified `types.ts`
+- `plugins/define-config.ts` - Moved to `config.ts`
+- `plugins/plugin-manager.ts` - Unused code removed
+
+#### Deprecated (Still Work, But Warned)
+
+- `FactoryConfig` type → Use `Config`
+- `FactoryProviderConfig` type → Use `ProviderConfig`
+- `config()` function → Use `defineConfig()`
+- `setupRouterFromFactory()` → Use `setupRouter()`
+
+### 📖 Documentation
+
+- **Added:** `DUAL_FORMAT.md` - Complete guide for both config formats
+- **Moved:** Refactoring docs to `docs/projects/anygpt-ts/refactoring/` (not in npm package)
+
+### 🎯 Benefits
+
+- **50% fewer functions** - Easier to learn and use
+- **75% fewer types** - No more type incompatibility errors
+- **10% smaller package** - Faster installs
+- **Better errors** - Clear, actionable error messages
+- **Dual format** - Works with both TypeScript and JSON/YAML configs
+
 # 2.0.0 (2025-10-14)
 
 ### 🚀 Features

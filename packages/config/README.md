@@ -2,7 +2,9 @@
 
 > **⚠️ WORK IN PROGRESS**: This package is under active development. APIs and configuration formats may change significantly. Use at your own risk in production environments.
 
-Shared configuration management for AnyGPT with dynamic connector loading and powerful model rules.
+> **🎉 NEW v3.0-beta**: Simplified API (2 functions instead of 4) + Dual format support (TypeScript & JSON/YAML). See [CHANGELOG.md](./CHANGELOG.md) for migration guide.
+
+Shared configuration management for AnyGPT with a clean, unified API.
 
 ## Features
 
@@ -15,6 +17,7 @@ Shared configuration management for AnyGPT with dynamic connector loading and po
 
 ## Documentation
 
+- **[Dual Format Guide](./docs/DUAL_FORMAT.md)** - TypeScript vs JSON/YAML configuration formats
 - **[Model Rules Guide](./docs/MODEL_RULES.md)** - Comprehensive guide to pattern-based model configuration
 - **[Rule Engine](./docs/rules.md)** - Type-safe rule engine for matching and transforming objects
 

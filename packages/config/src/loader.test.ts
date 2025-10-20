@@ -7,9 +7,10 @@ import { createJiti } from 'jiti';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { loadConfig, validateConfig, mergeConfigs } from './loader.js';
+import { loadConfig, validateConfig } from './loader.js';
+import { mergeConfigs } from './config.js';
 import { ConfigParseError, ConfigValidationError } from './errors.js';
-import type { AnyGPTConfig } from '@anygpt/types';
+import type { Config } from './types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -146,17 +147,12 @@ describe('loadConfig', () => {
   });
 
   it('should return default config when no file found', async () => {
-    const config = await loadConfig({
-      configPath: '/nonexistent/path.ts',
-    }).catch(() => null);
-
     // Should throw or return default - let's test the default path
     const defaultConfig = await loadConfig();
     expect(defaultConfig).toBeDefined();
     expect(defaultConfig.providers).toBeDefined();
-    expect(
-      defaultConfig.providers.openai || defaultConfig.providers.mock
-    ).toBeDefined();
+    // Default config has empty providers - users must configure their own
+    expect(Object.keys(defaultConfig.providers)).toEqual([]);
   });
 
   it('should throw ConfigParseError for invalid JSON', async () => {
@@ -200,18 +196,19 @@ describe('validateConfig', () => {
     expect(() => validateConfig(invalidConfig)).toThrow(ConfigValidationError);
   });
 
-  it('should throw ConfigValidationError for provider without connector', () => {
+  it('should throw ConfigValidationError for provider without connector or module', () => {
     const invalidConfig = {
-      version: '1.0',
       providers: {
         test: {
           name: 'Test',
-          connector: {} as any,
+          // Missing both connector and module
         },
       },
-    } as AnyGPTConfig;
+    };
 
-    expect(() => validateConfig(invalidConfig)).toThrow(ConfigValidationError);
+    expect(() => validateConfig(invalidConfig as any)).toThrow(
+      ConfigValidationError
+    );
   });
 
   it('should validate multiple providers', () => {

@@ -3,14 +3,10 @@
  * Supports: aliases, tags, and direct model names
  */
 
-import type {
-  FactoryProviderConfig,
-  ModelAlias,
-  ModelRule,
-} from './factory.js';
+import type { ProviderConfig, ModelAlias, ModelRule } from './types.js';
 
 export interface ModelResolutionContext {
-  providers: Record<string, FactoryProviderConfig>;
+  providers: Record<string, ProviderConfig>;
   aliases?: Record<string, ModelAlias[]>;
   defaultProvider?: string;
   globalModelRules?: ModelRule[];

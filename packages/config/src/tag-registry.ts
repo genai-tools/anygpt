@@ -7,7 +7,7 @@
  * 3. Creating a fast lookup map: tag -> [{ provider, model }]
  */
 
-import type { FactoryProviderConfig, ModelRule } from './factory.js';
+import type { ProviderConfig, ModelRule } from './types.js';
 import { minimatch } from 'minimatch';
 
 export interface TagMapping {

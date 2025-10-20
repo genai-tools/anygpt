@@ -2,13 +2,31 @@
  * @anygpt/config - Shared configuration management for AnyGPT
  */
 
-// Re-export types from @anygpt/types
+// Clean, unified configuration API
+export { defineConfig, mergeConfigs, resolveConfig } from './config.js';
+
+// Unified configuration types (no legacy, no crazy unions!)
 export type {
-  ConnectorConfig,
+  Config,
   ProviderConfig,
-  AnyGPTConfig,
-  ConfigLoadOptions,
-} from '@anygpt/types';
+  ModelAlias,
+  BaseModelConfig,
+  ModelMetadata,
+  ModelRule,
+  ReasoningEffort,
+  ReasoningConfig,
+  PluginContext,
+} from './types.js';
+
+// Config loader types
+export type { ConfigLoadOptions } from './loader.js';
+
+// Plugin system types
+export type {
+  Plugin,
+  PluginFactory,
+  BasePluginOptions,
+} from './plugins/types.js';
 
 // Error types
 export {
@@ -21,28 +39,12 @@ export {
 
 // Default configurations
 export { getDefaultConfig } from './defaults.js';
-// Connector loading
-export {
-  loadConnectors,
-  getConnectorConfig,
-  clearConnectorCache,
-} from './connector-loader.js';
 
 // Convenience functions to set up router with config
 export { setupRouter, setupRouterFromFactory } from './setup.js';
 
-// Factory function for direct connector instantiation
-export {
-  config,
-  type FactoryConfig,
-  type FactoryProviderConfig,
-  type ModelAlias,
-  type BaseModelConfig,
-  type ModelMetadata,
-  type ModelRule,
-  type ReasoningEffort,
-  type ReasoningConfig,
-} from './factory.js';
+// Connector resolution (for advanced use cases)
+export { resolveConnector } from './connector-resolver.js';
 
 // Model pattern resolver
 export {
@@ -50,8 +52,8 @@ export {
   type ResolvedModelConfig,
 } from './model-pattern-resolver.js';
 
-// Configuration loader and merging
-export { loadConfig, validateConfig, mergeConfigs } from './loader.js';
+// Configuration loader and validation
+export { loadConfig, validateConfig } from './loader.js';
 
 // Model resolution (tags, aliases, direct models)
 export {
@@ -75,23 +77,6 @@ export {
 // Glob pattern matching for model filtering
 export { matchesGlobPatterns } from './glob-matcher.js';
 
-// Plugin system (unplugin-style)
-export {
-  defineConfig,
-  defineConfigs,
-  resolveConfig,
-} from './plugins/define-config.js';
-export type {
-  ConfigWithPlugins,
-  FactoryConfigWithPlugins,
-} from './plugins/define-config.js';
-export type {
-  Plugin,
-  PluginContext,
-  PluginFactory,
-  BasePluginOptions,
-} from './plugins/types.js';
-
 // Re-export rule engine from @anygpt/rules for convenience
 export { RuleEngine } from '@anygpt/rules';
 export type {
@@ -100,6 +85,16 @@ export type {
   LogicalCondition,
   RuleOperator,
 } from '@anygpt/rules';
+
+// Legacy type aliases (DEPRECATED - will be removed in next major version)
+/** @deprecated Use Config instead */
+export type { Config as FactoryConfig } from './types.js';
+/** @deprecated Use ProviderConfig instead */
+export type { ProviderConfig as FactoryProviderConfig } from './types.js';
+/** @deprecated Use defineConfig instead */
+export { defineConfig as config } from './config.js';
+/** @deprecated Use mergeConfigs from config.ts instead */
+export { mergeConfigsLegacy as mergeConfigsOld } from './loader.js';
 
 // Note: Connector factory functions (like openai()) should be imported directly
 // from their packages to keep config package connector-agnostic:

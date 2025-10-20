@@ -5,10 +5,10 @@
 import { matchesGlobPatterns } from './glob-matcher.js';
 import type {
   ModelRule,
-  FactoryProviderConfig,
+  ProviderConfig,
   ReasoningConfig,
   BaseModelConfig,
-} from './factory.js';
+} from './types.js';
 
 /**
  * Resolved model configuration with normalized reasoning (always ReasoningConfig object form)
@@ -178,7 +178,7 @@ function applyMatchingRules(
 export function resolveModelConfig(
   modelId: string,
   provider: string,
-  providerConfig: FactoryProviderConfig,
+  providerConfig: ProviderConfig,
   globalRules?: ModelRule[]
 ): ResolvedModelConfig {
   const resolved: ResolvedModelConfig = {};

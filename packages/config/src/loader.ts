@@ -5,17 +5,19 @@
 import { readFile, access } from 'fs/promises';
 import { join, resolve } from 'path';
 import { homedir } from 'os';
-import type {
-  AnyGPTConfig,
-  ConfigLoadOptions,
-  MCPServerConfig,
-} from '@anygpt/types';
+import type { MCPServerConfig } from '@anygpt/types';
 import { getDefaultConfig } from './defaults.js';
 import { ConfigParseError, ConfigValidationError } from './errors.js';
-import {
-  resolveConfig,
-  type ConfigWithPlugins,
-} from './plugins/define-config.js';
+import { resolveConfig } from './config.js';
+import type { Config } from './types.js';
+
+/**
+ * Config load options
+ */
+export interface ConfigLoadOptions {
+  configPath?: string;
+  mergeDefaults?: boolean;
+}
 
 /**
  * Default configuration paths to search
@@ -86,7 +88,7 @@ async function fileExists(path: string): Promise<boolean> {
  * - Automatic fallback for older versions (jiti transformation)
  * - No breaking changes for users on any Node version
  */
-async function loadTSConfig(path: string): Promise<AnyGPTConfig> {
+async function loadTSConfig(path: string): Promise<Config> {
   try {
     // Use jiti with tryNative to prefer native Node.js import
     // This works seamlessly in Node 22+ and falls back to transformation in older versions
@@ -98,7 +100,7 @@ async function loadTSConfig(path: string): Promise<AnyGPTConfig> {
       moduleCache: true, // Use Node.js native module cache
     });
 
-    const module = await jiti.import<AnyGPTConfig>(path, { default: true });
+    const module = await jiti.import<Config>(path, { default: true });
     return module;
   } catch (error) {
     throw new ConfigParseError(path, error);
@@ -108,7 +110,7 @@ async function loadTSConfig(path: string): Promise<AnyGPTConfig> {
 /**
  * Load JSON config file
  */
-async function loadJSONConfig(path: string): Promise<AnyGPTConfig> {
+async function loadJSONConfig(path: string): Promise<Config> {
   try {
     const content = await readFile(path, 'utf-8');
     return JSON.parse(content);
@@ -120,7 +122,7 @@ async function loadJSONConfig(path: string): Promise<AnyGPTConfig> {
 /**
  * Load configuration file
  */
-async function loadConfigFile(path: string): Promise<AnyGPTConfig> {
+async function loadConfigFile(path: string): Promise<Config> {
   const resolvedPath = resolvePath(path);
 
   if (!(await fileExists(resolvedPath))) {
@@ -183,11 +185,8 @@ export function normalizeMCPServers(
 /**
  * Merge two configurations with deep merge
  */
-function mergeTwoConfigs(
-  base: AnyGPTConfig,
-  override: Partial<AnyGPTConfig>
-): AnyGPTConfig {
-  const result: AnyGPTConfig & Record<string, unknown> = {
+function mergeTwoConfigs(base: Config, override: Partial<Config>): Config {
+  const result: Config & Record<string, unknown> = {
     ...base,
     ...override,
     providers: {
@@ -197,10 +196,6 @@ function mergeTwoConfigs(
     settings: {
       ...base.settings,
       ...override.settings,
-      logging: {
-        ...base.settings?.logging,
-        ...override.settings?.logging,
-      },
     },
   };
 
@@ -256,27 +251,27 @@ function mergeTwoConfigs(
  */
 export async function loadConfig(
   options: ConfigLoadOptions = {}
-): Promise<AnyGPTConfig> {
+): Promise<Config> {
   const { configPath, mergeDefaults = !configPath } = options; // Don't merge defaults when explicit config provided
 
-  let configWithPlugins: ConfigWithPlugins;
+  let config: Config;
 
   if (configPath) {
     // Load specific config file
-    configWithPlugins = await loadConfigFile(configPath);
+    config = await loadConfigFile(configPath);
   } else {
     // Find and load default config
     const foundPath = await findConfigFile();
     if (foundPath) {
-      configWithPlugins = await loadConfigFile(foundPath);
+      config = await loadConfigFile(foundPath);
     } else {
       // No config file found, use defaults
-      configWithPlugins = getDefaultConfig();
+      config = getDefaultConfig();
     }
   }
 
   // Process plugins first (if any)
-  let config = await resolveConfig(configWithPlugins);
+  config = await resolveConfig(config);
 
   // Merge with defaults if requested
   const defaultConfig = getDefaultConfig();
@@ -308,42 +303,41 @@ export async function loadConfig(
  * export default mergeConfigs([base, ...otherConfigs]);
  * ```
  */
-export function mergeConfigs(
-  ...configs: Array<
-    | Partial<AnyGPTConfig>
-    | ConfigWithPlugins
-    | Array<Partial<AnyGPTConfig> | ConfigWithPlugins>
-  >
-): ConfigWithPlugins {
+// Note: mergeConfigs is now exported from config.ts
+// This function is kept for backward compatibility but deprecated
+/** @deprecated Use mergeConfigs from config.ts instead */
+export function mergeConfigsLegacy(
+  ...configs: Array<Partial<Config> | Array<Partial<Config>>>
+): Config {
   // Flatten array if first argument is an array
-  const flatConfigs: Array<Partial<AnyGPTConfig> | ConfigWithPlugins> =
+  const flatConfigs: Array<Partial<Config>> =
     configs.length === 1 && Array.isArray(configs[0])
       ? configs[0]
-      : (configs as Array<Partial<AnyGPTConfig> | ConfigWithPlugins>);
+      : (configs as Array<Partial<Config>>);
 
   if (flatConfigs.length === 0) {
     return {};
   }
 
   if (flatConfigs.length === 1) {
-    return flatConfigs[0] as ConfigWithPlugins;
+    return flatConfigs[0] as Config;
   }
 
   // Start with first config as base
-  let result = flatConfigs[0] as AnyGPTConfig;
+  let result = flatConfigs[0] as Config;
 
   // Merge remaining configs
   for (let i = 1; i < flatConfigs.length; i++) {
     result = mergeTwoConfigs(result, flatConfigs[i]);
   }
 
-  return result as ConfigWithPlugins;
+  return result as Config;
 }
 
 /**
  * Validate configuration
  */
-export function validateConfig(config: AnyGPTConfig): void {
+export function validateConfig(config: Config): void {
   const errors: string[] = [];
 
   if (!config.providers || Object.keys(config.providers).length === 0) {
@@ -352,9 +346,17 @@ export function validateConfig(config: AnyGPTConfig): void {
 
   if (config.providers) {
     for (const [providerId, provider] of Object.entries(config.providers)) {
-      if (!provider.connector?.connector) {
+      // Must have either connector instance OR module reference
+      if (!provider.connector && !provider.module) {
         errors.push(
-          `Provider '${providerId}' must specify a connector package`
+          `Provider '${providerId}' must specify either 'connector' (IConnector instance) or 'module' (package name)`
+        );
+      }
+
+      // Can't have both
+      if (provider.connector && provider.module) {
+        errors.push(
+          `Provider '${providerId}' cannot specify both 'connector' and 'module' - choose one format`
         );
       }
     }
