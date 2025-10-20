@@ -11,6 +11,7 @@ import { conversationShowCommand } from './commands/conversation/show.js';
 import { conversationContinueCommand } from './commands/conversation/continue.js';
 import { conversationDeleteCommand } from './commands/conversation/delete.js';
 import { chatCommand } from './commands/chat.js';
+import { chatInteractiveCommand } from './commands/chat-interactive.js';
 import { configCommand } from './commands/config.js';
 import { listModelsCommand } from './commands/list-models.js';
 import { listTagsCommand } from './commands/list-tags.js';
@@ -58,6 +59,14 @@ program
   .option('--stdin', 'read message from stdin instead of argument')
   .argument('[message]', 'message to send (optional if --stdin is used)')
   .action(withCLIContext(chatCommand));
+
+// Interactive chat command (demo of chat loop)
+program
+  .command('chat-interactive')
+  .alias('repl')
+  .description('Start interactive chat session (demo of chat loop foundation)')
+  .option('--echo', 'use simple echo mode')
+  .action(withCLIContext(chatInteractiveCommand));
 
 // Config inspection command
 program
