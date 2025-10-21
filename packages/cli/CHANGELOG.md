@@ -1,3 +1,13 @@
+## 2.0.2 (2025-10-21)
+
+### 🩹 Fixes
+
+- **cli:** add type parsing for positional arguments in mcp execute ([2ec2104](https://github.com/genai-tools/anygpt/commit/2ec2104))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 2.0.1 (2025-10-21)
 
 ### 🩹 Fixes
