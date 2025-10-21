@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/cli",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Command-line interface for AnyGPT - chat, conversations, and configuration management",
   "type": "module",
   "main": "./dist/index.js",
@@ -37,13 +37,13 @@
   },
   "dependencies": {
     "@anygpt/ai-provider": "0.3.0",
-    "@anygpt/config": "3.0.0",
-    "@anygpt/router": "0.6.0",
-    "@anygpt/types": "2.0.0",
+    "@anygpt/config": "3.0.1",
+    "@anygpt/router": "0.6.1",
+    "@anygpt/types": "2.0.1",
     "@modelcontextprotocol/sdk": "1.20.0",
     "chalk": "^5.3.0",
     "commander": "^14.0.1",
     "log-update": "^6.1.0",
-    "@anygpt/mcp-discovery": "0.3.1"
+    "@anygpt/mcp-discovery": "0.3.2"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/mock",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Mock connector for AnyGPT - testing and development without real API calls",
   "type": "module",
   "main": "./dist/index.js",
@@ -41,6 +41,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@anygpt/types": "2.0.0"
+    "@anygpt/types": "2.0.1"
   }
 }

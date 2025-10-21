@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/config",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Configuration management for AnyGPT - TypeScript-based config with factory functions",
   "type": "module",
   "main": "./dist/index.js",
@@ -44,10 +44,10 @@
     "build:dts": "tsc --project tsconfig.lib.json"
   },
   "dependencies": {
-    "@anygpt/rules": "0.3.0",
-    "@anygpt/types": "2.0.0",
+    "@anygpt/rules": "0.3.1",
+    "@anygpt/types": "2.0.1",
     "jiti": "2.6.1",
-    "@anygpt/router": "0.6.0",
+    "@anygpt/router": "0.6.1",
     "minimatch": "9.0.3"
   }
 }

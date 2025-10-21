@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/openai",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "OpenAI connector for AnyGPT - integrates OpenAI API with the router",
   "type": "module",
   "main": "./dist/index.js",
@@ -41,8 +41,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@anygpt/router": "0.6.0",
+    "@anygpt/router": "0.6.1",
     "openai": "^6.3.0",
-    "@anygpt/types": "2.0.0"
+    "@anygpt/types": "2.0.1"
   }
 }

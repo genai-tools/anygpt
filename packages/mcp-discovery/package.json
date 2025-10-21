@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/mcp-discovery",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "MCP Discovery Engine - Core logic for on-demand MCP tool discovery",
   "type": "module",
   "main": "./dist/index.js",
@@ -44,9 +44,9 @@
     "build:dts": "tsc --project tsconfig.lib.json"
   },
   "dependencies": {
-    "@anygpt/config": "3.0.0",
-    "@anygpt/rules": "0.3.0",
-    "@anygpt/types": "2.0.0",
+    "@anygpt/config": "3.0.1",
+    "@anygpt/rules": "0.3.1",
+    "@anygpt/types": "2.0.1",
     "@modelcontextprotocol/sdk": "1.20.0",
     "@huggingface/transformers": "^3.7.5"
   }
