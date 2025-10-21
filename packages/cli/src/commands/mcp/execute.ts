@@ -122,12 +122,40 @@ export async function mcpExecuteCommand(
           i++
         ) {
           const param = tool.parameters[i];
-          args[param.name] = positionalArgs[i];
+          const rawValue = positionalArgs[i];
+          
+          // Parse value based on parameter type
+          let parsedValue: unknown = rawValue;
+          if (param.type === 'number' || param.type === 'integer') {
+            const num = Number(rawValue);
+            if (isNaN(num)) {
+              throw new Error(`Parameter "${param.name}" expects a number, got: ${rawValue}`);
+            }
+            parsedValue = num;
+          } else if (param.type === 'boolean') {
+            if (rawValue === 'true') parsedValue = true;
+            else if (rawValue === 'false') parsedValue = false;
+            else throw new Error(`Parameter "${param.name}" expects true/false, got: ${rawValue}`);
+          } else if (param.type === 'array' || param.type === 'object') {
+            // Try to parse as JSON
+            try {
+              parsedValue = JSON.parse(rawValue);
+            } catch {
+              throw new Error(`Parameter "${param.name}" expects valid JSON, got: ${rawValue}`);
+            }
+          }
+          // else: keep as string
+          
+          args[param.name] = parsedValue;
         }
       } else {
         // Fallback: use common parameter names
         if (positionalArgs.length > 0) args['query'] = positionalArgs[0];
-        if (positionalArgs.length > 1) args['max_results'] = positionalArgs[1];
+        if (positionalArgs.length > 1) {
+          // Try to parse as number for max_results
+          const num = Number(positionalArgs[1]);
+          args['max_results'] = isNaN(num) ? positionalArgs[1] : num;
+        }
       }
     }
 
