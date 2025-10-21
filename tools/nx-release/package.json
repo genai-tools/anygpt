@@ -15,6 +15,9 @@
     }
   },
   "executors": "./executors.json",
+  "publishConfig": {
+    "access": "public"
+  },
   "peerDependencies": {
     "@nx/devkit": "*"
   },

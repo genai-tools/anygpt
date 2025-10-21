@@ -14,6 +14,9 @@
     "url": "https://github.com/genai-tools/anygpt.git",
     "directory": "packages/ai-provider"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {},
   "devDependencies": {},
   "keywords": [
