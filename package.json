@@ -64,6 +64,7 @@
       },
       "publish": {
         "executor": "./tools/nx-release:release",
+        "cache": false,
         "dependsOn": [
           "nx-release:build"
         ],
@@ -76,6 +77,7 @@
       },
       "pr-update": {
         "executor": "./tools/nx-release:pr-update",
+        "cache": false,
         "dependsOn": [
           "nx-release:build"
         ],
