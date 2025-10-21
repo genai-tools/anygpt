@@ -54,16 +54,16 @@ npm run release
 
 ## Configuration Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `baseBranch` | `string` | `"main"` | Base branch to release from |
-| `targetBranch` | `string` | `"production"` | Target branch for the release PR |
-| `changelogPatterns` | `string[]` | `["packages/*/CHANGELOG.md"]` | Glob patterns for changelog files |
-| `aiProvider` | `"anygpt" \| "none"` | `"anygpt"` | AI provider for summaries |
-| `aiCommand` | `string` | `"npx anygpt chat"` | Command to run for AI generation |
-| `autoMerge` | `boolean` | `true` | Enable auto-merge on PR |
-| `skipPublish` | `boolean` | `true` | Skip publishing (passed to nx release) |
-| `diffPaths` | `string[]` | `["packages/*/src/**"]` | Paths to include in diff for AI |
+| Option              | Type                 | Default                       | Description                            |
+| ------------------- | -------------------- | ----------------------------- | -------------------------------------- |
+| `baseBranch`        | `string`             | `"main"`                      | Base branch to release from            |
+| `targetBranch`      | `string`             | `"production"`                | Target branch for the release PR       |
+| `changelogPatterns` | `string[]`           | `["packages/*/CHANGELOG.md"]` | Glob patterns for changelog files      |
+| `aiProvider`        | `"anygpt" \| "none"` | `"anygpt"`                    | AI provider for summaries              |
+| `aiCommand`         | `string`             | `"npx anygpt chat"`           | Command to run for AI generation       |
+| `autoMerge`         | `boolean`            | `true`                        | Enable auto-merge on PR                |
+| `skipPublish`       | `boolean`            | `true`                        | Skip publishing (passed to nx release) |
+| `diffPaths`         | `string[]`           | `["packages/*/src/**"]`       | Paths to include in diff for AI        |
 
 ## How It Works
 
@@ -80,6 +80,12 @@ npm run release
 - Nx workspace with `nx release` configured
 - GitHub CLI (`gh`) installed and authenticated
 - AI provider (e.g., `anygpt`) if using AI summaries
+
+## Technical Notes
+
+### GitHub Projects (Classic) Deprecation
+
+This plugin uses direct GraphQL queries to GitHub's API to avoid the deprecated Projects (Classic) fields. The `getExistingPR` function queries only the necessary PR fields (`number`) without triggering deprecation warnings about `projectCards`.
 
 ## Example Workflow
 

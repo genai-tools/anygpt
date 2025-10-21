@@ -6,19 +6,34 @@ export async function getExistingPR(
   baseBranch: string
 ): Promise<string | null> {
   try {
+    // Use GraphQL directly to avoid deprecated Projects (classic) fields
+    const query = `
+      query($owner: String!, $repo: String!, $head: String!, $base: String!) {
+        repository(owner: $owner, name: $repo) {
+          pullRequests(first: 1, states: OPEN, headRefName: $head, baseRefName: $base) {
+            nodes {
+              number
+            }
+          }
+        }
+      }
+    `;
+
     const { stdout } = await execa('gh', [
-      'pr',
-      'list',
-      '--head',
-      headBranch,
-      '--base',
-      baseBranch,
-      '--state',
-      'open',
-      '--json',
-      'number',
+      'api',
+      'graphql',
+      '-f',
+      `query=${query}`,
+      '-F',
+      'owner={owner}',
+      '-F',
+      'repo={repo}',
+      '-F',
+      `head=${headBranch}`,
+      '-F',
+      `base=${baseBranch}`,
       '--jq',
-      '.[0].number',
+      '.data.repository.pullRequests.nodes[0].number // empty',
     ]);
     return stdout.trim() || null;
   } catch {
