@@ -50,6 +50,8 @@ export class AIProvider implements IAIProvider {
   async *stream(request: ChatRequest): AsyncIterator<ChatChunk> {
     // TODO: Implement streaming in future iteration
     throw new Error('Streaming not yet implemented');
+    // This yield is unreachable but satisfies the generator requirement
+    yield { delta: '' };
   }
 
   /**

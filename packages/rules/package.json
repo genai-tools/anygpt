@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/rules",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Type-safe rule engine for matching and transforming objects",
   "type": "module",
   "main": "./dist/index.js",

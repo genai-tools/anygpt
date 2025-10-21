@@ -22,7 +22,7 @@
     "config"
   ],
   "dependencies": {
-    "@anygpt/types": "1.2.0",
-    "@anygpt/config": "2.0.0"
+    "@anygpt/types": "2.0.0",
+    "@anygpt/config": "3.0.0"
   }
 }

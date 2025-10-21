@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/ai-provider",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "AI provider wrapper with function calling - uses @anygpt/router internally",
   "type": "module",
   "main": "./dist/index.js",
@@ -14,10 +14,7 @@
     "url": "https://github.com/genai-tools/anygpt.git",
     "directory": "packages/ai-provider"
   },
-  "dependencies": {
-    "@anygpt/router": "*",
-    "@anygpt/config": "*"
-  },
+  "dependencies": {},
   "devDependencies": {},
   "keywords": [
     "ai",
