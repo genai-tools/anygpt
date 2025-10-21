@@ -117,6 +117,8 @@ async configResolved(config: AnyGPTConfig, context: PluginContext) {
 
 ## Future Plugins
 
+⚠️ **Note**: These plugins are planned but not yet implemented.
+
 Ideas for future plugins:
 
 - **@anygpt/kubernetes-plugin** - Discover K8s clusters

@@ -19,21 +19,64 @@ flexible configuration management.
 ## Architecture
 
 ```
-MCP Client → @anygpt/mcp → @anygpt/router → AI Provider APIs
-     ↓              ↓                    ↓
-CLI Tool → @anygpt/config → @anygpt/connectors → Provider SDKs
+┌─────────────────────────────────────────────────────────────────┐
+│ MCP Clients (Claude Desktop, Windsurf, Cursor)                 │
+└─────────────────────────────────────────────────────────────────┘
+                    ↓                           ↓
+    ┌───────────────────────────┐   ┌─────────────────────────┐
+    │ @anygpt/mcp-discovery-server │   │ @anygpt/mcp           │
+    │ (5 meta-tools, 99% token    │   │ (MCP protocol server) │
+    │  reduction)                  │   └─────────────────────────┘
+    └───────────────────────────┘               ↓
+                    ↓                   ┌─────────────────┐
+        ┌───────────────────────┐       │ @anygpt/config  │
+        │ @anygpt/mcp-discovery │       │ (Configuration) │
+        │ (Discovery engine)    │       └─────────────────┘
+        └───────────────────────┘               ↓
+                                        ┌─────────────────┐
+┌─────────────────────────┐             │ @anygpt/router  │
+│ @anygpt/cli             │────────────→│ (Provider       │
+│ (Command-line tool)     │             │  abstraction)   │
+└─────────────────────────┘             └─────────────────┘
+                                                ↓
+                                    ┌───────────────────────┐
+                                    │ @anygpt/ai-provider   │
+                                    │ (Function calling)    │
+                                    └───────────────────────┘
+                                                ↓
+                        ┌───────────────────────────────────────┐
+                        │ Connectors (@anygpt/openai,           │
+                        │  @anygpt/anthropic, @anygpt/cody,     │
+                        │  @anygpt/claude, @anygpt/mock)        │
+                        └───────────────────────────────────────┘
+                                                ↓
+                        ┌───────────────────────────────────────┐
+                        │ AI Provider APIs (OpenAI, Anthropic,  │
+                        │  Ollama, LocalAI, etc.)               │
+                        └───────────────────────────────────────┘
+
+Supporting Packages:
+  • @anygpt/types - Pure type definitions (0 runtime deps)
+  • @anygpt/rules - Type-safe rule engine for configuration
+  • @anygpt/mcp-logger - File-based logging for MCP servers
+  • @anygpt/plugins - Plugin system (docker-mcp-plugin, etc.)
 ```
 
 ### Core Packages
 
-| Package                                                | Purpose                             | Dependencies                   |
-| ------------------------------------------------------ | ----------------------------------- | ------------------------------ |
-| **[@anygpt/types](./packages/types/)**                 | Pure type definitions               | None (0 runtime deps)          |
-| **[@anygpt/config](./packages/config/)**               | Configuration management            | @anygpt/types                  |
-| **[@anygpt/router](./packages/router/)**               | Core routing and connector registry | None                           |
-| **[@anygpt/mcp-discovery](./packages/mcp-discovery/)** | MCP server discovery and management | @anygpt/types                  |
-| **[@anygpt/cli](./packages/cli/)**                     | Command-line interface              | @anygpt/config, @anygpt/mock   |
-| **[@anygpt/mcp](./packages/mcp/)**                     | MCP server implementation           | @anygpt/router, @anygpt/openai |
+| Package                                                              | Purpose                                   | Dependencies          |
+| -------------------------------------------------------------------- | ----------------------------------------- | --------------------- |
+| **[@anygpt/types](./packages/types/)**                               | Pure type definitions                     | None (0 runtime deps) |
+| **[@anygpt/config](./packages/config/)**                             | Configuration management                  | @anygpt/types         |
+| **[@anygpt/router](./packages/router/)**                             | Core routing and connector registry       | None                  |
+| **[@anygpt/ai-provider](./packages/ai-provider/)**                   | AI provider wrapper with function calling | @anygpt/router        |
+| **[@anygpt/rules](./packages/rules/)**                               | Type-safe rule engine                     | None                  |
+| **[@anygpt/mcp-logger](./packages/mcp-logger/)**                     | File-based logging for MCP servers        | None                  |
+| **[@anygpt/plugins](./packages/plugins/)**                           | Plugin system for dynamic configuration   | @anygpt/types         |
+| **[@anygpt/mcp-discovery](./packages/mcp-discovery/)**               | MCP tool discovery engine (core logic)    | @anygpt/types         |
+| **[@anygpt/mcp-discovery-server](./packages/mcp-discovery-server/)** | MCP Discovery Server (PRIMARY interface)  | @anygpt/mcp-discovery |
+| **[@anygpt/cli](./packages/cli/)**                                   | Command-line interface                    | @anygpt/config        |
+| **[@anygpt/mcp](./packages/mcp/)**                                   | MCP server implementation                 | @anygpt/config        |
 
 ### Connector Packages
 
@@ -41,6 +84,8 @@ CLI Tool → @anygpt/config → @anygpt/connectors → Provider SDKs
 | --------------------------------------------------------- | ------------------------- | --------------------------------- |
 | **[@anygpt/openai](./packages/connectors/openai/)**       | OpenAI & compatible APIs  | @anygpt/router, openai            |
 | **[@anygpt/anthropic](./packages/connectors/anthropic/)** | Anthropic Claude (native) | @anygpt/router, @anthropic-ai/sdk |
+| **[@anygpt/claude](./packages/connectors/claude/)**       | Claude via MCP            | @anygpt/router                    |
+| **[@anygpt/cody](./packages/connectors/cody/)**           | Sourcegraph Cody          | @anygpt/router                    |
 | **[@anygpt/mock](./packages/connectors/mock/)**           | Testing & development     | @anygpt/types                     |
 
 ### Supported Providers
@@ -69,6 +114,49 @@ npm install @anygpt/config
 
 # For type definitions only
 npm install @anygpt/types
+```
+
+### MCP Discovery Server (99% Token Reduction!)
+
+**Zero-configuration MCP server** that enables AI agents to discover and execute tools from 100+ MCP servers without loading everything into context.
+
+```bash
+# No installation needed - use with npx
+npx -y @anygpt/mcp-discovery-server
+```
+
+**Add to Claude Desktop / Windsurf / Cursor:**
+
+```json
+{
+  "mcpServers": {
+    "anygpt-discovery": {
+      "command": "npx",
+      "args": ["-y", "@anygpt/mcp-discovery-server"]
+    }
+  }
+}
+```
+
+**What it does:**
+
+- Exposes 5 meta-tools instead of 150+ individual tools
+- AI agents autonomously discover tools using `search_tools`
+- Reduces token usage from 100,000+ to ~600 tokens (99% reduction)
+- Gateway capability: discover AND execute tools through single connection
+
+**Example workflow:**
+
+```
+User: "Read README.md and create a GitHub issue if there are TODOs"
+
+AI Agent:
+1. search_tools({ query: "read file" }) → finds filesystem:read_file
+2. execute_tool({ server: "filesystem", tool: "read_file", ... })
+3. search_tools({ query: "create github issue" }) → finds github:create_issue
+4. execute_tool({ server: "github", tool: "create_issue", ... })
+
+Result: ~1,000 tokens vs 500,000+ tokens (99.8% savings)
 ```
 
 ### MCP Server
@@ -433,14 +521,33 @@ npx nx run-many -t lint
 
 ### Package Documentation
 
+**Core Packages:**
+
 - **[@anygpt/types](./packages/types/README.md)** - Pure type definitions
 - **[@anygpt/config](./packages/config/README.md)** - Configuration management
 - **[@anygpt/router](./packages/router/README.md)** - Core router and connector system
+- **[@anygpt/ai-provider](./packages/ai-provider/README.md)** - AI provider wrapper with function calling
+- **[@anygpt/rules](./packages/rules/README.md)** - Type-safe rule engine
+- **[@anygpt/mcp-logger](./packages/mcp-logger/README.md)** - File-based logging for MCP servers
+- **[@anygpt/plugins](./packages/plugins/README.md)** - Plugin system for dynamic configuration
+
+**MCP & Discovery:**
+
+- **[@anygpt/mcp-discovery](./packages/mcp-discovery/README.md)** - MCP tool discovery engine
+- **[@anygpt/mcp-discovery-server](./packages/mcp-discovery-server/README.md)** - MCP Discovery Server (PRIMARY interface)
+- **[@anygpt/mcp](./packages/mcp/README.md)** - MCP server implementation
+
+**Connectors:**
+
 - **[@anygpt/openai](./packages/connectors/openai/README.md)** - OpenAI connector
 - **[@anygpt/anthropic](./packages/connectors/anthropic/README.md)** - Anthropic connector
+- **[@anygpt/claude](./packages/connectors/claude/README.md)** - Claude via MCP
+- **[@anygpt/cody](./packages/connectors/cody/README.md)** - Sourcegraph Cody
 - **[@anygpt/mock](./packages/connectors/mock/README.md)** - Mock connector for testing
+
+**CLI:**
+
 - **[@anygpt/cli](./packages/cli/README.md)** - Command-line interface
-- **[@anygpt/mcp](./packages/mcp/README.md)** - MCP server implementation
 
 ### Architecture Documentation
 

@@ -26,18 +26,17 @@ npm install @anygpt/router
 ### Basic Usage
 
 ```typescript
-import { OpenAIConnector, createRouter } from '@anygpt/router';
+import { GenAIRouter } from '@anygpt/router';
+import { OpenAIConnectorFactory } from '@anygpt/openai';
 
-// Create connector
-const connector = new OpenAIConnector({
+// Create router and register connector factory
+const router = new GenAIRouter();
+router.registerConnector(new OpenAIConnectorFactory());
+
+// Create connector instance
+const connector = router.createConnector('openai', {
   apiKey: process.env.OPENAI_API_KEY,
-});
-
-// Create router
-const router = createRouter({
-  providers: {
-    openai: connector,
-  },
+  baseURL: 'https://api.openai.com/v1',
 });
 
 // Make request
@@ -79,10 +78,11 @@ const router = createRouter(config);
 
 ## Supported Providers
 
-| Provider   | Models                     | Features                                  |
-| ---------- | -------------------------- | ----------------------------------------- |
-| **OpenAI** | GPT-4o, GPT-4, GPT-3.5, o1 | Chat completion, function calling, vision |
-| **Mock**   | test-model                 | Development and testing                   |
+| Provider      | Models                     | Features                                  |
+| ------------- | -------------------------- | ----------------------------------------- |
+| **OpenAI**    | GPT-4o, GPT-4, GPT-3.5, o1 | Chat completion, function calling, vision |
+| **Anthropic** | Claude Sonnet, Opus, Haiku | Native API, function calling              |
+| **Mock**      | test-model                 | Development and testing                   |
 
 ## Configuration Examples
 
