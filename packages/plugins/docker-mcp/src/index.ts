@@ -331,7 +331,7 @@ function generateMCPConfig(
     args.push('--static');
   }
   if (flags.blockSecrets !== undefined) {
-    args.push('--block-secrets', flags.blockSecrets.toString());
+    args.push(`--block-secrets=${flags.blockSecrets.toString()}`);
   }
 
   return {
