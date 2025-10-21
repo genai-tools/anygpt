@@ -57,6 +57,7 @@ interface DockerMCPOptions extends BasePluginOptions {
     longLived?: boolean;
     static?: boolean;
     transport?: 'stdio' | 'sse' | 'streaming';
+    blockSecrets?: boolean; // Block secrets from being sent/received (default: true)
   };
   
   // Prefix for generated server names (default: '')
@@ -129,6 +130,22 @@ export default defineConfig({
   ],
 });
 ```
+
+### Enable Secrets Access
+
+```typescript
+export default defineConfig({
+  plugins: [
+    DockerMCP({
+      flags: {
+        blockSecrets: false, // Allow tools to access Docker Desktop secrets
+      },
+    }),
+  ],
+});
+```
+
+**Note**: By default, `blockSecrets` is `true` for security. Set to `false` to allow tools to access secrets configured in Docker Desktop (e.g., GitHub tokens).
 
 ### Resource Limits
 

@@ -88,6 +88,7 @@ export interface DockerMCPOptions extends BasePluginOptions {
     longLived?: boolean;
     static?: boolean;
     transport?: 'stdio' | 'sse' | 'streaming';
+    blockSecrets?: boolean;
   };
 
   /**
@@ -328,6 +329,9 @@ function generateMCPConfig(
   }
   if (flags.static) {
     args.push('--static');
+  }
+  if (flags.blockSecrets !== undefined) {
+    args.push('--block-secrets', flags.blockSecrets.toString());
   }
 
   return {
