@@ -13,9 +13,9 @@ An Nx executor plugin for automated release workflows with AI-generated summarie
 
 ## Installation
 
-```bash
-npm install nx-release --save-dev
-```
+⚠️ **Note**: This is a workspace-local Nx plugin, not published to npm.
+
+It's automatically available in this monorepo. No installation needed.
 
 ## Usage
 
