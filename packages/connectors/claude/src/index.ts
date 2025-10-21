@@ -1,4 +1,4 @@
-import { query, tool } from '@anthropic-ai/claude-agent-sdk';
+import { query } from '@anthropic-ai/claude-agent-sdk';
 import type { Options, SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 import Anthropic from '@anthropic-ai/sdk';
 import {
@@ -8,7 +8,6 @@ import {
   type BaseChatCompletionRequest,
   type BaseChatCompletionResponse,
   type ConnectorFactory,
-  type ResponseRequest,
   type ResponseResponse,
 } from '@anygpt/router';
 
@@ -108,9 +107,7 @@ export class ClaudeAgentConnector extends BaseConnector {
   /**
    * Response method (not supported by Agent SDK)
    */
-  override async response(
-    _request: ResponseRequest
-  ): Promise<ResponseResponse> {
+  override async response(): Promise<ResponseResponse> {
     throw new Error('Response method not supported by Claude Agent SDK. Use chatCompletion instead.');
   }
 
@@ -144,8 +141,8 @@ export class ClaudeAgentConnector extends BaseConnector {
       max_tokens: max_tokens || this.config.maxTokens || 4096,
       temperature: temperature ?? this.config.temperature,
       system_prompt: this.config.systemPrompt,
-      mcp_servers: this.config.mcpServers as any,
-      permissions: this.config.permissions as any,
+      mcp_servers: this.config.mcpServers as Record<string, unknown> | undefined,
+      permissions: this.config.permissions as Record<string, string> | undefined,
       // Pass baseURL and apiKey via environment variables (SDK spawns CLI process)
       env: {
         ...process.env,

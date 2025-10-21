@@ -36,12 +36,12 @@ export class DiscoveryMCPServer {
   constructor(config: DiscoveryConfig, mcpServers?: Record<string, any>) {
     // Initialize file-based logger
     this.logger = createLogger({
-      logFile: process.env.MCP_DISCOVERY_LOG_FILE || './logs/mcp-discovery.log',
-      level: (process.env.MCP_LOG_LEVEL as any) || 'info',
+      logFile: process.env['MCP_DISCOVERY_LOG_FILE'] || './logs/mcp-discovery.log',
+      level: (process.env['MCP_LOG_LEVEL'] as any) || 'info',
       serverName: 'mcp-discovery',
       maxSize: 10 * 1024 * 1024, // 10MB
       maxFiles: 5,
-      enableStderr: process.env.MCP_LOG_STDERR === 'true',
+      enableStderr: process.env['MCP_LOG_STDERR'] === 'true',
     });
 
     this.logger.info('Initializing MCP Discovery Server');

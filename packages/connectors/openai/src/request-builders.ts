@@ -27,7 +27,7 @@ export function buildChatCompletionRequest(
 ): OpenAI.Chat.ChatCompletionCreateParamsNonStreaming {
   const requestParams: OpenAI.Chat.ChatCompletionCreateParamsNonStreaming = {
     model: request.model!,
-    messages: request.messages,
+    messages: request.messages as OpenAI.Chat.ChatCompletionMessageParam[],
     temperature: request.temperature,
     top_p: request.top_p,
     presence_penalty: request.presence_penalty,
@@ -69,7 +69,7 @@ export function buildResponsesRequest(
       type: 'message' as const,
       role: msg.role,
       content: msg.content,
-    })),
+    })) as OpenAI.Responses.ResponseInput,
     temperature: request.temperature,
     top_p: request.top_p,
     ...(request.max_tokens !== undefined && {

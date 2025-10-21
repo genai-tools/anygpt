@@ -23,7 +23,7 @@ export class SemanticSearchEngine {
 
     this.logger?.debug('[SemanticSearch] Loading embedding model...');
     // Use default model for feature-extraction with auto dtype to suppress warnings
-    this.embedder = await pipeline('feature-extraction', null, { dtype: 'fp32' });
+    this.embedder = await pipeline('feature-extraction', undefined, { dtype: 'fp32' });
     this.initialized = true;
     this.logger?.debug('[SemanticSearch] Model loaded successfully');
   }

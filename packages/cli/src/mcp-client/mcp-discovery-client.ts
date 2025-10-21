@@ -28,13 +28,10 @@ export class MCPDiscoveryClient implements IMCPDiscoveryClient {
     }
 
     // Create transport - spawn discovery server as child process
-    // Use local build for development, published package for production
-    const isLocalDev = process.env.NODE_ENV !== 'production';
+    // npx will use local workspace version in development, published package in production
     this.transport = new StdioClientTransport({
-      command: isLocalDev ? 'node' : 'npx',
-      args: isLocalDev 
-        ? ['packages/mcp-discovery-server/dist/cli.js']
-        : ['-y', '@anygpt/mcp-discovery-server'],
+      command: 'npx',
+      args: ['-y', '@anygpt/mcp-discovery-server'],
       env: {
         ...process.env,
         // Pass config path via environment variable
