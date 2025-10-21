@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/mcp-discovery",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "MCP Discovery Engine - Core logic for on-demand MCP tool discovery",
   "type": "module",
   "main": "./dist/index.js",

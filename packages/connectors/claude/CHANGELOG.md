@@ -1,3 +1,13 @@
+## 1.2.1 (2025-10-21)
+
+### 🩹 Fixes
+
+- resolve typecheck, lint, and test issues across packages ([039f16a](https://github.com/genai-tools/anygpt/commit/039f16a))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.2.0 (2025-10-21)
 
 ### 🚀 Features

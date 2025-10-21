@@ -1,3 +1,17 @@
+## 0.3.1 (2025-10-21)
+
+### 🩹 Fixes
+
+- resolve typecheck, lint, and test issues across packages ([039f16a](https://github.com/genai-tools/anygpt/commit/039f16a))
+
+### 🧱 Updated Dependencies
+
+- Updated mcp-discovery to 0.3.1
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.3.0 (2025-10-21)
 
 ### 🚀 Features
