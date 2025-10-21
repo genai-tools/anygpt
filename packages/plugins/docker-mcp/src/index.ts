@@ -63,6 +63,18 @@ interface DockerMCPServerInfo {
  */
 export interface DockerMCPOptions extends BasePluginOptions {
   /**
+   * Docker command to use (default: 'docker')
+   * 
+   * Use 'docker.exe' on WSL to access Windows Docker Desktop
+   * 
+   * @example
+   * ```ts
+   * DockerMCP({ dockerCommand: 'docker.exe' })
+   * ```
+   */
+  dockerCommand?: string;
+
+  /**
    * Environment variables per server
    */
   env?: Record<string, Record<string, string>>;
@@ -96,6 +108,7 @@ export interface DockerMCPOptions extends BasePluginOptions {
  */
 const DockerMCP: PluginFactory<DockerMCPOptions> = (options = {}) => {
   const {
+    dockerCommand = 'docker',
     env = {},
     flags = {},
     prefix = '',
@@ -117,14 +130,14 @@ const DockerMCP: PluginFactory<DockerMCPOptions> = (options = {}) => {
 
       // Check if Docker MCP is available
       try {
-        execSync('docker mcp server ls', { stdio: 'pipe', encoding: 'utf-8' });
+        execSync(`${dockerCommand} mcp server ls`, { stdio: 'pipe', encoding: 'utf-8' });
       } catch {
         // Silently skip if Docker MCP not available
         return {};
       }
 
       // Discover servers
-      const serverNames = discoverServers(log, error);
+      const serverNames = discoverServers(dockerCommand, log, error);
       log(
         `Discovered ${serverNames.length} servers: ${serverNames.join(', ')}`
       );
@@ -140,7 +153,7 @@ const DockerMCP: PluginFactory<DockerMCPOptions> = (options = {}) => {
       const inspectStream = Readable.from(serverNames).map(
         async (serverName) => {
           try {
-            const serverInfo = await inspectServerAsync(serverName, log, error);
+            const serverInfo = await inspectServerAsync(dockerCommand, serverName, log, error);
             return { serverName, serverInfo, success: true as const };
           } catch (err) {
             // Don't log error - just mark as failed
@@ -166,6 +179,7 @@ const DockerMCP: PluginFactory<DockerMCPOptions> = (options = {}) => {
           // Successfully inspected - create config with full details
           try {
             const mcpConfig = generateMCPConfig(
+              dockerCommand,
               serverName,
               serverInfo,
               env[serverName],
@@ -191,7 +205,7 @@ const DockerMCP: PluginFactory<DockerMCPOptions> = (options = {}) => {
           // Failed to inspect - still create config so it appears in list
           // The CLI will show it with error status when it fails to connect
           mcp[configName] = {
-            command: 'docker',
+            command: dockerCommand,
             args: [
               'mcp',
               'gateway',
@@ -231,11 +245,12 @@ export default DockerMCP;
  * Discover available Docker MCP servers
  */
 function discoverServers(
+  dockerCommand: string,
   log: (msg: string) => void,
   error: (msg: string, err?: Error) => void
 ): string[] {
   try {
-    const output = execSync('docker mcp server ls', {
+    const output = execSync(`${dockerCommand} mcp server ls`, {
       encoding: 'utf-8',
       stdio: 'pipe',
     });
@@ -260,6 +275,7 @@ function discoverServers(
  * Inspect a Docker MCP server (async)
  */
 async function inspectServerAsync(
+  dockerCommand: string,
   serverName: string,
   log: (msg: string) => void,
   error: (msg: string, err?: Error) => void
@@ -268,7 +284,7 @@ async function inspectServerAsync(
     log(`Inspecting server: ${serverName}`);
 
     const { stdout } = await execAsync(
-      `docker mcp server inspect ${serverName}`,
+      `${dockerCommand} mcp server inspect ${serverName}`,
       {
         encoding: 'utf-8',
       }
@@ -287,6 +303,7 @@ async function inspectServerAsync(
  * Generate MCP server configuration
  */
 function generateMCPConfig(
+  dockerCommand: string,
   serverName: string,
   serverInfo: DockerMCPServerInfo,
   serverEnv: Record<string, string> | undefined,
@@ -314,7 +331,7 @@ function generateMCPConfig(
   }
 
   return {
-    command: 'docker',
+    command: dockerCommand,
     args,
     env: serverEnv && Object.keys(serverEnv).length > 0 ? serverEnv : undefined,
     description: serverInfo.description || `Docker MCP: ${serverName}`,

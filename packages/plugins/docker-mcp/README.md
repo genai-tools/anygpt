@@ -37,6 +37,10 @@ export default defineConfig({
 
 ```typescript
 interface DockerMCPOptions extends BasePluginOptions {
+  // Docker command to use (default: 'docker')
+  // Use 'docker.exe' on WSL to access Windows Docker Desktop
+  dockerCommand?: string;
+  
   // Specific servers to include (if empty, includes all)
   include?: string[];
   
@@ -97,6 +101,18 @@ export default defineConfig({
 ```
 
 Only configures specified servers.
+
+### WSL with Windows Docker Desktop
+
+```typescript
+export default defineConfig({
+  plugins: [
+    DockerMCP({
+      dockerCommand: 'docker.exe', // Use Windows Docker Desktop from WSL
+    }),
+  ],
+});
+```
 
 ### Environment Variables
 
