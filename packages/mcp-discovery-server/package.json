@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/mcp-discovery-server",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "MCP Discovery Server - PRIMARY interface for AI agents to discover and execute tools",
   "type": "module",
   "main": "./dist/index.js",
@@ -49,8 +49,8 @@
     "build:dts": "tsc --project tsconfig.lib.json"
   },
   "dependencies": {
-    "@anygpt/config": "3.0.0",
-    "@anygpt/mcp-discovery": "0.3.1",
+    "@anygpt/config": "3.0.1",
+    "@anygpt/mcp-discovery": "0.3.2",
     "@anygpt/mcp-logger": "0.3.0",
     "@modelcontextprotocol/sdk": "1.20.0"
   }

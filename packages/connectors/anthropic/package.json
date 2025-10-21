@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/anthropic",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Anthropic connector for AnyGPT - integrates native Anthropic API with the router",
   "type": "module",
   "main": "./dist/index.js",
@@ -41,7 +41,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@anygpt/router": "0.6.0",
+    "@anygpt/router": "0.6.1",
     "@anthropic-ai/sdk": "^0.65.0"
   }
 }

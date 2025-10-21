@@ -56,11 +56,7 @@
   },
   "release": {
     "projectsRelationship": "independent",
-    "projects": [
-      "packages/*",
-      "packages/connectors/*",
-      "!packages/cli/node_modules/**"
-    ],
+    "projects": ["packages/*", "packages/connectors/*", "packages/plugins/*"],
     "releaseTagPattern": "{projectName}@{version}",
     "conventionalCommits": {
       "types": {
