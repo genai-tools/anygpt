@@ -34,7 +34,7 @@ jobs:
       - name: Run full CI on all release packages
         run: |
           echo "Running comprehensive CI on all packages..."
-          npx nx run-many -t lint test build typecheck --projects='packages/*,packages/connectors/*'
+          npx nx run-many -t lint test build typecheck --projects='packages/*,packages/connectors/*,packages/plugins/*'
 
       - name: Fix CI issues
         if: failure()
