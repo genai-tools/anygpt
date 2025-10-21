@@ -1,3 +1,25 @@
+# 2.0.0 (2025-10-21)
+
+### 🚀 Features
+
+- add OpenAI connector re-export and configure mock connector project ([7cd9836](https://github.com/genai-tools/anygpt/commit/7cd9836))
+
+### 🩹 Fixes
+
+- resolve major TypeScript compilation errors ([760f090](https://github.com/genai-tools/anygpt/commit/760f090))
+
+### 📖 Documentation
+
+- move testing guide from root to docs/guidelines directory ([2eb4de6](https://github.com/genai-tools/anygpt/commit/2eb4de6))
+
+### 🧱 Updated Dependencies
+
+- Updated types to 2.0.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.0.2 (2025-10-14)
 
 ### 🧱 Updated Dependencies

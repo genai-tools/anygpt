@@ -1,3 +1,34 @@
+# 2.0.0 (2025-10-21)
+
+### 🚀 Features
+
+- add MCP client integration and agentic chat capabilities ([1d8d1e5](https://github.com/genai-tools/anygpt/commit/1d8d1e5))
+- add tool name prefix support per MCP server via serverRules ([3c42a4b](https://github.com/genai-tools/anygpt/commit/3c42a4b))
+- add docker-mcp-plugin with serverRules and powerful CLI commands ([f75d855](https://github.com/genai-tools/anygpt/commit/f75d855))
+- **types:** add useLegacyMaxTokens flag to ChatCompletionRequest ([7a7c1fd](https://github.com/genai-tools/anygpt/commit/7a7c1fd))
+- **types:** add tag-related type definitions ([7448125](https://github.com/genai-tools/anygpt/commit/7448125))
+- **types:** add reasoning parameter to ChatCompletionRequest ([b02e0d3](https://github.com/genai-tools/anygpt/commit/b02e0d3))
+- **types:** add tags field to ModelInfo interface ([a77de2d](https://github.com/genai-tools/anygpt/commit/a77de2d))
+
+### 🩹 Fixes
+
+- **types:** add index signatures to rule targets and update to serverRules/toolRules ([93d0393](https://github.com/genai-tools/anygpt/commit/93d0393))
+- resolve typecheck errors in config and openai packages ([e0aefa8](https://github.com/genai-tools/anygpt/commit/e0aefa8))
+- resolve tsdown DTS generation by fixing TypeScript path mappings ([f5e5781](https://github.com/genai-tools/anygpt/commit/f5e5781))
+- export missing types from @anygpt/types ([42ad24f](https://github.com/genai-tools/anygpt/commit/42ad24f))
+
+### 📖 Documentation
+
+- add WIP warning banners and config merge documentation ([ca164b9](https://github.com/genai-tools/anygpt/commit/ca164b9))
+
+### 🧱 Updated Dependencies
+
+- Updated rules to 0.3.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.2.0 (2025-10-14)
 
 ### 🚀 Features

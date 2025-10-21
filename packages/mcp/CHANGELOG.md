@@ -1,3 +1,35 @@
+# 2.0.0 (2025-10-21)
+
+### 🚀 Features
+
+- **mcp:** add support for per-provider default models ([766edd4](https://github.com/genai-tools/anygpt/commit/766edd4))
+- **mcp:** inject logger into router setup and improve resources ([d314bb4](https://github.com/genai-tools/anygpt/commit/d314bb4))
+- add list-tags command and model tag discovery functionality ([6119b77](https://github.com/genai-tools/anygpt/commit/6119b77))
+- **mcp:** enhance model discovery and max_tokens handling ([2e047ea](https://github.com/genai-tools/anygpt/commit/2e047ea))
+- **mcp:** refactor server architecture and add new capabilities ([0c3bc45](https://github.com/genai-tools/anygpt/commit/0c3bc45))
+- **mcp:** add list-models support and test script ([447900e](https://github.com/genai-tools/anygpt/commit/447900e))
+
+### 🩹 Fixes
+
+- **security:** remove company name from code comments ([f8c60b1](https://github.com/genai-tools/anygpt/commit/f8c60b1))
+- **mcp:** resolve TypeScript type errors ([213e46a](https://github.com/genai-tools/anygpt/commit/213e46a))
+- resolve major TypeScript compilation errors ([760f090](https://github.com/genai-tools/anygpt/commit/760f090))
+
+### 📖 Documentation
+
+- add WIP warning banners and config merge documentation ([ca164b9](https://github.com/genai-tools/anygpt/commit/ca164b9))
+- **mcp:** update workflow documentation ([e29013f](https://github.com/genai-tools/anygpt/commit/e29013f))
+- **mcp:** improve workflow documentation and tool descriptions ([de4d1ce](https://github.com/genai-tools/anygpt/commit/de4d1ce))
+
+### 🧱 Updated Dependencies
+
+- Updated config to 3.0.0
+- Updated types to 2.0.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.1.0 (2025-10-14)
 
 ### 🚀 Features

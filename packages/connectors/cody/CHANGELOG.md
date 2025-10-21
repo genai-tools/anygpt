@@ -1,3 +1,31 @@
+# 2.0.0 (2025-10-21)
+
+### 🚀 Features
+
+- **connectors:** implement useLegacyMaxTokens capability flag ([e992225](https://github.com/genai-tools/anygpt/commit/e992225))
+- **cody:** update connector for tag resolution support ([9819559](https://github.com/genai-tools/anygpt/commit/9819559))
+- **cody:** improve documentation and connection modes ([833a7e3](https://github.com/genai-tools/anygpt/commit/833a7e3))
+- **@anygpt/cody:** add Sourcegraph Cody connector ([9cf2deb](https://github.com/genai-tools/anygpt/commit/9cf2deb))
+
+### 🩹 Fixes
+
+- **cody:** improve example security - use environment variables for tokens ([36f01ae](https://github.com/genai-tools/anygpt/commit/36f01ae))
+- **cody:** improve system message transformation to avoid consecutive user messages ([8c7d8b4](https://github.com/genai-tools/anygpt/commit/8c7d8b4))
+- **cody:** transform system messages to user messages for API compatibility ([3a89bc6](https://github.com/genai-tools/anygpt/commit/3a89bc6))
+- **cody:** add publishConfig for public npm access ([95d7764](https://github.com/genai-tools/anygpt/commit/95d7764))
+- **cody:** add publishConfig for public npm access ([20c2891](https://github.com/genai-tools/anygpt/commit/20c2891))
+- **@anygpt/cody:** fix TypeScript type errors ([276228c](https://github.com/genai-tools/anygpt/commit/276228c))
+
+### 🧱 Updated Dependencies
+
+- Updated router to 0.6.0
+- Updated types to 2.0.0
+- Updated openai to 2.0.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.2.1 (2025-10-14)
 
 ### 🧱 Updated Dependencies

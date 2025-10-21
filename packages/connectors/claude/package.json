@@ -1,6 +1,6 @@
 {
   "name": "@anygpt/claude",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Claude Agent SDK connector for AnyGPT",
   "type": "module",
   "main": "./dist/index.js",

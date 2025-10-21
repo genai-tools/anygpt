@@ -1,3 +1,40 @@
+# 2.0.0 (2025-10-21)
+
+### 🚀 Features
+
+- add MCP client integration and agentic chat capabilities ([1d8d1e5](https://github.com/genai-tools/anygpt/commit/1d8d1e5))
+- **openai:** improve model display names with readable formatting ([d4fd9e2](https://github.com/genai-tools/anygpt/commit/d4fd9e2))
+- **connectors:** implement useLegacyMaxTokens capability flag ([e992225](https://github.com/genai-tools/anygpt/commit/e992225))
+- **openai:** add tag resolution support to connector ([14025d7](https://github.com/genai-tools/anygpt/commit/14025d7))
+- **openai:** support reasoning_effort parameter with enhanced error handling ([5c43271](https://github.com/genai-tools/anygpt/commit/5c43271))
+- **openai:** add defaultHeaders support ([09f4cb4](https://github.com/genai-tools/anygpt/commit/09f4cb4))
+- **connectors/openai:** add list-models support ([3999129](https://github.com/genai-tools/anygpt/commit/3999129))
+
+### 🩹 Fixes
+
+- **openai:** resolve all TypeScript type errors ([6b1703e](https://github.com/genai-tools/anygpt/commit/6b1703e))
+- **openai:** improve hook manager type safety with overloads ([cbdfc64](https://github.com/genai-tools/anygpt/commit/cbdfc64))
+- **openai:** resolve lint errors ([bcf95b2](https://github.com/genai-tools/anygpt/commit/bcf95b2))
+- resolve typecheck failures and tsgo race conditions ([589a468](https://github.com/genai-tools/anygpt/commit/589a468))
+- resolve typecheck errors in config and openai packages ([e0aefa8](https://github.com/genai-tools/anygpt/commit/e0aefa8))
+- **security:** remove company name from code comments ([f8c60b1](https://github.com/genai-tools/anygpt/commit/f8c60b1))
+- **openai:** enhance error logging for chat completion failures ([4e5bafb](https://github.com/genai-tools/anygpt/commit/4e5bafb))
+- use npm install without package-lock to workaround private registry issue ([5920055](https://github.com/genai-tools/anygpt/commit/5920055))
+- resolve major TypeScript compilation errors ([760f090](https://github.com/genai-tools/anygpt/commit/760f090))
+
+### 📖 Documentation
+
+- add 10 high-level use cases with measurable outcomes ([043bcdd](https://github.com/genai-tools/anygpt/commit/043bcdd))
+
+### 🧱 Updated Dependencies
+
+- Updated router to 0.6.0
+- Updated types to 2.0.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.3.0 (2025-10-14)
 
 ### 🚀 Features

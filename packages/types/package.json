@@ -41,6 +41,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@anygpt/rules": "0.2.0"
+    "@anygpt/rules": "0.3.0"
   }
 }

@@ -1,3 +1,34 @@
+## 0.6.0 (2025-10-21)
+
+### 🚀 Features
+
+- add MCP client integration and agentic chat capabilities ([1d8d1e5](https://github.com/genai-tools/anygpt/commit/1d8d1e5))
+- **router:** implement retry logic and comprehensive testing ([8dbe229](https://github.com/genai-tools/anygpt/commit/8dbe229))
+- **router:** add capability flags and improve logging ([3e4da35](https://github.com/genai-tools/anygpt/commit/3e4da35))
+- **router:** add tag-aware routing capabilities ([1f2c799](https://github.com/genai-tools/anygpt/commit/1f2c799))
+- **router:** pass reasoning config through to connectors ([6894638](https://github.com/genai-tools/anygpt/commit/6894638))
+- **types:** add reasoning parameter to ChatCompletionRequest ([b02e0d3](https://github.com/genai-tools/anygpt/commit/b02e0d3))
+- **router:** support list-models endpoint ([81c116c](https://github.com/genai-tools/anygpt/commit/81c116c))
+- add OpenAI connector re-export and configure mock connector project ([7cd9836](https://github.com/genai-tools/anygpt/commit/7cd9836))
+
+### 🩹 Fixes
+
+- resolve router lint and anthropic test failures ([6e22b3b](https://github.com/genai-tools/anygpt/commit/6e22b3b))
+- use npm install without package-lock to workaround private registry issue ([5920055](https://github.com/genai-tools/anygpt/commit/5920055))
+- resolve major TypeScript compilation errors ([760f090](https://github.com/genai-tools/anygpt/commit/760f090))
+
+### 📖 Documentation
+
+- add WIP warning banners and config merge documentation ([ca164b9](https://github.com/genai-tools/anygpt/commit/ca164b9))
+
+### 🧱 Updated Dependencies
+
+- Updated types to 2.0.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.5.0 (2025-10-14)
 
 ### 🚀 Features

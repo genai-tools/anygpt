@@ -44,7 +44,7 @@
     "build:dts": "tsc --project tsconfig.lib.json"
   },
   "dependencies": {
-    "@anygpt/rules": "0.2.0",
+    "@anygpt/rules": "0.3.0",
     "@anygpt/types": "2.0.0",
     "jiti": "2.6.1",
     "@anygpt/router": "0.6.0",

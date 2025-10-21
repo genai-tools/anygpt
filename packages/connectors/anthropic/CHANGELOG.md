@@ -1,3 +1,23 @@
+## 0.3.0 (2025-10-21)
+
+### 🚀 Features
+
+- add MCP client integration and agentic chat capabilities ([1d8d1e5](https://github.com/genai-tools/anygpt/commit/1d8d1e5))
+- **connectors:** add Anthropic connector with API model listing ([92a24e6](https://github.com/genai-tools/anygpt/commit/92a24e6))
+
+### 🩹 Fixes
+
+- resolve router lint and anthropic test failures ([6e22b3b](https://github.com/genai-tools/anygpt/commit/6e22b3b))
+- resolve typecheck failures and tsgo race conditions ([589a468](https://github.com/genai-tools/anygpt/commit/589a468))
+
+### 🧱 Updated Dependencies
+
+- Updated router to 0.6.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.2.0 (2025-10-14)
 
 ### 🚀 Features

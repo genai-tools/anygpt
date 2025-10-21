@@ -1,3 +1,82 @@
+# 2.0.0 (2025-10-21)
+
+### 🚀 Features
+
+- add MCP client integration and agentic chat capabilities ([1d8d1e5](https://github.com/genai-tools/anygpt/commit/1d8d1e5))
+- **cli:** integrate AI provider with interactive chat ✅ ([4b4c9b9](https://github.com/genai-tools/anygpt/commit/4b4c9b9))
+- **cli:** add interactive chat demo command ([a2053ab](https://github.com/genai-tools/anygpt/commit/a2053ab))
+- **cli:** implement chat loop foundation (5-1) ✅ ([6cf4c82](https://github.com/genai-tools/anygpt/commit/6cf4c82))
+- add tool name prefix support per MCP server via serverRules ([3c42a4b](https://github.com/genai-tools/anygpt/commit/3c42a4b))
+- add docker-mcp-plugin with serverRules and powerful CLI commands ([f75d855](https://github.com/genai-tools/anygpt/commit/f75d855))
+- **mcp-discovery:** implement server listing and config integration ([bdc86c5](https://github.com/genai-tools/anygpt/commit/bdc86c5))
+- **cli:** implement MCP discovery commands ([8430047](https://github.com/genai-tools/anygpt/commit/8430047))
+- **cli:** remove codex/toml config support and add eslint ([fdff662](https://github.com/genai-tools/anygpt/commit/fdff662))
+- **cli:** add parallel execution to benchmark command ([33ce5e6](https://github.com/genai-tools/anygpt/commit/33ce5e6))
+- implement tag registry for pattern-based tag resolution ([44e8092](https://github.com/genai-tools/anygpt/commit/44e8092))
+- **cli:** add model tag resolution and improved context handling ([54d6b89](https://github.com/genai-tools/anygpt/commit/54d6b89))
+- **cli:** enhance commands with modelRules filtering and improved output ([5b6cdfe](https://github.com/genai-tools/anygpt/commit/5b6cdfe))
+- **cli:** add tag-based model selection to feature list ([62cf8ad](https://github.com/genai-tools/anygpt/commit/62cf8ad))
+- **cli:** add --tag option and improve tag resolution ([dcb5a59](https://github.com/genai-tools/anygpt/commit/dcb5a59))
+- add list-tags command and model tag discovery functionality ([6119b77](https://github.com/genai-tools/anygpt/commit/6119b77))
+- **cli:** add benchmark command for model performance testing ([a7c9e83](https://github.com/genai-tools/anygpt/commit/a7c9e83))
+- **cli:** add max-tokens parameter to chat command ([d3c48c2](https://github.com/genai-tools/anygpt/commit/d3c48c2))
+- **cody:** improve documentation and connection modes ([833a7e3](https://github.com/genai-tools/anygpt/commit/833a7e3))
+- **cli:** add dynamic connector import for list-models ([9dce793](https://github.com/genai-tools/anygpt/commit/9dce793))
+- **cli:** add list-models command ([71adcb3](https://github.com/genai-tools/anygpt/commit/71adcb3))
+- **cli:** add another feature ([5ea58b9](https://github.com/genai-tools/anygpt/commit/5ea58b9))
+- **cli:** add another feature ([0d0e47b](https://github.com/genai-tools/anygpt/commit/0d0e47b))
+- **cli:** add awesome feature ([8dc6def](https://github.com/genai-tools/anygpt/commit/8dc6def))
+- **cli:** add optional --usage flag to chat command for clean output ([b981964](https://github.com/genai-tools/anygpt/commit/b981964))
+- **cli:** add awesome feature ([8bb381d](https://github.com/genai-tools/anygpt/commit/8bb381d))
+- **cli:** add awesome feature ([85fb13d](https://github.com/genai-tools/anygpt/commit/85fb13d))
+- **cli:** add awesome feature ([9bb923c](https://github.com/genai-tools/anygpt/commit/9bb923c))
+- **cli:** add awesome feature ([0c958b8](https://github.com/genai-tools/anygpt/commit/0c958b8))
+- **cli:** add awesome feature ([3aced8a](https://github.com/genai-tools/anygpt/commit/3aced8a))
+- **cli:** add awesome feature ([a052715](https://github.com/genai-tools/anygpt/commit/a052715))
+- **cli:** add awesome feature ([810eebb](https://github.com/genai-tools/anygpt/commit/810eebb))
+- **cli:** add awesome feature ([ececc9a](https://github.com/genai-tools/anygpt/commit/ececc9a))
+- **cli:** add awesome feature ([314ca9b](https://github.com/genai-tools/anygpt/commit/314ca9b))
+- **cli:** add awesome feature ([b39cc33](https://github.com/genai-tools/anygpt/commit/b39cc33))
+- **cli:** add awesome feature ([a6e95bf](https://github.com/genai-tools/anygpt/commit/a6e95bf))
+- **cli:** trigger release ([9b1ef8c](https://github.com/genai-tools/anygpt/commit/9b1ef8c))
+- **cli:** trigger release ([816db1d](https://github.com/genai-tools/anygpt/commit/816db1d))
+- **cli:** trigger release ([6b36f37](https://github.com/genai-tools/anygpt/commit/6b36f37))
+- **cli:** trigger release ([b36e3fb](https://github.com/genai-tools/anygpt/commit/b36e3fb))
+- **cli:** trigger release ([34e437e](https://github.com/genai-tools/anygpt/commit/34e437e))
+- **cli:** add new feature ([a53e5a6](https://github.com/genai-tools/anygpt/commit/a53e5a6))
+- **cli:** add new feature ([7aeb4bc](https://github.com/genai-tools/anygpt/commit/7aeb4bc))
+- **cli:** add support for custom output formats ([f5b5c3a](https://github.com/genai-tools/anygpt/commit/f5b5c3a))
+
+### 🩹 Fixes
+
+- **cli:** resolve model from tag registry in chat-interactive ([443031b](https://github.com/genai-tools/anygpt/commit/443031b))
+- **cli:** improve tag resolution in chat command ([d93d169](https://github.com/genai-tools/anygpt/commit/d93d169))
+- **nx-release:** improve AI summary generation and switch to sonnet model ([921c8df](https://github.com/genai-tools/anygpt/commit/921c8df))
+- **cli:** add installation comment for clarity ([dbd5261](https://github.com/genai-tools/anygpt/commit/dbd5261))
+- **cli:** improve example clarity in README ([d7ad12b](https://github.com/genai-tools/anygpt/commit/d7ad12b))
+- **cli:** improve error message clarity for stdin usage ([af8d2a6](https://github.com/genai-tools/anygpt/commit/af8d2a6))
+- **security:** remove company name from code comments ([f8c60b1](https://github.com/genai-tools/anygpt/commit/f8c60b1))
+- resolve major TypeScript compilation errors ([760f090](https://github.com/genai-tools/anygpt/commit/760f090))
+
+### 📖 Documentation
+
+- add WIP warning banners and config merge documentation ([ca164b9](https://github.com/genai-tools/anygpt/commit/ca164b9))
+- **cli:** audit and update CLI feature implementation status ([51b6dd3](https://github.com/genai-tools/anygpt/commit/51b6dd3))
+- **cli:** clarify conversation management feature ([c8e4fb8](https://github.com/genai-tools/anygpt/commit/c8e4fb8))
+- **cli:** add contributing section to README ([c7c534b](https://github.com/genai-tools/anygpt/commit/c7c534b))
+
+### 🧱 Updated Dependencies
+
+- Updated mcp-discovery to 0.3.0
+- Updated ai-provider to 0.3.0
+- Updated config to 3.0.0
+- Updated router to 0.6.0
+- Updated types to 2.0.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 1.3.0 (2025-10-14)
 
 ### 🚀 Features

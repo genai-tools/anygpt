@@ -1,3 +1,53 @@
+# 3.0.0 (2025-10-21)
+
+### 🚀 Features
+
+- refactor config API with simplified types and dual format support ([87ca8c6](https://github.com/genai-tools/anygpt/commit/87ca8c6))
+- add docker-mcp-plugin with serverRules and powerful CLI commands ([f75d855](https://github.com/genai-tools/anygpt/commit/f75d855))
+- **mcp-discovery:** implement server listing and config integration ([bdc86c5](https://github.com/genai-tools/anygpt/commit/bdc86c5))
+- **config:** improve tag registry to support config-defined models ([bf32620](https://github.com/genai-tools/anygpt/commit/bf32620))
+- ⚠️ **config:** complete configuration loader feature ([226c474](https://github.com/genai-tools/anygpt/commit/226c474))
+- **config:** add custom error types for better error handling ([0e9c462](https://github.com/genai-tools/anygpt/commit/0e9c462))
+- **config:** enhance model pattern resolver and add capability flags ([a40878d](https://github.com/genai-tools/anygpt/commit/a40878d))
+- implement tag registry for pattern-based tag resolution ([44e8092](https://github.com/genai-tools/anygpt/commit/44e8092))
+- **config:** implement model tag resolution system ([d0280b4](https://github.com/genai-tools/anygpt/commit/d0280b4))
+- **config:** add model pattern resolver with priority-based rules ([2d4269b](https://github.com/genai-tools/anygpt/commit/2d4269b))
+- add list-tags command and model tag discovery functionality ([6119b77](https://github.com/genai-tools/anygpt/commit/6119b77))
+- **config:** add shared model resolution utilities ([04830d9](https://github.com/genai-tools/anygpt/commit/04830d9))
+- **cody:** improve documentation and connection modes ([833a7e3](https://github.com/genai-tools/anygpt/commit/833a7e3))
+- **config:** export loadConfig and validateConfig functions ([636ad6a](https://github.com/genai-tools/anygpt/commit/636ad6a))
+- **config:** add native TypeScript config loading with jiti ([5851fb7](https://github.com/genai-tools/anygpt/commit/5851fb7))
+- add OpenAI connector re-export and configure mock connector project ([7cd9836](https://github.com/genai-tools/anygpt/commit/7cd9836))
+
+### 🩹 Fixes
+
+- **types:** add index signatures to rule targets and update to serverRules/toolRules ([93d0393](https://github.com/genai-tools/anygpt/commit/93d0393))
+- add .swcrc to resolve SWC baseUrl requirement ([487477b](https://github.com/genai-tools/anygpt/commit/487477b))
+- resolve tsdown DTS generation by fixing TypeScript path mappings ([f5e5781](https://github.com/genai-tools/anygpt/commit/f5e5781))
+- use npm install without package-lock to workaround private registry issue ([5920055](https://github.com/genai-tools/anygpt/commit/5920055))
+
+### 📖 Documentation
+
+- add WIP warning banners and config merge documentation ([ca164b9](https://github.com/genai-tools/anygpt/commit/ca164b9))
+- **config:** consolidate documentation into single README ([74645b2](https://github.com/genai-tools/anygpt/commit/74645b2))
+- add reasoning effort levels guide and configuration examples ([ca747ef](https://github.com/genai-tools/anygpt/commit/ca747ef))
+- move testing guide from root to docs/guidelines directory ([2eb4de6](https://github.com/genai-tools/anygpt/commit/2eb4de6))
+
+### ⚠️ Breaking Changes
+
+- **config:** Removed Codex migration support. Users should use modern factory config pattern instead.
+
+### 🧱 Updated Dependencies
+
+- Updated router to 0.6.0
+- Updated rules to 0.3.0
+- Updated types to 2.0.0
+- Updated mock to 2.0.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 # 3.0.0-beta.1 (2025-10-20)
 
 > **⚠️ BETA RELEASE**: This is a pre-release version with major breaking changes. Please test thoroughly before using in production. Report issues on GitHub.

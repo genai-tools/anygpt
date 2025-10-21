@@ -1,3 +1,17 @@
+## 0.3.0 (2025-10-21)
+
+### 🚀 Features
+
+- **rules:** add type-safe rule engine package ([64d315b](https://github.com/genai-tools/anygpt/commit/64d315b))
+
+### 📖 Documentation
+
+- add WIP warning banners and config merge documentation ([ca164b9](https://github.com/genai-tools/anygpt/commit/ca164b9))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -10,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2025-10-19
 
 ### Added
+
 - Initial release of @anygpt/rules
 - Type-safe rule engine for matching and transforming objects
 - Shortcut syntax for cleaner rules (direct values, regex, arrays)
@@ -23,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Zero dependencies - pure TypeScript implementation
 
 ### Features
+
 - **Operators**: `eq`, `in`, `match` (regex/glob patterns)
 - **Shortcuts**: Direct values, RegExp, arrays
 - **Type Safety**: Only primitives and arrays allowed

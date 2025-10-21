@@ -1,3 +1,30 @@
+## 0.3.0 (2025-10-21)
+
+### 🚀 Features
+
+- **mcp-discovery-server:** add execute_tool and comprehensive usage guide ([d37b8bc](https://github.com/genai-tools/anygpt/commit/d37b8bc))
+- add MCP client integration and agentic chat capabilities ([1d8d1e5](https://github.com/genai-tools/anygpt/commit/1d8d1e5))
+- **mcp-discovery-server:** complete PRIMARY interface for AI agents ([3a45e90](https://github.com/genai-tools/anygpt/commit/3a45e90))
+
+### 🩹 Fixes
+
+- **types:** add index signatures to rule targets and update to serverRules/toolRules ([93d0393](https://github.com/genai-tools/anygpt/commit/93d0393))
+- resolve all lint and typecheck issues in mcp-discovery packages ([256b61b](https://github.com/genai-tools/anygpt/commit/256b61b))
+
+### 📖 Documentation
+
+- add WIP warning banners and config merge documentation ([ca164b9](https://github.com/genai-tools/anygpt/commit/ca164b9))
+
+### 🧱 Updated Dependencies
+
+- Updated mcp-discovery to 0.3.0
+- Updated @anygpt/mcp-logger to 0.3.0
+- Updated config to 3.0.0
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
