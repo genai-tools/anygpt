@@ -118,18 +118,35 @@ export async function updatePR(
   body: string,
   title?: string
 ): Promise<void> {
-  const prBodyPath = '/tmp/release-pr.md';
-  await writeFile(prBodyPath, body, 'utf-8');
-
   console.log(`\n📝 Updating existing PR #${prNumber}...`);
-  const args = ['pr', 'edit', prNumber, '--body-file', prBodyPath];
 
   if (title) {
-    args.push('--title', title);
     console.log(`   Title: "${title}"`);
   }
 
-  await execa('gh', args);
+  // Use gh api instead of gh pr edit to avoid Projects (classic) deprecation error
+  // See: https://github.com/cli/cli/issues/11983
+  const repoName = await getRepoName();
+  const [owner, repo] = repoName.split('/');
+
+  const apiArgs = [
+    'api',
+    '--method',
+    'PATCH',
+    '-H',
+    'Accept: application/vnd.github+json',
+    '-H',
+    'X-GitHub-Api-Version: 2022-11-28',
+    `/repos/${owner}/${repo}/pulls/${prNumber}`,
+    '-f',
+    `body=${body}`,
+  ];
+
+  if (title) {
+    apiArgs.push('-f', `title=${title}`);
+  }
+
+  await execa('gh', apiArgs);
 }
 
 async function checkBranchProtection(
