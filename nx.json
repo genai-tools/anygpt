@@ -77,7 +77,10 @@
         "file": "{projectRoot}/CHANGELOG.md"
       }
     },
-    "version": { "conventionalCommits": true }
+    "version": {
+      "conventionalCommits": true,
+      "fallbackCurrentVersionResolver": "disk"
+    }
   },
   "tui": { "enabled": false },
   "nxCloudId": "68e7b0d56af98686cfff300e"
