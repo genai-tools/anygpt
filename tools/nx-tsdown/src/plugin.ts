@@ -96,6 +96,14 @@ export const createNodesV2: CreateNodesV2 = [
         },
       };
 
+      const cleanNmpTarget = {
+        executor: 'nx:run-commands',
+        options: {
+          command: 'rm -rf node_modules',
+          cwd: projectRoot,
+        },
+      };
+
       return [
         configFile,
         {
@@ -105,6 +113,7 @@ export const createNodesV2: CreateNodesV2 = [
                 build: buildTarget,
                 watch: watchTarget,
                 clean: cleanTarget,
+                clean_npm: cleanNmpTarget,
               },
             },
           },

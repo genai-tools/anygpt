@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "discovery": {
+      "command": "npx",
+      "args": ["@anygpt/mcp-discovery-server"]
+    }
+  }
+}
