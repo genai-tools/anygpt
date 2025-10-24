@@ -185,3 +185,101 @@ export async function getDiffSinceLastRelease(
   );
   return stdout;
 }
+
+/**
+ * Get all existing git tags
+ */
+export async function getAllTags(): Promise<Set<string>> {
+  const { stdout } = await execa('git', ['tag', '--list']);
+  return new Set(stdout.split('\n').filter(Boolean));
+}
+
+/**
+ * Create a git tag at the current commit
+ */
+export async function createTag(
+  tagName: string,
+  message: string
+): Promise<void> {
+  await execa('git', ['tag', '-a', tagName, '-m', message]);
+}
+
+/**
+ * Get package version from package.json
+ */
+async function getPackageVersion(packageRoot: string): Promise<string | null> {
+  try {
+    const { readFile } = await import('node:fs/promises');
+    const packageJsonPath = `${packageRoot}/package.json`;
+    const content = await readFile(packageJsonPath, 'utf-8');
+    const pkg = JSON.parse(content);
+    return pkg.version || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Ensure all packages have initial git tags
+ * This prevents nx release from failing with "No git tags matching pattern" error
+ */
+export async function ensureInitialTags(): Promise<{
+  created: string[];
+  skipped: string[];
+}> {
+  const created: string[] = [];
+  const skipped: string[] = [];
+
+  // Get all existing tags
+  const existingTags = await getAllTags();
+
+  // Get all packages from nx graph
+  const { stdout: graphJson } = await execa('npx', [
+    'nx',
+    'graph',
+    '--print',
+  ]);
+  const graph = JSON.parse(graphJson);
+
+  // Filter to only packages that are part of release
+  const releaseProjects = Object.entries(graph.graph.nodes).filter(
+    ([, node]: [string, unknown]) => {
+      const nodeData = node as { data?: { root?: string } };
+      const root = nodeData.data?.root;
+      if (!root) return false;
+
+      // Match patterns from nx.json release.projects
+      return (
+        (root.startsWith('packages/') ||
+          root.startsWith('packages/connectors/') ||
+          root.startsWith('packages/plugins/')) &&
+        !root.startsWith('e2e/')
+      );
+    }
+  );
+
+  for (const [projectName, node] of releaseProjects) {
+    const nodeData = node as { data: { root: string } };
+    const packageRoot = nodeData.data.root;
+    const version = await getPackageVersion(packageRoot);
+
+    if (!version) {
+      skipped.push(projectName);
+      continue;
+    }
+
+    // Check if tag exists (format: projectName@version)
+    const tagName = `${projectName}@${version}`;
+
+    if (existingTags.has(tagName)) {
+      skipped.push(projectName);
+      continue;
+    }
+
+    // Create initial tag
+    await createTag(tagName, `chore(release): initial tag for ${projectName}`);
+    created.push(tagName);
+  }
+
+  return { created, skipped };
+}

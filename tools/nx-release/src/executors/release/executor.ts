@@ -11,6 +11,7 @@ import {
   getTagsAtCommit,
   pushWithTags,
   getNewTags,
+  ensureInitialTags,
 } from '../../lib/git-operations.js';
 import {
   extractChangelog,
@@ -85,15 +86,26 @@ export default async function runExecutor(
     // Check for existing PR
     const existingPR = await getExistingPR(baseBranch, targetBranch);
 
+    // Ensure all packages have initial tags (prevents "No git tags matching pattern" error)
+    console.log('\n🏷️  Checking for missing package tags...');
+    const { created, skipped } = await ensureInitialTags();
+    if (created.length > 0) {
+      console.log(`✅ Created ${created.length} initial tag(s):`);
+      for (const tag of created) {
+        console.log(`   - ${tag}`);
+      }
+      // Push tags immediately so nx release can see them
+      await pushWithTags(baseBranch);
+    } else {
+      console.log('✅ All packages already have tags');
+    }
+
     // Run nx release (version + changelog + commit + tag)
     console.log('\n📝 Running nx release...');
 
     // Helper function to run nx release and handle errors
-    const runNxRelease = async (firstRelease = false) => {
+    const runNxRelease = async () => {
       const args = ['nx', 'release'];
-      if (firstRelease) {
-        args.push('--first-release');
-      }
       if (skipPublish) {
         args.push('--skip-publish');
       }
@@ -117,17 +129,6 @@ export default async function runExecutor(
             return { handled: true, success: true };
           }
 
-          // Check for missing git tags (new package)
-          if (
-            !firstRelease &&
-            output.includes('No git tags matching pattern')
-          ) {
-            console.log(output); // Show the output
-            console.log('\n⚠️  Detected new package(s) without git tags');
-            console.log('🔄 Retrying with --first-release flag...\n');
-            return { handled: false, retry: true };
-          }
-
           // Other error - show output and throw
           console.log(output);
           throw new Error(
@@ -148,16 +149,9 @@ export default async function runExecutor(
       }
     };
 
-    // Try running nx release
+    // Run nx release
     const result = await runNxRelease();
-
-    // If it needs retry with --first-release, do it
-    if (!result.handled && result.retry) {
-      const retryResult = await runNxRelease(true);
-      if (!retryResult.success) {
-        return { success: false };
-      }
-    } else if (!result.success) {
+    if (!result.success) {
       return { success: false };
     }
 
