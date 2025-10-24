@@ -1,6 +1,7 @@
 {
   "name": "@anygpt/docker-mcp-plugin",
-  "version": "0.0.1",
+  "version": "0.1.0",
+  "private": true,
   "description": "AnyGPT plugin for Docker MCP Gateway integration",
   "type": "module",
   "main": "./dist/index.js",

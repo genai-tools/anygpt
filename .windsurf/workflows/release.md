@@ -1,7 +1,9 @@
 ---
-description: Minimal release procedure
+description: AI-enhanced release procedure with smart PR descriptions
 auto_execution_mode: 3
 ---
+
+> **📚 Detailed Guide**: See `.windsurf/workflows/ai-pr-descriptions.md` for comprehensive documentation on AI-generated PR descriptions.
 
 # Preconditions
 
@@ -41,31 +43,116 @@ auto_execution_mode: 3
 - **Rule**: If this fails, fix the issues before proceeding to release. Do NOT skip this step.
 - **Why**: Reduces failed CI pipelines and ensures the release PR will pass checks
 
-# Step 4 · Release
+# Step 4 · Generate AI-Enhanced PR Description
 
-- **Command**: `npx nx publish`
-- **Goal**: Execute the scripted Nx release and let it push changes.
-- **Rule**: NEVER manually run `nx release` or any other Nx commands directly. The `npx nx publish` command is a custom executor that handles the entire release workflow including PR creation.
+**This is the NEW step that makes PR descriptions amazing\!**
+
+- **Goal**: Generate a comprehensive, well-structured PR description using AI analysis
+- **Process**:
+
+  1. Analyze commits between current branch and target (production)
+  2. Identify package changes, features, breaking changes
+  3. Create structured markdown with sections:
+     - Release overview with stats
+     - Packages being published (new vs updated)
+     - What's new (grouped by package/feature)
+     - Impact analysis (token savings, DX improvements, breaking changes)
+     - Verification checklist
+  4. Save to `tmp/pr-description.md`
+
+- **Template Structure**:
+
+  ```markdown
+  ## 🚀 [Release Type]: [Brief Summary]
+
+  [1-2 sentence overview]
+
+  ### 📊 Release Stats
+
+  - **X commits** merged
+  - **Y packages** being published
+  - **Z files** changed
+
+  ### 📦 Packages to Publish
+
+  #### 🌟 New Packages
+
+  - `@anygpt/package@version` - Description
+
+  #### 🔄 Updated Packages
+
+  - `@anygpt/package@version` - Key changes
+
+  ### 💡 What's New
+
+  #### 🎯 [Feature Name] (version)
+
+  - ✅ Feature 1
+  - ✅ Feature 2
+
+  ### 🎯 Impact
+
+  - **Metric**: Before → After
+  - **DX**: Improvements
+  - **Breaking**: Changes if any
+
+  ### ✅ Verification
+
+  - [x] Checklist items
+  ```
+
+- **File Location**: Always save to `tmp/pr-description.md`
+- **Why This Matters**:
+  - Better communication of changes
+  - Highlights impact and value
+  - Professional presentation
+  - Easy to review and edit before release
+
+# Step 5 · Release with AI Description
+
+- **Command**: `npx nx publish --pr-description-file=tmp/pr-description.md`
+- **Goal**: Execute release with AI-generated PR description
+- **Rule**: NEVER manually run `nx release` or other Nx commands directly
 - **Behavior**:
-  - **With version changes**: Creates release PR with package versions, AI summary, auto-merge enabled
-  - **With unpushed commits (no versions)**: Creates sync PR with date-based title, auto-merge enabled
-  - **No changes at all**: Creates draft PR as placeholder (will be updated on next release)
+  - **With version changes**: Creates release PR with AI description, auto-merge enabled
+  - **With unpushed commits (no versions)**: Creates sync PR with AI description, auto-merge enabled
+  - **No changes at all**: Creates draft PR as placeholder
 - **If it fails**:
-  - Stop immediately and report the error to the user
-  - Do NOT attempt to fix it by running manual commands
-  - Do NOT bypass the release script - it does more than just version bumping
-  - The release script handles: version bumping, changelog generation, git tagging, pushing, PR creation, and auto-merge setup
-  - Let the user decide how to proceed (e.g., whether to use `--first-release` for new packages)
+  - Stop immediately and report the error
+  - Do NOT attempt to fix with manual commands
+  - Let the user decide how to proceed
 
 ## Special Case: New Packages
 
-When releasing a **new package** for the first time, the release script will automatically detect the missing git tags and retry with `--first-release`. You don't need to do anything special - just run `npm run release` as normal.
+When releasing a **new package** for the first time, the release script will automatically detect missing git tags and retry with `--first-release`. The AI description will highlight new packages in a dedicated section.
 
-The script will show:
+# Step 6 · Review and Edit (Optional)
 
+- **File**: `tmp/pr-description.md`
+- **Action**: User can edit the description before or after PR creation
+- **Update Command**: `gh pr edit <number> --body-file tmp/pr-description.md`
+- **Why**: Allows manual refinement while keeping AI-generated structure
+
+---
+
+## Benefits of AI-Enhanced Descriptions
+
+✅ **Better than auto-generated**: AI understands context and impact  
+✅ **Consistent structure**: Professional format every time  
+✅ **Highlights value**: Shows token savings, DX improvements  
+✅ **Easy to edit**: Markdown file can be refined before/after  
+✅ **Reusable**: Keep descriptions for release notes
+
+## Example Commands
+
+```bash
+# Generate description and release
+npx nx publish --pr-description-file=tmp/pr-description.md
+
+# Edit description after PR creation
+vim tmp/pr-description.md
+gh pr edit 16 --body-file tmp/pr-description.md
+
+# Reuse description for another PR
+gh pr edit 20 --body-file tmp/pr-description.md
 ```
-⚠️  Detected new package(s) without git tags
-🔄 Retrying with --first-release flag...
-```
-
-Then it will continue with the full release workflow (PR creation, auto-merge, etc.).

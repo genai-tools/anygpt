@@ -1,4 +1,5 @@
 import { execa } from 'execa';
+import { readFile } from 'node:fs/promises';
 import type { ExecutorContext } from '@nx/devkit';
 import type { ReleaseExecutorSchema } from './schema.js';
 import {
@@ -42,6 +43,7 @@ export default async function runExecutor(
     model,
     autoMerge = true,
     skipPublish = true,
+    prDescriptionFile,
   } = options;
 
   // Override model in aiCommand if model parameter is provided
@@ -247,7 +249,24 @@ export default async function runExecutor(
       if (!existingPR) {
         console.log('📝 Creating PR to production...');
         const prTitle = buildPRTitle([]);
-        const prBody = buildPRBody('', []);
+
+        // Use custom description file if provided, otherwise use default
+        let prBody: string;
+        if (prDescriptionFile) {
+          console.log(
+            `📄 Using custom PR description from: ${prDescriptionFile}`
+          );
+          try {
+            prBody = await readFile(prDescriptionFile, 'utf-8');
+          } catch (error) {
+            console.warn(`⚠️  Failed to read ${prDescriptionFile}:`, error);
+            console.log('   Falling back to default PR body');
+            prBody = buildPRBody('', []);
+          }
+        } else {
+          prBody = buildPRBody('', []);
+        }
+
         const prUrl = await createPR(prTitle, prBody, targetBranch, {
           draft: false,
           headBranch: baseBranch,
@@ -271,8 +290,16 @@ export default async function runExecutor(
         );
 
         // Run pr-update to regenerate AI summary and update PR description
-        console.log('\n🔄 Running pr-update to refresh PR description...');
-        await execa('npx', ['nx', 'pr-update'], { stdio: 'inherit' });
+        // Skip if using custom PR description file
+        if (!prDescriptionFile) {
+          console.log('\n🔄 Running pr-update to refresh PR description...');
+          await execa('npx', ['nx', 'pr-update'], { stdio: 'inherit' });
+        } else {
+          console.log('ℹ️  Using custom PR description - skipping pr-update');
+          // Update PR with custom description
+          const customPrBody = await readFile(prDescriptionFile, 'utf-8');
+          await updatePR(existingPR, customPrBody);
+        }
 
         // Re-enable auto-merge in case it was disabled or PR was reopened
         if (autoMerge) {
@@ -304,8 +331,20 @@ export default async function runExecutor(
     console.log('\n📋 Extracting changelog...');
     await extractChangelog(changelogPatterns);
 
-    // Build PR body with package list
-    const prBody = buildPRBody('', releases);
+    // Build PR body - use custom file if provided, otherwise use default
+    let prBody: string;
+    if (prDescriptionFile) {
+      console.log(`📄 Using custom PR description from: ${prDescriptionFile}`);
+      try {
+        prBody = await readFile(prDescriptionFile, 'utf-8');
+      } catch (error) {
+        console.warn(`⚠️  Failed to read ${prDescriptionFile}:`, error);
+        console.log('   Falling back to default PR body');
+        prBody = buildPRBody('', releases);
+      }
+    } else {
+      prBody = buildPRBody('', releases);
+    }
 
     let prNumber: string;
 
@@ -337,7 +376,8 @@ export default async function runExecutor(
     }
 
     // Now run pr-update to add AI-generated content
-    if (finalAiCommand) {
+    // Skip if using custom PR description file (already has complete content)
+    if (finalAiCommand && !prDescriptionFile) {
       console.log('\n🔄 Running pr-update to add AI-generated content...');
       try {
         await execa('npx', ['nx', 'pr-update'], { stdio: 'inherit' });
@@ -345,6 +385,8 @@ export default async function runExecutor(
         console.warn('⚠️  Failed to generate AI content:', error);
         console.log('   PR created/updated without AI enhancements');
       }
+    } else if (prDescriptionFile) {
+      console.log('ℹ️  Using custom PR description - skipping pr-update');
     }
 
     await openPRInBrowser(prNumber);
