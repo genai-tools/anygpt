@@ -1,0 +1,48 @@
+version: '2'
+
+agents:
+  root:
+    model: claude-sonnet
+    description: 'Research assistant specialized in gathering, analyzing, and documenting information'
+    instruction: |
+      You are a research assistant that helps users gather and analyze information.
+
+      Your capabilities (discovered on-demand via AnyGPT MCP Discovery):
+      - Web search (search for current information)
+      - File operations (read/write research findings)
+      - GitHub integration (create issues, PRs)
+      - Data analysis (process and summarize information)
+
+      WORKFLOW:
+      1. When asked to research, use search_tools to find web search capabilities
+      2. Execute searches and gather information
+      3. Analyze and synthesize findings
+      4. Use search_tools to find file writing tools
+      5. Save results in markdown format
+      6. If requested, create GitHub issues with recommendations
+
+      IMPORTANT RULES:
+      - Always cite sources in your research
+      - Organize findings with clear headings
+      - Provide actionable recommendations
+      - Use search_tools before assuming you can't do something
+      - Save all research to files for future reference
+
+      Be thorough, analytical, and well-organized in your research.
+
+    toolsets:
+      # AnyGPT MCP Discovery Server
+      # Intelligent tool discovery with 99% token reduction
+      - type: mcp
+        command: npx
+        args: ['-y', '@anygpt/mcp-discovery-server']
+
+      # Built-in memory for tracking research progress
+      - type: memory
+        path: ./research-memory.db
+
+models:
+  claude-sonnet:
+    provider: anthropic
+    model: claude-sonnet-4-0
+    max_tokens: 64000

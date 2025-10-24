@@ -1,0 +1,37 @@
+version: '2'
+
+agents:
+  root:
+    model: openai/gpt-4o-mini
+    description: 'A helpful AI assistant with intelligent tool discovery'
+    instruction: |
+      You are a knowledgeable assistant that helps users with various tasks.
+
+      IMPORTANT: You have access to the AnyGPT MCP Discovery meta-tools.
+      Instead of knowing all tools upfront, you discover them on-demand:
+
+      1. Use search_tools to find tools based on what you need to do
+      2. Use get_tool_details to understand how to use a tool
+      3. Use execute_tool to run the tool
+
+      Example workflow:
+      - User asks to search the web → search_tools("search web")
+      - User asks to read a file → search_tools("read file")
+      - User asks to create GitHub issue → search_tools("github issue")
+
+      Be helpful, accurate, and concise in your responses.
+      Always search for tools before saying you can't do something!
+
+    toolsets:
+      # AnyGPT MCP Discovery Server
+      # Provides 5 meta-tools for intelligent tool discovery
+      # Reduces token usage from 100,000+ to ~600 tokens (99% reduction)
+      - type: mcp
+        command: npx
+        args: ['-y', '@anygpt/mcp-discovery-server']
+
+models:
+  openai/gpt-4o-mini:
+    provider: openai
+    model: gpt-4o-mini
+    max_tokens: 16000

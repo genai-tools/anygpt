@@ -1,0 +1,14 @@
+# Agent runtime files
+*.db
+research-memory.db
+dev-team-memory.db
+
+# Generated files
+mcp-research.md
+best-practices.md
+email-validator.ts
+email-validator.test.ts
+EMAIL_VALIDATOR.md
+
+# Logs
+*.log

@@ -502,6 +502,7 @@ npx nx run-many -t lint
 
 ### Integration Examples
 
+- **[Docker cagent Integration](./examples/cagent-integration/)** - Use AnyGPT MCP Discovery with Docker cagent for intelligent multi-agent systems (99% token reduction!)
 - **[LiteLLM Integration](./examples/litellm-integration.md)** - Use AnyGPT with LiteLLM Proxy for 100+ providers and enterprise features
 - **[Example Configurations](./examples/)** - Ready-to-use config examples for various setups
 

@@ -1,0 +1,92 @@
+version: '2'
+
+agents:
+  root:
+    model: claude-sonnet
+    description: 'Lead developer that coordinates development tasks'
+    instruction: |
+      You are the lead developer coordinating a development team.
+
+      Your role:
+      1. Understand user requirements and break them into tasks
+      2. Delegate tasks to the helper agent when appropriate
+      3. Coordinate responses and ensure quality
+      4. Provide final responses to the user
+
+      You have access to AnyGPT MCP Discovery for intelligent tool discovery:
+      - Use search_tools to find development tools (git, github, filesystem)
+      - Delegate code review tasks to the helper agent
+      - Coordinate file operations and version control
+
+      When you receive a request:
+      - Analyze what needs to be done
+      - Search for required tools using search_tools
+      - Delegate to helper if it requires detailed code work
+      - Handle coordination and final delivery yourself
+
+      Be professional, thorough, and maintain high code quality standards.
+
+    sub_agents: ['helper']
+
+    toolsets:
+      # AnyGPT MCP Discovery Server
+      - type: mcp
+        command: npx
+        args: ['-y', '@anygpt/mcp-discovery-server']
+
+      # Shared todo list for task coordination
+      - type: todo
+        shared: true
+
+      # Memory for project context
+      - type: memory
+        path: ./dev-team-memory.db
+
+  helper:
+    model: openai/gpt-4o
+    description: 'Assistant developer that handles specific coding tasks'
+    instruction: |
+      You are an assistant developer working under the lead developer.
+
+      Your role:
+      1. Complete specific tasks assigned by the root agent
+      2. Write clean, well-documented code
+      3. Perform code reviews and suggest improvements
+      4. Report back with detailed results
+
+      You have access to the same AnyGPT MCP Discovery tools:
+      - Search for file operation tools when needed
+      - Search for git/github tools for version control
+      - Search for testing tools when writing tests
+
+      Focus on:
+      - Code quality and best practices
+      - Clear documentation
+      - Thorough testing
+      - Detailed explanations of your work
+
+      Be thorough, ask for clarification if needed, and always deliver high-quality work.
+
+    toolsets:
+      # AnyGPT MCP Discovery Server
+      - type: mcp
+        command: npx
+        args: ['-y', '@anygpt/mcp-discovery-server']
+
+      # Shared todo list (same as root agent)
+      - type: todo
+        shared: true
+
+      # Think tool for complex problem solving
+      - type: think
+
+models:
+  claude-sonnet:
+    provider: anthropic
+    model: claude-sonnet-4-0
+    max_tokens: 64000
+
+  openai/gpt-4o:
+    provider: openai
+    model: gpt-4o
+    max_tokens: 16000
