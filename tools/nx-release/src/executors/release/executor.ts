@@ -317,6 +317,21 @@ export default async function runExecutor(
 
     console.log('\n✅ Version bumps and tags created');
 
+    // Check if nx release left any uncommitted changes (e.g., CHANGELOGs)
+    if (await hasUncommittedChanges()) {
+      console.log('\n📝 Found uncommitted changes after nx release (likely CHANGELOGs)');
+      console.log('   Committing these changes...');
+      
+      // Stage all changes
+      await execa('git', ['add', '-A']);
+      
+      // Commit with a descriptive message
+      const commitMsg = 'chore(release): update changelogs';
+      await execa('git', ['commit', '-m', commitMsg]);
+      
+      console.log('✅ Committed changelog updates');
+    }
+
     // Push to main with tags
     console.log(`📤 Pushing to ${baseBranch} with tags...`);
     await pushWithTags(baseBranch);
