@@ -56,7 +56,12 @@
   },
   "release": {
     "projectsRelationship": "independent",
-    "projects": ["packages/*", "packages/connectors/*", "packages/plugins/*"],
+    "projects": [
+      "packages/*",
+      "packages/connectors/*",
+      "packages/plugins/*",
+      "!e2e/**"
+    ],
     "releaseTagPattern": "{projectName}@{version}",
     "conventionalCommits": {
       "types": {

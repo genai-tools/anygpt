@@ -7,7 +7,7 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@anygpt/docker-mcp-plugin": "0.0.1",
+    "@anygpt/docker-mcp-plugin": "*",
     "@anygpt/types": "*"
   }
 }
