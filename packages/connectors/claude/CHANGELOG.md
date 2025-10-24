@@ -1,3 +1,9 @@
+## 1.2.2 (2025-10-24)
+
+### 🧱 Updated Dependencies
+
+- Updated router to 0.6.1
+
 ## 1.2.1 (2025-10-21)
 
 ### 🩹 Fixes

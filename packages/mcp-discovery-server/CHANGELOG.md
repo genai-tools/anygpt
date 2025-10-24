@@ -1,3 +1,10 @@
+## 0.3.2 (2025-10-24)
+
+### 🧱 Updated Dependencies
+
+- Updated mcp-discovery to 0.3.2
+- Updated config to 3.0.1
+
 ## 0.3.1 (2025-10-21)
 
 ### 🩹 Fixes
