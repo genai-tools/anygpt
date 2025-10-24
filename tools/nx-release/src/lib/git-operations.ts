@@ -220,8 +220,58 @@ async function getPackageVersion(packageRoot: string): Promise<string | null> {
 }
 
 /**
+ * Get release projects from nx.json configuration
+ */
+async function getReleaseProjects(): Promise<string[]> {
+  const { readFile } = await import('node:fs/promises');
+  const nxJsonPath = 'nx.json';
+  const content = await readFile(nxJsonPath, 'utf-8');
+  const nxJson = JSON.parse(content) as {
+    release?: { projects?: string[] };
+  };
+
+  const projectPatterns = nxJson.release?.projects || [];
+
+  // Use nx show projects with patterns from nx.json
+  const allProjects: string[] = [];
+
+  for (const pattern of projectPatterns) {
+    // Skip negation patterns for now, we'll filter them out later
+    if (pattern.startsWith('!')) continue;
+
+    const { stdout } = await execa('npx', [
+      'nx',
+      'show',
+      'projects',
+      '--projects',
+      pattern,
+      '--json',
+    ]);
+    const projects = JSON.parse(stdout) as string[];
+    allProjects.push(...projects);
+  }
+
+  // Apply negation patterns
+  const negationPatterns = projectPatterns
+    .filter((p) => p.startsWith('!'))
+    .map((p) => p.slice(1)); // Remove the '!' prefix
+
+  return allProjects.filter((project) => {
+    // Check if project matches any negation pattern
+    return !negationPatterns.some((pattern) => {
+      // Simple glob matching (e.g., "e2e/**" matches "e2e/something")
+      const regex = new RegExp(
+        '^' + pattern.replace(/\*/g, '.*').replace(/\//g, '\\/') + '$'
+      );
+      return regex.test(project);
+    });
+  });
+}
+
+/**
  * Ensure all packages have initial git tags
  * This prevents nx release from failing with "No git tags matching pattern" error
+ * Reads release.projects from nx.json to determine which projects to tag
  */
 export async function ensureInitialTags(): Promise<{
   created: string[];
@@ -233,7 +283,10 @@ export async function ensureInitialTags(): Promise<{
   // Get all existing tags
   const existingTags = await getAllTags();
 
-  // Get all packages from nx graph
+  // Get release projects from nx.json configuration
+  const releaseProjects = await getReleaseProjects();
+
+  // Get nx graph to get project roots
   const { stdout: graphJson } = await execa('npx', [
     'nx',
     'graph',
@@ -241,26 +294,18 @@ export async function ensureInitialTags(): Promise<{
   ]);
   const graph = JSON.parse(graphJson);
 
-  // Filter to only packages that are part of release
-  const releaseProjects = Object.entries(graph.graph.nodes).filter(
-    ([, node]: [string, unknown]) => {
-      const nodeData = node as { data?: { root?: string } };
-      const root = nodeData.data?.root;
-      if (!root) return false;
+  // Process each release project
+  for (const projectName of releaseProjects) {
+    const nodeData = graph.graph.nodes[projectName] as
+      | { data?: { root?: string } }
+      | undefined;
+    const packageRoot = nodeData?.data?.root;
 
-      // Match patterns from nx.json release.projects
-      return (
-        (root.startsWith('packages/') ||
-          root.startsWith('packages/connectors/') ||
-          root.startsWith('packages/plugins/')) &&
-        !root.startsWith('e2e/')
-      );
+    if (!packageRoot) {
+      skipped.push(projectName);
+      continue;
     }
-  );
 
-  for (const [projectName, node] of releaseProjects) {
-    const nodeData = node as { data: { root: string } };
-    const packageRoot = nodeData.data.root;
     const version = await getPackageVersion(packageRoot);
 
     if (!version) {
