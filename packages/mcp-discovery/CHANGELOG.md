@@ -1,3 +1,11 @@
+## 0.3.2 (2025-10-24)
+
+### 🧱 Updated Dependencies
+
+- Updated config to 3.0.1
+- Updated rules to 0.3.1
+- Updated types to 2.0.1
+
 ## 0.3.1 (2025-10-21)
 
 ### 🩹 Fixes

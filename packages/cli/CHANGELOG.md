@@ -1,3 +1,12 @@
+## 2.0.3 (2025-10-24)
+
+### 🧱 Updated Dependencies
+
+- Updated mcp-discovery to 0.3.2
+- Updated config to 3.0.1
+- Updated router to 0.6.1
+- Updated types to 2.0.1
+
 ## 2.0.2 (2025-10-21)
 
 ### 🩹 Fixes

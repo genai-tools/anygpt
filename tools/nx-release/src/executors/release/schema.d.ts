@@ -10,4 +10,5 @@ export interface ReleaseExecutorSchema {
   autoMerge?: boolean;
   skipPublish?: boolean;
   diffPaths?: string[];
+  prDescriptionFile?: string;
 }

@@ -1,3 +1,13 @@
+## 0.3.1 (2025-10-24)
+
+### 📖 Documentation
+
+- update architecture diagram and add MCP Discovery Server documentation ([6d7d66f](https://github.com/genai-tools/anygpt/commit/6d7d66f))
+
+### ❤️ Thank You
+
+- Petr Plenkov
+
 ## 0.3.0 (2025-10-21)
 
 ### 🚀 Features

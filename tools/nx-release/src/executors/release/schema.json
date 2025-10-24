@@ -18,7 +18,10 @@
     "changelogPatterns": {
       "type": "array",
       "description": "Glob patterns for changelog files",
-      "default": ["packages/*/CHANGELOG.md", "packages/connectors/*/CHANGELOG.md"],
+      "default": [
+        "packages/*/CHANGELOG.md",
+        "packages/connectors/*/CHANGELOG.md"
+      ],
       "items": {
         "type": "string"
       }
@@ -62,6 +65,10 @@
       "items": {
         "type": "string"
       }
+    },
+    "prDescriptionFile": {
+      "type": "string",
+      "description": "Path to a markdown file containing custom PR description. If provided, this will be used instead of the auto-generated description. Example: tmp/pr-description.md"
     }
   },
   "required": []

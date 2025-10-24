@@ -1,4 +1,5 @@
 import { execa } from 'execa';
+import { readFile } from 'node:fs/promises';
 import type { ExecutorContext } from '@nx/devkit';
 import type { ReleaseExecutorSchema } from './schema.js';
 import {
@@ -10,6 +11,7 @@ import {
   getTagsAtCommit,
   pushWithTags,
   getNewTags,
+  ensureInitialTags,
 } from '../../lib/git-operations.js';
 import {
   extractChangelog,
@@ -42,6 +44,7 @@ export default async function runExecutor(
     model,
     autoMerge = true,
     skipPublish = true,
+    prDescriptionFile,
   } = options;
 
   // Override model in aiCommand if model parameter is provided
@@ -83,15 +86,26 @@ export default async function runExecutor(
     // Check for existing PR
     const existingPR = await getExistingPR(baseBranch, targetBranch);
 
+    // Ensure all packages have initial tags (prevents "No git tags matching pattern" error)
+    console.log('\n🏷️  Checking for missing package tags...');
+    const { created, skipped } = await ensureInitialTags();
+    if (created.length > 0) {
+      console.log(`✅ Created ${created.length} initial tag(s):`);
+      for (const tag of created) {
+        console.log(`   - ${tag}`);
+      }
+      // Push tags immediately so nx release can see them
+      await pushWithTags(baseBranch);
+    } else {
+      console.log('✅ All packages already have tags');
+    }
+
     // Run nx release (version + changelog + commit + tag)
     console.log('\n📝 Running nx release...');
 
     // Helper function to run nx release and handle errors
-    const runNxRelease = async (firstRelease = false) => {
+    const runNxRelease = async () => {
       const args = ['nx', 'release'];
-      if (firstRelease) {
-        args.push('--first-release');
-      }
       if (skipPublish) {
         args.push('--skip-publish');
       }
@@ -115,17 +129,6 @@ export default async function runExecutor(
             return { handled: true, success: true };
           }
 
-          // Check for missing git tags (new package)
-          if (
-            !firstRelease &&
-            output.includes('No git tags matching pattern')
-          ) {
-            console.log(output); // Show the output
-            console.log('\n⚠️  Detected new package(s) without git tags');
-            console.log('🔄 Retrying with --first-release flag...\n');
-            return { handled: false, retry: true };
-          }
-
           // Other error - show output and throw
           console.log(output);
           throw new Error(
@@ -146,16 +149,9 @@ export default async function runExecutor(
       }
     };
 
-    // Try running nx release
+    // Run nx release
     const result = await runNxRelease();
-
-    // If it needs retry with --first-release, do it
-    if (!result.handled && result.retry) {
-      const retryResult = await runNxRelease(true);
-      if (!retryResult.success) {
-        return { success: false };
-      }
-    } else if (!result.success) {
+    if (!result.success) {
       return { success: false };
     }
 
@@ -247,7 +243,24 @@ export default async function runExecutor(
       if (!existingPR) {
         console.log('📝 Creating PR to production...');
         const prTitle = buildPRTitle([]);
-        const prBody = buildPRBody('', []);
+
+        // Use custom description file if provided, otherwise use default
+        let prBody: string;
+        if (prDescriptionFile) {
+          console.log(
+            `📄 Using custom PR description from: ${prDescriptionFile}`
+          );
+          try {
+            prBody = await readFile(prDescriptionFile, 'utf-8');
+          } catch (error) {
+            console.warn(`⚠️  Failed to read ${prDescriptionFile}:`, error);
+            console.log('   Falling back to default PR body');
+            prBody = buildPRBody('', []);
+          }
+        } else {
+          prBody = buildPRBody('', []);
+        }
+
         const prUrl = await createPR(prTitle, prBody, targetBranch, {
           draft: false,
           headBranch: baseBranch,
@@ -271,8 +284,16 @@ export default async function runExecutor(
         );
 
         // Run pr-update to regenerate AI summary and update PR description
-        console.log('\n🔄 Running pr-update to refresh PR description...');
-        await execa('npx', ['nx', 'pr-update'], { stdio: 'inherit' });
+        // Skip if using custom PR description file
+        if (!prDescriptionFile) {
+          console.log('\n🔄 Running pr-update to refresh PR description...');
+          await execa('npx', ['nx', 'pr-update'], { stdio: 'inherit' });
+        } else {
+          console.log('ℹ️  Using custom PR description - skipping pr-update');
+          // Update PR with custom description
+          const customPrBody = await readFile(prDescriptionFile, 'utf-8');
+          await updatePR(existingPR, customPrBody);
+        }
 
         // Re-enable auto-merge in case it was disabled or PR was reopened
         if (autoMerge) {
@@ -290,6 +311,21 @@ export default async function runExecutor(
 
     console.log('\n✅ Version bumps and tags created');
 
+    // Check if nx release left any uncommitted changes (e.g., CHANGELOGs)
+    if (await hasUncommittedChanges()) {
+      console.log('\n📝 Found uncommitted changes after nx release (likely CHANGELOGs)');
+      console.log('   Committing these changes...');
+      
+      // Stage all changes
+      await execa('git', ['add', '-A']);
+      
+      // Commit with a descriptive message
+      const commitMsg = 'chore(release): update changelogs';
+      await execa('git', ['commit', '-m', commitMsg]);
+      
+      console.log('✅ Committed changelog updates');
+    }
+
     // Push to main with tags
     console.log(`📤 Pushing to ${baseBranch} with tags...`);
     await pushWithTags(baseBranch);
@@ -304,8 +340,20 @@ export default async function runExecutor(
     console.log('\n📋 Extracting changelog...');
     await extractChangelog(changelogPatterns);
 
-    // Build PR body with package list
-    const prBody = buildPRBody('', releases);
+    // Build PR body - use custom file if provided, otherwise use default
+    let prBody: string;
+    if (prDescriptionFile) {
+      console.log(`📄 Using custom PR description from: ${prDescriptionFile}`);
+      try {
+        prBody = await readFile(prDescriptionFile, 'utf-8');
+      } catch (error) {
+        console.warn(`⚠️  Failed to read ${prDescriptionFile}:`, error);
+        console.log('   Falling back to default PR body');
+        prBody = buildPRBody('', releases);
+      }
+    } else {
+      prBody = buildPRBody('', releases);
+    }
 
     let prNumber: string;
 
@@ -337,7 +385,8 @@ export default async function runExecutor(
     }
 
     // Now run pr-update to add AI-generated content
-    if (finalAiCommand) {
+    // Skip if using custom PR description file (already has complete content)
+    if (finalAiCommand && !prDescriptionFile) {
       console.log('\n🔄 Running pr-update to add AI-generated content...');
       try {
         await execa('npx', ['nx', 'pr-update'], { stdio: 'inherit' });
@@ -345,6 +394,8 @@ export default async function runExecutor(
         console.warn('⚠️  Failed to generate AI content:', error);
         console.log('   PR created/updated without AI enhancements');
       }
+    } else if (prDescriptionFile) {
+      console.log('ℹ️  Using custom PR description - skipping pr-update');
     }
 
     await openPRInBrowser(prNumber);
