@@ -38,7 +38,7 @@ export async function hasUnpushedCommits(branch: string): Promise<boolean> {
 }
 
 export async function pullLatest(branch: string): Promise<void> {
-  await execa('git', ['pull', '--rebase', 'origin', branch], {
+  await execa('git', ['pull', 'origin', branch], {
     stdio: 'inherit',
   });
 }
